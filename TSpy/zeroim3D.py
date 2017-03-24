@@ -1,0 +1,33 @@
+import sys
+import brukerPAR
+from os.path import getsize 
+from os import system as execute
+
+def get_os_version():
+    ver = sys.platform.lower()
+    if ver.startswith('java'):
+        import java.lang
+        ver = java.lang.System.getProperty("os.name").lower()
+    return ver
+
+OS=get_os_version()
+
+dt=CURDATA()
+dat=brukerPAR.dataset(dt)
+fn3iii=dat.returnprocpath()+"/3iii"
+
+try :
+    sz3iii=getsize(fn3iii)
+except : 
+    MSG("No file 3iii" )
+    EXIT()
+
+if OS.startswith('mac') or OS.startswith('linux'):
+    # for Linux with wine
+    CMD="dd if=/dev/zero of=%s bs=%d count=1" % (fn3iii,sz3iii)
+else:
+    # for windows using topspin cygwin setup
+    CMD="to be defined"
+    MSG("not implemented for Windows yet"
+    EXIT()
+execute(CMD)
