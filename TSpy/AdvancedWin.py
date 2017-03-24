@@ -1,14 +1,15 @@
 # Simple GUI example
 from javax.swing import *
 from java.awt import *
-import optparse
+# import optparse
 
 import sys
 
 ## does summation of echoes using external python script
-import sys
+#import sys
 import os
 import os.path
+import subprocess
 
 """
 import argparse
@@ -24,7 +25,7 @@ parser.add_argument('infile',help='Full path of the dataset to process')
 #installation directory is relative to current script location
 DIRINST=os.path.dirname(sys.argv[0])+"/../"
 # where is the external python executable
-CPYTHON=os.getenv('CPYTHON')
+CPYTHON=os.getenv('CPYTHON',"NotDefined")
 if "python" not in CPYTHON:
 		MSG("CPYTHON environment not defined")
 		EXIT()
@@ -50,31 +51,30 @@ PUTPAR("USERP1",GB)
 print cycle
 # special treatment for topspin<3
 def fullpath(dataset):
-	dat=dataset[:] # make a copy because I don't want to modify the original array
-	if len(dat)==5: # for topspin 2-
-	        dat[3]="%s/data/%s/nmr" % (dat[3],dat[4])
-	fulldata="%s/%s/%s/pdata/%s/" % (dat[3],dat[0],dat[1],dat[2])
-	return fulldata
-fulldataPATH=fullpath(dataset)
-
-
+    dat=dataset[:] # make a copy because I don't want to modify the original array
+    if len(dat)==5: # for topspin 2-
+        dat[3]="%s/data/%s/nmr" % (dat[3],dat[4])
+    fulldata="%s/%s/%s/pdata/%s/" % (dat[3],dat[0],dat[1],dat[2])
+    return fulldata
 
 def canceled(event):
 	frame0.dispose()
 
 def validated(event):
-	(GB,LB,N,cycle)= [JTFgb.getText(),JTFlb.getText(),JTFslope.getText(),JTFcycle.getText()]
-	
-	opt_args=" -g %s -l %s -n %s -c %s" % (GB,LB,N,cycle)
-	if echoB.isSelected():
-			opt_args+=" -o "
-	if aechoB.isSelected():
-			opt_args+=" -e "
-	script=os.path.expanduser(DIRINST+"/CpyBin/qcpmgadd_.py")
-	os.system(" ".join((CPYTHON,script,opt_args,fulldataPATH)))
-	frame0.dispose()
-	EXEC_PYSCRIPT("RE_PATH('%s')"%(fulldataPATH,))
+    (GB,LB,N,cycle)= [JTFgb.getText(),JTFlb.getText(),
+                      JTFslope.getText(),JTFcycle.getText()]
+    opt_args=" -g %s -l %s -n %s -c %s" % (GB,LB,N,cycle)
+    if echoB.isSelected():
+        opt_args+=" -o "
+    if aechoB.isSelected():
+        opt_args+=" -e "
+    script=os.path.expanduser(DIRINST+"/CpyBin/qcpmgadd_.py")
+    #	os.system(" ".join((CPYTHON,script,opt_args,fulldataPATH)))
+    subprocess.call([CPYTHON]+[script]+opt_args.split()+[fulldataPATH])
+    frame0.dispose()
+    EXEC_PYSCRIPT("RE_PATH('%s')"%(fulldataPATH,))
 
+fulldataPATH=fullpath(dataset)
 
 """
 JLabel("GB:")  
@@ -87,8 +87,6 @@ button_OK
 button_CANCEL
 button_HELP
 """
-
-
 
 # defined a frame with 2 buttons
 Lgb=JLabel("GB", SwingConstants.RIGHT)
