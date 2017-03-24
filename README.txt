@@ -1,4 +1,5 @@
-JTutils is a set of python scripts that enhance processing capabilites of Topspin
+JTutils is a set of python scripts that enhance processing capabilites of 
+Topspin
 
 WARNING : use of these script WILL CORRUPT your Bruker data :
     not MD5 signature of files is done
@@ -7,7 +8,8 @@ The script will modify in place fid, ser, acqu(123)(s), 1r, 2rr etc... files
 
 JTutils sets of script comprises:
 	JTutils/TSpy : contains the python scripts run under Topspin environment
-	JTutils/CpyBin : contains C python scritps usually called from TSpy scripts
+	JTutils/CpyBin : contains C python scritps usually called from TSpy
+                     scripts
 	JTutils/CpyLib : contains python libraries to deal with Bruker data
 
 Tested with python 2.4
@@ -38,11 +40,11 @@ array
 INSTALLATION
 1) Copy all folder JTutils to destination directory DESTDIR
 
-2) In Topspin preferences, set [DESTDIR]/JTutils/TSpy as scanned directory for 
-   python script
+2) In Topspin preferences, set [DESTDIR]/JTutils/TSpy as scanned directory
+   for python script
 
-3) Install a working python + numpy environment (tested with anaconda on MacOSX 
-   and windows)
+3) Install a working python + numpy environment (tested with anaconda on 
+   MacOSX and windows)
 
 4) Update the environment variables to define:
      CPYTHON : path to the C python exe to run the JTutils/CpyBin scripts
