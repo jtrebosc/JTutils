@@ -1338,23 +1338,29 @@ class dataset:
         Write a 1D processed datafile
         Files writen are 1r 1i
         """
+        s1=spect1.copy()  # make copy in case spect1 and 2 refer to same object
+        s2=spect2.copy()
         from math import log as ln
         from math import ceil
         f1 = self.returnprocpath() + "1r"
         f2 = self.returnprocpath() + "1i"
         # calculates NC_proc to use maximum dynamics on signed 32 bits int
-        MAX = n.max(n.absolute(spect1+1j*spect2))
+        MAX = n.max(n.absolute(s1+1j*s2))
         if MAX < 0.1:
             NC = 0
         else:
             NC = int(ceil(ln(MAX)/ln(2)))-29
         print "NC=%d max=%f" % (NC, MAX)
-        (si, ) = spect1.shape
-        spect1 /= 2**NC
-        spect2 /= 2**NC
+        (si, ) = s1.shape
+        print s1
+        print 2**NC
+        print s1/(2**NC)
+        s1 *= 1./(2**NC)
+        s2 *= 1./(2**NC)
 
-        spect1.astype(self.dtypeP).tofile(f1)
-        spect2.astype(self.dtypeP).tofile(f2)
+        print s1
+        s1.astype(self.dtypeP).tofile(f1)
+        s2.astype(self.dtypeP).tofile(f2)
         # write some parameters related to spect arrays used by topspin
         self.writeprocpar("NC_proc", str(NC), True)
         # not sure whether to change si and of not
@@ -1363,8 +1369,8 @@ class dataset:
         # topspin uses this parameter to scale display to full amplitude:
         # note it is using the int value not the absolute (int*2^NC_proc)
         # this may not be true for topspin 3.0...
-        maxSpect = spect1.max()
-        minSpect = spect1.min()
+        maxSpect = s1.max()
+        minSpect = s1.min()
         self.writeprocpar("YMAX_p", str(maxSpect), True)
         self.writeprocpar("YMIN_p", str(minSpect), True)
         return
