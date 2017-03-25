@@ -3,6 +3,7 @@
 import sys
 import os
 import os.path
+import subprocess
 
 #installation directory is relative to current script location
 DIRINST=os.path.dirname(sys.argv[0])+"/../"
@@ -38,5 +39,7 @@ fulldataPATH=fullpath(dataset)
 opt_args=" -g %s -l %s -s %s" % (GB,"0",s)
 
 script=os.path.expanduser(DIRINST+"/CpyBin/apod2DEAE_.py")
-os.system(" ".join((CPYTHON,script,opt_args,fulldataPATH)))
+# os.system(" ".join((CPYTHON,script,opt_args,fulldataPATH)))
+subprocess.call([CPYTHON]+[script]+opt_args.split()+[fulldataPATH])    
+
 RE(dataset)

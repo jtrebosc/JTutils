@@ -2,6 +2,7 @@
 import sys
 import os
 import os.path
+import subprocess
 
 #installation directory is relative to current script location
 DIRINST=os.path.dirname(sys.argv[0])+"/../"
@@ -36,7 +37,9 @@ RSR("1",procno=destproc,show="n")
 
 script=os.path.expanduser(DIRINST+"/CpyBin/stack2D_.py")
 print " ".join((CPYTHON,script,fulld2d,fulld1d))
-os.system(" ".join((CPYTHON,script,fulld2d,fulld1d)))
+# os.system(" ".join((CPYTHON,script,fulld2d,fulld1d)))
+subprocess.call([CPYTHON]+[script]+[fulld2d]+[fulld1d])    
+
 if showRES=='y':
 	NEWWIN()
 	RE(data1d)

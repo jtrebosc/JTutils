@@ -9,6 +9,7 @@ import sys
 import sys
 import os
 import os.path
+import subprocess
 
 """
 import argparse
@@ -70,7 +71,8 @@ def validated(event):
 	if aechoB.isSelected():
 			opt_args+=" -e "
 	script=os.path.expanduser(DIRINST+"/CpyBin/qcpmgadd2D_.py")
-	os.system(" ".join((CPYTHON,script,opt_args,fulldataPATH)))
+    #  os.system(" ".join((CPYTHON,script,opt_args,fulldataPATH)))
+    subprocess.call([CPYTHON]+[script]+opt_args.split()+[fulldataPATH])    
 	frame0.dispose()
 	EXEC_PYSCRIPT("RE_PATH('%s')"%(fulldataPATH,))
 	#PUTPAR("LB",LB)

@@ -2,8 +2,9 @@
 import sys
 import os
 import os.path
+import subprocess
 
-#installation directory is relative to current script location
+# installation directory is relative to current script location
 DIRINST=os.path.dirname(sys.argv[0])+"/../"
 # where is the external python executable
 CPYTHON=os.getenv('CPYTHON')
@@ -24,7 +25,9 @@ if len(d1d)==5: # for topspin 2-
 fulld1d="%s/%s/%s/pdata/%s/" % (d1d[3],d1d[0],d1d[1],d1d[2])
 
 script=DIRINST+"CpyBin/RedFrac1D_.py"
-os.system(" ".join((CPYTHON,script,fulld1d,optns," -t 20 ")))
+# os.system(" ".join((CPYTHON,script,fulld1d,optns," -t 20 ")))
+subprocess.call([CPYTHON]+[script]+[fulld1d]+optns.split()+["-t","20"])
+
 
 RE(data1d)
 

@@ -3,6 +3,7 @@
 import sys
 import os
 import os.path
+import subprocess
 
 """
 import argparse
@@ -15,14 +16,14 @@ parser.add_argument('-c',type=float, help='qcpmg cycle in us')
 parser.add_argument('infile',help='Full path of the dataset to process')
 """
 
-#installation directory is relative to current script location
+# installation directory is relative to current script location
 DIRINST=os.path.dirname(sys.argv[0])+"/../"
 # where is the external python executable
 CPYTHON=os.getenv('CPYTHON')
 if "python" not in CPYTHON:
 		MSG("CPYTHON environment not defined")
 		EXIT()
-#MSG(CPYTHON)
+# MSG(CPYTHON)
 
 
 dataset=CURDATA()
@@ -30,8 +31,8 @@ N=str(1+int(GETPARSTAT("L 22")))
 LB=GETPAR("LB")
 GB=GETPAR("USERP1")
 cycle=float(GETPARSTAT("P 60"))
-if cycle < 1: # P60 is not likely to have stored the cycle time then uses historic calculation
-    # historic qcpmg.jt cycle calculation
+if cycle < 1:  
+    # P60 is not likely to have stored the cycle time then uses historic calculation
     D3=float(GETPARSTAT("D 3"))*1e6
     D6=float(GETPARSTAT("D 6"))*1e6
     P4=float(GETPARSTAT("P 4"))
@@ -58,5 +59,7 @@ fulldataPATH=fullpath(dataset)
 opt_args=" -g %s -l %s -n %s -c %s" % (GB,LB,N,cycle)
 
 script=os.path.expanduser(DIRINST+"/CpyBin/qcpmgadd_.py")
-os.system(" ".join((CPYTHON,script,opt_args,fulldataPATH)))
+# os.system(" ".join((CPYTHON,script,opt_args,fulldataPATH)))
+subprocess.call([CPYTHON]+[script]+opt_args.split()+[fulldataPATH])    
+
 RE(dataset)

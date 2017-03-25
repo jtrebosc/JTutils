@@ -3,11 +3,11 @@ import sys
 import os
 import os.path
 
-#installation directory is relative to current script location
-DIRINST=os.path.dirname(sys.argv[0])+"/../"
+# installation directory is relative to current script location
+# DIRINST=os.path.dirname(sys.argv[0])+"/../"
 # where is the external python executable
-CPYTHON=os.getenv('CPYTHON')
-
+# CPYTHON=os.getenv('CPYTHON')
+DST=CURDATA()
 if len(sys.argv)<4:
 	MSG("usage mkax first_step step_incr n_step [ax_unit]")
 	EXIT()
@@ -26,3 +26,4 @@ PUTPAR("1s AXLEFT",str(axleft))
 PUTPAR("1s AXRIGHT",str(axright))
 if axunit:
 	PUTPAR("1s AXUNIT",axunit)
+RE(DST)

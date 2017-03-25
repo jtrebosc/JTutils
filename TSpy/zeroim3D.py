@@ -2,6 +2,7 @@ import sys
 import brukerPAR
 from os.path import getsize 
 from os import system as execute
+import subprocess
 
 def get_os_version():
     ver = sys.platform.lower()
@@ -30,4 +31,6 @@ else:
     CMD="to be defined"
     MSG("not implemented for Windows yet"
     EXIT()
-execute(CMD)
+# execute(CMD)
+subprocess.call(CMD.split())
+
