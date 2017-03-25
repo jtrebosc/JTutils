@@ -22,9 +22,9 @@ threshold=float(args.threshold)
 order=args.order
 dat=bruker.dataset(bruker.splitprocpath(infile))
 spect=dat.readspect1d()
-print spect.shape
+# print("spectrum shape is ",spect.shape)
 (si2,)=spect.shape
-print si2
+# print("si2=%d" % (si2,))
 spect=spect.reshape(si2/2,2)
 if order=='0':
 	S0=spect[:,0]
@@ -40,8 +40,8 @@ for i in n.arange(si2/2):
 		   S[i]=threshold*10
 		
 Frac=(S0-S)/S0
-print S
-print S0
-print Frac
+# print "S=",S
+# print "S0=",S0
+# print "Frac=",Frac
 dat.writespect1dri(Frac,Frac)
 
