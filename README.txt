@@ -54,8 +54,13 @@ Details about step 4)
 
 On Linux : 
 add the lines to your ~/.bash_profile (if running bash)
-export PYTHONPATH=[DESTDIR]/JTutils/CpyLib/
-export CPYTHON=[PATH_TO_PYTHON_EXE] (e.g. /usr/bin/python)
+DIRINSTALL=your_path_to_JTutils
+if [ -z "$PYTHONPATH" ] ; then
+    export PYTHONPATH=$DIRINSTALL/JTutils/CpyLib
+elif [ -z $(echo $PYTHONPATH | grep "$DIRINSTALL/JTutils/CpyLib") ] ; then
+    export PYTHONPATH=${PYTHONPATH}:$DIRINSTALL/JTutils/CpyLib
+fi
+export CPYTHON="PATH_TO_PYTHON_EXE"    # (e.g. /usr/bin/python)
 
 
 On MacOSX:
