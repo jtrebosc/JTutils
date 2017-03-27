@@ -241,7 +241,7 @@ dat.writespect2d(r2, name="2ir", dType="tt")
 # set all optionnal processing parameters to 0
 ProcOptions = {"WDW": ["LB", "GB", "SSB", "TM1", "TM2"],
                "PH_mod": ["PHC0", "PHC1"], "BC_mod": ["BCFW", "COROFFS"],
-               "ME_mod": ["NCOEF", "LPBIN", "TDoff"], "FT_mod": ["FTSIZE"]}
+               "ME_mod": ["NCOEF", "LPBIN", "TDoff"], "FT_mod": ["FTSIZE", "MC2"]}
 for dim in [1, 2]:
     for par in ProcOptions.keys():
         dat.writeprocpar(par, "0", True, dimension=dim)
