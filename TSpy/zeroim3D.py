@@ -1,7 +1,7 @@
 import sys
 import brukerPAR
 from os.path import getsize 
-from os import system as execute
+# from os import system as execute
 import subprocess
 
 def get_os_version():

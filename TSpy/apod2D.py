@@ -3,8 +3,9 @@
 import sys
 import os
 import os.path
+import subprocess
 
-#istallation directory is relative to current script location
+# installation directory is relative to current script location
 DIRINST=os.path.dirname(sys.argv[0])+"/../"
 CPYTHON=os.getenv('CPYTHON')
 
@@ -37,5 +38,6 @@ fulldataPATH=fullpath(dataset)
 opt_args=" -g %s -l %s -s %s" % (GB,"0",s)
 
 script=os.path.expanduser(DIRINST+"/CpyBin/apod2D_.py")
-os.system(" ".join((CPYTHON,script,opt_args,fulldataPATH)))
+# os.system(" ".join((CPYTHON,script,opt_args,fulldataPATH)))
+subprocess.call([CPYTHON]+[script]+opt_args.split()+[fulldataPATH])
 RE(dataset)

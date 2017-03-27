@@ -2,6 +2,7 @@
 import sys
 import os
 import os.path
+import subprocess
 
 #installation directory is relative to current script location
 DIRINST=os.path.dirname(sys.argv[0])+"/../"
@@ -24,4 +25,5 @@ fulld2d="%s/%s/%s/pdata/%s/" % (d2d[3],d2d[0],d2d[1],d2d[2])
 
 script=DIRINST+"CpyBin/RedFrac2D_.py"
 os.system(" ".join((CPYTHON,script,fulld2d,optns)))
+subprocess.call([CPYTHON]+[script]+[fulld2d]+sys.argv[1:])
 RE(data2d)
