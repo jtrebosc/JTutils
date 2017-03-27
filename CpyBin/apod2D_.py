@@ -44,6 +44,7 @@ print (td1,td2c)
 dw2=1.0/float(dat.readacqpar("SW_h",status=True,dimension=1))
 dw1=1.0/float(dat.readacqpar("SW_h",status=True,dimension=2))
 
+# TODO : remove this part. Keep in same acquisition format
 # reshape 2D ser file into 3D array of shape (2,td1/2,td2c) and convert to hypercomplex States format 
 mode=0
 if   (dat.readacqpar("FnMODE",status=True,dimension=2)=='6') : summed=bruker.serc2DEAE2HC(serfile) # echo/antiEcho
@@ -53,13 +54,13 @@ elif (dat.readacqpar("FnMODE",status=True,dimension=2)=='3') : mode=2 # TPPI
 elif (dat.readacqpar("FnMODE",status=True,dimension=2)=='2') : mode=2 # QSEQ (obsolete)
 elif (dat.readacqpar("FnMODE",status=True,dimension=2)=='1') : mode=2 # QF
 elif (dat.readacqpar("FnMODE",status=True,dimension=2)=='0') :  # undefined then reads procpar
-	if   (dat.readprocpar("FnMODE",status=False,dimension=2)=='6') : summed=bruker.serc2DEAE2HC(serfile) # echo/antiEcho
+	if   (dat.readprocpar("MC2",status=False,dimension=2)=='6') : summed=bruker.serc2DEAE2HC(serfile) # echo/antiEcho
 	#elif (dat.readprocpar("FnMODE",status=False,dimension=2)=='5') : summed=bruker.ser2DStates2HC(serfile) # States-TPPI
-	elif (dat.readprocpar("FnMODE",status=False,dimension=2)=='5') : summed=bruker.serc2DStatesTppi2HC(serfile) # States-TPPI
-	elif (dat.readprocpar("FnMODE",status=False,dimension=2)=='4') : summed=bruker.serc2DStates2HC(serfile) # States
-	elif (dat.readprocpar("FnMODE",status=False,dimension=2)=='3') : mode=2 # TPPI
-	elif (dat.readprocpar("FnMODE",status=False,dimension=2)=='2') : mode=2 # QSEQ (obsolete)
-	elif (dat.readprocpar("FnMODE",status=False,dimension=2)=='1') : mode=2 # QF
+	elif (dat.readprocpar("MC2",status=False,dimension=2)=='5') : summed=bruker.serc2DStatesTppi2HC(serfile) # States-TPPI
+	elif (dat.readprocpar("MC2",status=False,dimension=2)=='4') : summed=bruker.serc2DStates2HC(serfile) # States
+	elif (dat.readprocpar("MC2",status=False,dimension=2)=='3') : mode=2 # TPPI
+	elif (dat.readprocpar("MC2",status=False,dimension=2)=='2') : mode=2 # QSEQ (obsolete)
+	elif (dat.readprocpar("MC2",status=False,dimension=2)=='1') : mode=2 # QF
 
 # create a gaussian apodization function in time domain
 # time : exp(-(at)**2) --FT-->  frequency : exp(-(f/2a)**2) with width at half maximum GB = a/pi * 2*sqrt(ln(2))
@@ -110,36 +111,24 @@ SI2=int(dat.readprocpar("SI",False,1))
 SI1=int(dat.readprocpar("SI",False,2))
 rr=numpy.pad(rr,((0,SI1-td1/2),(0,SI2-td2c)),'constant')
 ri=numpy.pad(ri,((0,SI1-td1/2),(0,SI2-td2c)),'constant')
+
+# set all optionnal processing parameters to 0
+ProcOptions = {"WDW": ["LB", "GB", "SSB", "TM1", "TM2"],
+               "PH_mod": ["PHC0", "PHC1"], "BC_mod": ["BCFW", "COROFFS"],
+               "ME_mod": ["NCOEF", "LPBIN", "TDoff"], "FT_mod": ["FTSIZE"]}
+for dim in [1, 2]:
+    for par in ProcOptions.keys():
+        dat.writeprocpar(par, "0", True, dimension=dim)
+        for opt in ProcOptions[par]:
+            dat.writeprocpar(opt, "0", True, dimension=dim)
+
 # ecrit les fichiers 2rr 2ri 2ir 2ii
 dat.writespect2d(rr.real,"2rr","tt")
 dat.writespect2d(rr.imag,"2ir","tt")
-dat.writespect2d(ri.real,"2ri","tt")
-dat.writespect2d(ri.imag,"2ii","tt")
 
-# write some status processed parameters in procs file so topspin can display 
-# and process the data properly
-dat.writeprocpar("LB","0",status=True)
-dat.writeprocpar("LB","0",status=True,dimension=2)
-dat.writeprocpar("WDW","0",status=True,dimension=1)
-dat.writeprocpar("WDW","0",status=True,dimension=2)
-dat.writeprocpar("PKNL","no",status=True)
-dat.writeprocpar("PH_mod","0",status=True)
-dat.writeprocpar("PH_mod","0",status=True,dimension=2)
-dat.writeprocpar("PHC0","0",status=True)
-dat.writeprocpar("PHC1","0",status=True)
-dat.writeprocpar("PHC0","0",status=True,dimension=2)
-dat.writeprocpar("PHC1","0",status=True,dimension=2)
-dat.writeprocpar("FTSIZE",str(SI2),status=True)
-dat.writeprocpar("FTSIZE",str(SI1),status=True,dimension=2)
-
-# there is the main trick for topspin to understand data for further processing 
-# we stored time domain data in 2rr,2ri,2ir,2ii files in States mode 
-# therefore we need the status processed data to be (see xfb in bruker procref.pdf manual) :
-dat.writeprocpar("FT_mod","2",status=True)              # iqc
-dat.writeprocpar("FT_mod","2",status=True,dimension=2)  # iqc
-dat.writeprocpar("MC2","3",True,2)                      # States
-
-dat.writeprocpar("AXUNIT","s",status=True)
+dat.writeprocpar("WDW","2",status=True)
+dat.writeprocpar("LB",str(-args.gb),status=True)
+dat.writeprocpar("GB","0",status=True)
 dat.writeprocpar("AXUNIT","s",status=True,dimension=2)
 dat.writeprocpar("AXRIGHT",str(SI2*dw2),status=True)
 dat.writeprocpar("AXRIGHT",str(SI1*dw1),status=True,dimension=2)
