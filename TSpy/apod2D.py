@@ -13,19 +13,20 @@ dataset=CURDATA()
 LB=GETPAR("1 LB")
 GB=GETPAR("LB")
 s=GETPAR("USERP1")
+c=GETPAR("USERP2")
 
 res=INPUT_DIALOG("processing parameters", 
   """
   please provide  :
      the gaussian broadening (GB) applyied
      the slope for the gaussian center shift (1 for SQSQ or 2 for DQSQ for example).
-     
-     Should be followed by xf2;xf1 (not xfb as some bug may arise related to F1 apodization)
+     the center of gaussian or lorentzian in time excluding digital filter delay
      """, 
-     ["GB=","slope"],[GB,s])
-(GB,s)=(res[0],res[1])
+     ["GB=","slope=","center (usec)="],[GB,s,c])
+(GB,s,c)=(res[0],res[1],res[2])
 PUTPAR("LB",GB)
 PUTPAR("USERP1",s)
+PUTPAR("USERP2",c)
 
 # special treatment for topspin<3
 def fullpath(dataset):
@@ -35,7 +36,7 @@ def fullpath(dataset):
 	fulldata="%s/%s/%s/pdata/%s/" % (dat[3],dat[0],dat[1],dat[2])
 	return fulldata
 fulldataPATH=fullpath(dataset)
-opt_args=" -g %s -l %s -s %s" % (GB,"0",s)
+opt_args=" -g %s -l %s -s %s -c %s" % (GB,"0",s,c)
 
 script=os.path.expanduser(DIRINST+"/CpyBin/apod2D_.py")
 # os.system(" ".join((CPYTHON,script,opt_args,fulldataPATH)))

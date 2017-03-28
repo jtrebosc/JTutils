@@ -3,133 +3,159 @@
 # copyright Julien TREBOSC 2012-2013
 # check that variable PYTHONPATH points to the right folder for bruker.py library
 
+from __future__ import division
 
 Descript="""
 OK so what is this program doing exactly ?
-Not much : it reads 2D SER file. Turn it into Hypercomplex data and applies apodisation on the t2 time domain.
+Not much : it reads 2D SER file. Applies apodisation on the t2 time domain.
 apodisation is a gaussian whose center follows the slope : t2=+-s*t1.
 It writes back into topspin  format for further processing.
-One question is how topsin determine the data format storage:
-once processed data are at least stored in 2 files with reals and imaginaries.
-son one always find 2rr and 2ii or 2ir at least
 """
 
 import numpy
 import sys
 import bruker
-import math
 
-def showser(ser):
-    import matplotlib.pyplot as p
-    p.imshow(ser)
-    p.show()
+#def showser(ser):
+#    import matplotlib.pyplot as p
+#    p.imshow(ser)
+#    p.show()
 
 # manage arguments
 import argparse
-parser = argparse.ArgumentParser(description='Read Ser file and apply 2D apodisation (LB along t1 and GB along F2. GB is centered at t2=s*t1')
-parser.add_argument('-l','--lb',type=float, help='Lorentzian broadening (Hz) applied along F1',default=0)
-parser.add_argument('-g','--gb',type=float, help='Gaussian broadening (Hz) applied along t2 centered at t2=s*t1',default=0)
-parser.add_argument('-s',type=float, help='s=t2/t1 slope to follow for GB center')
-parser.add_argument('infile',help='Full path of the dataset to process')
+parser = argparse.ArgumentParser(description='Read Ser file and apply 2D apodisation (LB along t1 and GB along F2. GB is centered at t2=s*t1+c')
+parser.add_argument('-l', '--lb', type=float,  help='Lorentzian broadening (Hz FWHM) applied along F1', default=0)
+parser.add_argument('-g', '--gb', type=float,  help='Gaussian broadening (Hz FWHM) applied along t2 centered at t2=s*t1+c', default=0)
+parser.add_argument('-s', type=float,  help='s=t2/t1 slope to follow for GB center', default=0)
+parser.add_argument('-c', type=float,  help='initial center position (at row 0) in us excluding digital filter delay', default=0)
+parser.add_argument('infile', help='Full path of the dataset to process')
 
-args=parser.parse_args()
+args = parser.parse_args()
 #print bruker.splitprocpath(infile)
-dat=bruker.dataset(bruker.splitprocpath(args.infile))
+dat = bruker.dataset(bruker.splitprocpath(args.infile))
 
 # read ser file and correct automatically for digital filter
-serfile=dat.readserc()
-(td1,td2c)=serfile.shape
-print (td1,td2c)
+serfile = dat.readserc(rmGRPDLY=False)
 
-dw2=1.0/float(dat.readacqpar("SW_h",status=True,dimension=1))
-dw1=1.0/float(dat.readacqpar("SW_h",status=True,dimension=2))
+# calculates useful boudaries from TDeff and SI
+(td1, td2c) = serfile.shape
+print "td1=%d, td2c=%d" % (td1, td2c)
+tdeff2 = int(dat.readprocpar("TDeff", status=False, dimension=1))
+tdeff1 = int(dat.readprocpar("TDeff", status=False, dimension=2))
+SI2 = int(dat.readprocpar("SI", False, 1))
+SI1 = int(dat.readprocpar("SI", False, 2))
+if 0 < tdeff1 and tdeff1 < td1:
+    td1 = tdeff1
+if SI1 < td1:
+    td1 = SI1
+if 0 < tdeff2 and tdeff2 < 2*td2c:
+    td2c = tdeff2//2
+if SI2 < td2c:
+    td2c=SI2
 
-# TODO : remove this part. Keep in same acquisition format
-# reshape 2D ser file into 3D array of shape (2,td1/2,td2c) and convert to hypercomplex States format 
-mode=0
-if   (dat.readacqpar("FnMODE",status=True,dimension=2)=='6') : summed=bruker.serc2DEAE2HC(serfile) # echo/antiEcho
-elif (dat.readacqpar("FnMODE",status=True,dimension=2)=='5') : summed=bruker.serc2DStatesTppi2HC(serfile)  # States-TPPI
-elif (dat.readacqpar("FnMODE",status=True,dimension=2)=='4') : summed=bruker.serc2DStates2HC(serfile) # States
-elif (dat.readacqpar("FnMODE",status=True,dimension=2)=='3') : mode=2 # TPPI
-elif (dat.readacqpar("FnMODE",status=True,dimension=2)=='2') : mode=2 # QSEQ (obsolete)
-elif (dat.readacqpar("FnMODE",status=True,dimension=2)=='1') : mode=2 # QF
-elif (dat.readacqpar("FnMODE",status=True,dimension=2)=='0') :  # undefined then reads procpar
-	if   (dat.readprocpar("MC2",status=False,dimension=2)=='6') : summed=bruker.serc2DEAE2HC(serfile) # echo/antiEcho
-	#elif (dat.readprocpar("FnMODE",status=False,dimension=2)=='5') : summed=bruker.ser2DStates2HC(serfile) # States-TPPI
-	elif (dat.readprocpar("MC2",status=False,dimension=2)=='5') : summed=bruker.serc2DStatesTppi2HC(serfile) # States-TPPI
-	elif (dat.readprocpar("MC2",status=False,dimension=2)=='4') : summed=bruker.serc2DStates2HC(serfile) # States
-	elif (dat.readprocpar("MC2",status=False,dimension=2)=='3') : mode=2 # TPPI
-	elif (dat.readprocpar("MC2",status=False,dimension=2)=='2') : mode=2 # QSEQ (obsolete)
-	elif (dat.readprocpar("MC2",status=False,dimension=2)=='1') : mode=2 # QF
+print "td1=%d, tdeff1=%d, si1=%d" % (td1, tdeff1, SI1)
+print "td2=%d, tdeff2=%d, si2=%d" % (td2c, tdeff2, SI2)
+serfile = serfile[0:td1, 0:td2c]
+
+# reshape data according to FnMODE
+FnMode = dat.readacqpar("FnMODE", status=True, dimension=2)
+if FnMode == "0":
+    FnMode == dat.readprocpar("MC2", status=False, dimension=2) 
+
+if FnMode in "4 5 6":  # State, States-TPPI, Echo-AntiEcho
+    HCsize = 2
+    td1 = 2*int(td1//2)  # one only keeps an even number of rows
+    serfile=serfile[0:td1, :]
+elif FnMode in "0 1 2 3":  # undefined, QF, QSEQ, TPPI
+    HCsize = 1
+else:
+    print("FnMODE is outside acceptable range (0..6)!!! Problem with acqu2s or proc2 file")
+
+serfile = serfile.reshape((td1//HCsize, HCsize, td2c))
+serfile = numpy.swapaxes(serfile,0,1)  # serfile shape is HCsize,td1//2,td2c)
+
+sw2=float(dat.readacqpar("SW_h", status=True, dimension=1))
+sw1=float(dat.readacqpar("SW_h", status=True, dimension=2))
+dw2 = 1.0/sw2
+dw1 = 1.0/sw1
+# special case of TPPI on dwell with respect to SW
+if FnMode == "3":
+    dw1 /= 2  # if TPPI dw = 0.5 / swh
 
 # create a gaussian apodization function in time domain
 # time : exp(-(at)**2) --FT-->  frequency : exp(-(f/2a)**2) with width at half maximum GB = a/pi * 2*sqrt(ln(2))
-# hence a=GB*pi/2/sqrt(ln(2))
-def gauss(gb,t,t0):
-	g=gb*numpy.pi/2.0/numpy.sqrt(numpy.log(2.0))
+# hence a = GB*pi/2/sqrt(ln(2))
+
+def gauss(gb, t, t0):
+	g = gb*numpy.pi/2.0/numpy.sqrt(numpy.log(2.0))
 	return numpy.exp(-(g*(t-t0))**2)
+
 # also define a lorentzian function
-def lorentz(lb,t,t0):
+def lorentz(lb, t, t0):
 	return numpy.exp(-numpy.pi*lb*abs(t-t0))
 
+# calculate center point
+digfilt=dat.getdigfilt()
+centerpoint = args.c/dw2/1e6 + digfilt
+
 # create a mesh index matrix
-OI=numpy.ones(td2c).reshape((1,td2c))
-I=numpy.arange(td2c).reshape((1,td2c))
-OJ=numpy.ones(td1/2).reshape((td1/2,1))
-J=numpy.arange(td1/2).reshape((td1/2,1))
-#2D array (td1/2,td2c) representing the time t for gaussian apodization
-Tg=numpy.dot(OJ,I*dw2)
-#2D array (td1/2,td2c) representing the time t0 for gaussian apodization along +s (T0gp) and -s (T0gm)
-T0gp=numpy.dot(J*dw1*args.s,OI)
-T0gm=numpy.dot(-J*dw1*args.s,OI)
-#2D array (td1/2,td2c) representing the time t for lorentzian apodization in F1
-Tl=numpy.dot(dw1*J,OI)
-#2D array (td1/2,td2c) representing the time t0 for lorentzian apodization
-T0l=numpy.zeros((td1/2,td2c))
+OI = numpy.ones(td2c).reshape((1, td2c))
+I = numpy.arange(td2c).reshape((1, td2c))-centerpoint
+OJ = numpy.ones(td1//HCsize).reshape((td1//HCsize, 1))
+J = numpy.arange(td1//HCsize).reshape((td1//HCsize, 1))
+#2D array (td1//HCsize, td2c) representing the time t for gaussian apodization
+Tg = numpy.dot(OJ, I*dw2)
+#2D array (td1//HCsize, td2c) representing the time t0 for gaussian apodization along +s (T0gp) and -s (T0gm)
+T0gp = numpy.dot( J*dw1*args.s, OI)
+T0gm = numpy.dot(-J*dw1*args.s, OI)
+#2D array (td1//HCsize, td2c) representing the time t for lorentzian apodization in F1
+Tl = numpy.dot(dw1*J, OI)
+#2D array (td1//HCsize, td2c) representing the time t0 for lorentzian apodization
+T0l = numpy.zeros((td1//HCsize, td2c))-centerpoint*dw2
 # generates the Gaussian function array
-G=numpy.maximum(gauss(args.gb,Tg,T0gp),gauss(args.gb,Tg,T0gm))
+G = numpy.maximum(gauss(args.gb, Tg, T0gp), gauss(args.gb, Tg, T0gm))
 # Apodization array
-ApodArray=G*lorentz(args.lb,Tl,T0l)
+ApodArray = G*lorentz(args.lb, Tl, T0l)
 
-#apply apodization (use auto expansion of ApodArray for summed(:,...) first dimension)
-SUM=summed*ApodArray
-# apply the FCOR parameter correction in F1 (multiply first t1 by FCOR)
-fcorF1=float(dat.readprocpar("FCOR",status=False,dimension=2))
-SUM[:,0,...]=SUM[:,0,...]*fcorF1
+#apply apodization (use auto expansion of ApodArray for summed(:, ...) first dimension)
+SUM = serfile*ApodArray  # multiply with broadcasting on HCsize dimension
 
-# ecrit le resultat dans les fichiers 2[ir] :
-# separe Re et Im
-
-rr=SUM[0]
-ri=SUM[1]
-
-#print s1.max(), s2.max()
-#print s1.min(), s2.min()
+SUM=numpy.swapaxes(SUM, 0, 1).reshape((td1,td2c))
 
 # Apply zero filling according to final size SI1, SI2 from topspin processing parameters
-SI2=int(dat.readprocpar("SI",False,1))
-SI1=int(dat.readprocpar("SI",False,2))
-rr=numpy.pad(rr,((0,SI1-td1/2),(0,SI2-td2c)),'constant')
-ri=numpy.pad(ri,((0,SI1-td1/2),(0,SI2-td2c)),'constant')
+rr = numpy.pad(SUM, ((0, SI1-td1), (0, SI2-td2c)), 'constant')
+print("rr shape is ",rr.shape)
 
 # set all optionnal processing parameters to 0
 ProcOptions = {"WDW": ["LB", "GB", "SSB", "TM1", "TM2"],
                "PH_mod": ["PHC0", "PHC1"], "BC_mod": ["BCFW", "COROFFS"],
-               "ME_mod": ["NCOEF", "LPBIN", "TDoff"], "FT_mod": ["FTSIZE"]}
+               "ME_mod": ["NCOEF", "LPBIN", "TDoff"], "FT_mod": ["FTSIZE","FCOR"]}
 for dim in [1, 2]:
     for par in ProcOptions.keys():
         dat.writeprocpar(par, "0", True, dimension=dim)
         for opt in ProcOptions[par]:
             dat.writeprocpar(opt, "0", True, dimension=dim)
 
-# ecrit les fichiers 2rr 2ri 2ir 2ii
-dat.writespect2d(rr.real,"2rr","tt")
-dat.writespect2d(rr.imag,"2ir","tt")
+# write 2rr and 2ir files in time/time mode : SI, STSI and some other parameters are set automatically
+dat.writespect2d(rr.real, "2rr", "tt")
+dat.writespect2d(rr.imag, "2ir", "tt")
 
-dat.writeprocpar("WDW","2",status=True)
-dat.writeprocpar("LB",str(-args.gb),status=True)
-dat.writeprocpar("GB","0",status=True)
-dat.writeprocpar("AXUNIT","s",status=True,dimension=2)
-dat.writeprocpar("AXRIGHT",str(SI2*dw2),status=True)
-dat.writeprocpar("AXRIGHT",str(SI1*dw1),status=True,dimension=2)
+# even though we are in time domain we need to set a SW_p in ppm
+# with respect to irradiation frequency SFO1
+# otherwise the OFFSET is not properly calculated in further 
+# topspin calculations especially in indirect dimension...
+sfo1=float(dat.readacqpar("SFO1", status=True, dimension=1))
+sfo2=float(dat.readacqpar("SFO1", status=True, dimension=2))
+dat.writeprocpar("SW_p", str(sw2/sfo2), status=True,dimension=1)
+dat.writeprocpar("SW_p", str(sw1/sfo1), status=True,dimension=2)
+
+# digital filter is already removed: PKNL must be set to False
+dat.writeprocpar("PKNL", "no", status=True)
+dat.writeprocpar("WDW", "2", status=True)
+dat.writeprocpar("LB", str(-args.gb), status=True)
+dat.writeprocpar("GB", "0", status=True)
+dat.writeprocpar("AXUNIT", "s", status=True, dimension=1)
+dat.writeprocpar("AXUNIT", "s", status=True, dimension=2)
+dat.writeprocpar("AXRIGHT", str(SI2*dw2), status=True)
+dat.writeprocpar("AXRIGHT", str(SI1*dw1/HCsize), status=True, dimension=2)
 
