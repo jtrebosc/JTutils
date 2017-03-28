@@ -144,8 +144,8 @@ dat.writespect2d(rr.imag, "2ir", "tt")
 # with respect to irradiation frequency SFO1
 # otherwise the OFFSET is not properly calculated in further 
 # topspin calculations especially in indirect dimension...
-sfo1=float(dat.readacqpar("SFO1", status=True, dimension=1))
-sfo2=float(dat.readacqpar("SFO1", status=True, dimension=2))
+sfo1=float(dat.readacqpar("SFO1", status=True, dimension=2))
+sfo2=float(dat.readacqpar("SFO1", status=True, dimension=1))
 dat.writeprocpar("SW_p", str(sw2/sfo2), status=True,dimension=1)
 dat.writeprocpar("SW_p", str(sw1/sfo1), status=True,dimension=2)
 

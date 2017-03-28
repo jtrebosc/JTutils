@@ -241,12 +241,24 @@ dat.writespect2d(r2, name="2ir", dType="tt")
 # set all optionnal processing parameters to 0
 ProcOptions = {"WDW": ["LB", "GB", "SSB", "TM1", "TM2"],
                "PH_mod": ["PHC0", "PHC1"], "BC_mod": ["BCFW", "COROFFS"],
-               "ME_mod": ["NCOEF", "LPBIN", "TDoff"], "FT_mod": ["FTSIZE", "MC2"]}
+               "ME_mod": ["NCOEF", "LPBIN", "TDoff"], "FT_mod": ["FTSIZE", "FCOR"]}
 for dim in [1, 2]:
     for par in ProcOptions.keys():
         dat.writeprocpar(par, "0", True, dimension=dim)
         for opt in ProcOptions[par]:
             dat.writeprocpar(opt, "0", True, dimension=dim)
+
+
+# even though we are in time domain we need to set a SW_p in ppm
+# with respect to irradiation frequency SFO1
+# otherwise the OFFSET is not properly calculated in further 
+# topspin calculations especially in indirect dimension...
+sw1 = float(dat.readacqpar("SW_h", status=True, dimension=2))
+sfo1 = float(dat.readacqpar("SFO1", status=True, dimension=2))
+sw2 = float(dat.readacqpar("SW_h", status=True, dimension=1))
+sfo2 = float(dat.readacqpar("SFO1", status=True, dimension=1))
+dat.writeprocpar("SW_p", str(sw2/sfo2), status=True,dimension=1)
+dat.writeprocpar("SW_p", str(sw1/sfo1), status=True,dimension=2)
 
 # adjust the WDW in F2 since we applied some GB/LB
 dat.writeprocpar("WDW", "1", True, 1)
