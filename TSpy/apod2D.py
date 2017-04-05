@@ -7,7 +7,7 @@ import subprocess
 
 # installation directory is relative to current script location
 DIRINST=os.path.dirname(sys.argv[0])+"/../"
-CPYTHON=os.getenv('CPYTHON')
+CPYTHON=os.getenv('CPYTHON',"NotDefined")
 
 dataset=CURDATA()
 LB=GETPAR("1 LB")

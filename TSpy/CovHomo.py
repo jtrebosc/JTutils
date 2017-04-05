@@ -11,7 +11,7 @@ PYTHONPATH=os.getenv("PYTHONPATH")
 sys.path.append(PYTHONPATH)
 #sys.path.append(DIRINST+"CpyLib")
 # where is the external python executable
-CPYTHON=os.getenv('CPYTHON')
+CPYTHON=os.getenv('CPYTHON',"NotDefined")
 
 import brukerPAR
 options=" "

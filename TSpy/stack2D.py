@@ -7,8 +7,8 @@ import subprocess
 #installation directory is relative to current script location
 DIRINST=os.path.dirname(sys.argv[0])+"/../"
 # where is the external python executable
-CPYTHON=os.getenv('CPYTHON')
-if not CPYTHON:
+CPYTHON=os.getenv('CPYTHON',"NotDefined")
+if "NotDefined" in CPYTHON:
 	MSG("CPYTHON variable cannot be found")
 	EXIT()
 if len(sys.argv)>1:

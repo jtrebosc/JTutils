@@ -1,11 +1,15 @@
 ## does summation of echoes using external python script
 import sys
+import os
 import os.path
 import subprocess
 
 #istallation directory is relative to current script location
 DIRINST=os.path.dirname(sys.argv[0])+"/../"
-CPYTHON="/usr/bin/python"
+CPYTHON=os.getenv("CPYTHON","NotDefined")
+if NotDefined in CPYTHON:
+    MSG("CPYTHON is not defined")
+    EXIT()
 
 import os
 dataset=CURDATA()

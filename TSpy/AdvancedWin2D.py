@@ -25,7 +25,7 @@ parser.add_argument('infile',help='Full path of the dataset to process')
 #installation directory is relative to current script location
 DIRINST=os.path.dirname(sys.argv[0])+"/../"
 # where is the external python executable
-CPYTHON=os.getenv('CPYTHON')
+CPYTHON=os.getenv('CPYTHON',"NotDefined")
 if "python" not in CPYTHON:
 		MSG("CPYTHON environment not defined")
 		EXIT()
