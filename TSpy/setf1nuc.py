@@ -19,9 +19,9 @@ BFx = [0,0,0,0]
 boutons = []
 mnemonique = []
 channelmap = []
-# trouver les channels utilisés dans le pp
+# Find channels used in pp
 ppname = datasetdir + '/' + dataset[0] + '/' + dataset[1] + '/pulseprogram'
-#ppname="/home/trebosc/toto"
+
 ppfile = open(ppname, 'r')
 pp = ppfile.read()
 ppfile.close()
