@@ -1030,7 +1030,7 @@ class dataset:
         res = res.reshape((td/2, 2))
         R = res[:, 0]+1j*res[:, 1]
         phcfilt = self.getdigfilt()
-        print "phcfilt", phcfilt
+#        print "phcfilt", phcfilt
         npts = int(phcfilt)
         if applyNC:
             scale = int(self.readacqpar("NC", True))
@@ -1077,7 +1077,7 @@ class dataset:
         S = n.zeros(tdblock)
         S[0:TD:2] = spect.real
         S[1:TD:2] = spect.imag
-        print NC
+#        print NC
         self.writeacqpar("NC", str(NC), True)
         self.writeacqpar("TD", str(TD), True)
         S.astype(self.dtypeA).tofile(filename)
@@ -1350,15 +1350,15 @@ class dataset:
             NC = 0
         else:
             NC = int(ceil(ln(MAX)/ln(2)))-29
-        print "NC=%d max=%f" % (NC, MAX)
+#        print "NC=%d max=%f" % (NC, MAX)
         (si, ) = s1.shape
-        print s1
-        print 2**NC
-        print s1/(2**NC)
+#        print s1
+#        print 2**NC
+#        print s1/(2**NC)
         s1 *= 1./(2**NC)
         s2 *= 1./(2**NC)
 
-        print s1
+#        print s1
         s1.astype(self.dtypeP).tofile(f1)
         s2.astype(self.dtypeP).tofile(f2)
         # write some parameters related to spect arrays used by topspin
@@ -1420,7 +1420,7 @@ class dataset:
             # calculates NC_proc to use maximum dynamics on signed 32 bits int
             sizeA = spectArray.size
             MAX = n.max(n.fabs(spectArray.reshape(sizeA)))
-            print MAX
+#            print MAX
             if MAX < 0.1:
                 NC = 0
             else:
