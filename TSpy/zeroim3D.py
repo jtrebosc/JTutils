@@ -1,5 +1,15 @@
 import sys
+
+import os
+PYTHONPATH=os.getenv("PYTHONPATH","not_defined")
+if "not_defined" in PYTHONPATH:
+	MSG("cannot acces to PYTHONPATH environment. It's required for accessing to brukerPAR lib" )
+	EXIT()
+#add the Library path for importing brukerPAR
+sys.path.append(PYTHONPATH)
+
 import brukerPAR
+
 from os.path import getsize 
 # from os import system as execute
 import subprocess
@@ -20,7 +30,7 @@ fn3iii=dat.returnprocpath()+"/3iii"
 try :
     sz3iii=getsize(fn3iii)
 except : 
-    MSG("No file 3iii" )
+    MSG("No file 3iii")
     EXIT()
 
 if OS.startswith('mac') or OS.startswith('linux'):
@@ -29,7 +39,7 @@ if OS.startswith('mac') or OS.startswith('linux'):
 else:
     # for windows using topspin cygwin setup
     CMD="to be defined"
-    MSG("not implemented for Windows yet"
+    MSG("not implemented for Windows yet")
     EXIT()
 # execute(CMD)
 subprocess.call(CMD.split())
