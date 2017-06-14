@@ -53,6 +53,8 @@ INSTALLATION
 Details about step 4)
 
 On Linux : 
+
+If you launch from a terminal
 add the lines to your ~/.bash_profile (if running bash)
 DIRINSTALL=your_path_to_JTutils
 if [ -z "$PYTHONPATH" ] ; then
@@ -62,6 +64,8 @@ elif [ -z $(echo $PYTHONPATH | grep "$DIRINSTALL/JTutils/CpyLib") ] ; then
 fi
 export CPYTHON="PATH_TO_PYTHON_EXE"    # (e.g. /usr/bin/python)
 
+Under Ubuntu, for example, the .bashrc/.bash_profile variables are not exposed to applications launched through graphical menus
+You need to add the variable definitions (PYTHONPATH="your path", CPYTHON= "PATH_TO_PYTHON_EXE") to a file called .pam_environment in your home directory
 
 On MacOSX:
 Add the following two lines to your ~/.bash_profile
