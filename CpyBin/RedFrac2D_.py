@@ -6,6 +6,7 @@
 # dataset must be series of 1D spectra alternated S/S0
 # if a point of S0 spectrum is below the defined threshold
 # then set S0 point to threshold if S0 below threshold
+from __future__ import division, print_function
 
 import sys
 import bruker
@@ -22,9 +23,9 @@ order=args.order
 dat=bruker.dataset(bruker.splitprocpath(infile))
 spect=dat.readspect2d('2rr')
 specti=dat.readspect2d('2ii')
-print spect.shape
+print(spect.shape)
 (si1,si2)=spect.shape
-print si2
+print(si2)
 spect=spect.reshape(si1/2,2,si2)
 specti=specti.reshape(si1/2,2,si2)
 if order=='0':

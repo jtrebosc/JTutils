@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 # copyright Julien TREBOSC 2012-2013
+from __future__ import division, print_function
 
 import numpy
 import sys
@@ -34,14 +35,14 @@ ADDREF=args.addref
 slope=args.slope
 PHI0=-args.refPh0/180*numpy.pi
 PHC1=-args.refPh1
-#print bruker.splitprocpath(infile)
+#print(bruker.splitprocpath(infile))
 dat=bruker.dataset(bruker.splitprocpath(args.infile))
 
 # FnMODE=0 undefined, 1 QF, 2 QSEQ, 3 TPPI, 4 States, 5 States-TPPI, 6 Echo-Antiecho
 MODEflag=dat.readacqpar("FnMODE",dimension=2)
 
 DWf1=1e-6*float(dat.readacqpar("INF 1",dimension=1))
-#print DWf1
+#print(DWf1)
 TDf1=int(dat.readacqpar("TD",dimension=2))
 # if states/states-ttpi then TDf1 must be even else remove one row
 if MODEflag=="4" or MODEflag=="5" :
@@ -49,13 +50,13 @@ if MODEflag=="4" or MODEflag=="5" :
 #D0=float(dat.readacqpar("D 0",dimension=1))
 si2=int(dat.readprocpar("FTSIZE",dimension=1))
 if (si2==0):
-	print 'F2 fourier transform not performed yet : exiting...'
+	print('F2 fourier transform not performed yet : exiting...')
 	sys.exit()
 swh2=float(dat.readacqpar("SW_h",dimension=1))
 HzpPTf2=swh2/si2
 sistart=si2/2-int(dat.readprocpar("STSR",dimension=1))
 #init_t1=D0+args.extradelay/1e6
-#print init_t1
+#print(init_t1)
 
 
 # NUSlist list of acquired complex rows starting from 0
@@ -68,12 +69,12 @@ spect2D=dat.readspect2d("2rr")
 if TDf1<si1:
 	spect2D=spect2D[0:TDf1][:]
 (td1,si2)=spect2D.shape
-print td1,si2
+print(td1,si2)
 
 # FnTYPE=0 (traditionnal), 1 (full point ???), 2 (NUS)
 NUSflag=dat.readacqpar("FnTYPE",dimension=1)
 NUSlist=[]
-print "NUSFLAG is %s" % (NUSflag)
+print("NUSFLAG is %s" % (NUSflag))
 if NUSflag=="2":
 	NUSfile=dat.returnacqpath()+"nuslist"
 	list=open(NUSfile,"r").read().strip("\n").split()
@@ -92,8 +93,8 @@ if MODEflag=="4" or MODEflag=="5" :
 else:
 	NUSlist=NUSlist[0:td1]
 	
-print "this is nuslist:"
-print NUSlist
+print("this is nuslist:")
+print(NUSlist)
 
 # calculate reorder of the rows in case of shuffled NUS acquisition
 if NUSflag=="2":
@@ -101,11 +102,11 @@ if NUSflag=="2":
 	NUSsortedIndex=[]
 	for i in NUSsorted:
 		NUSsortedIndex.append(NUSlist.index(i))
-	print 'NUSsortedIndex 2 :'
+	print('NUSsortedIndex 2 :')
 else :
 	NUSsortedIndex=range(td1/2)
-	print 'NUSsortedIndex 1 :'
-print NUSsortedIndex
+	print('NUSsortedIndex 1 :')
+print(NUSsortedIndex)
 
 # correct for States-TPPI mode
 if MODEflag=="5" :
@@ -152,15 +153,15 @@ def testREF(Zfill1=1024):
 
 def calculateCov(InputMatrix):
 	(U,S,V)=numpy.linalg.svd(InputMatrix,full_matrices=False)
-	print "SVD made----"
+	print("SVD made----")
 	return numpy.dot(V.T,numpy.dot(numpy.diag(S),V))
-#	print "COV made----"
+#	print("COV made----")
 #	return OuputMatrix.copy()
 
 
 if ADDREF:
 	(REFc,REFs)=makeRef(ref,NUSlist)
-	print "REF made----"
+	print("REF made----")
 	Sc=spect2D[0]+refWeight*REFc
 	Ss=spect2D[1]+refWeight*REFs
 
@@ -188,5 +189,5 @@ dat.writespect2d(spect2D,"2rr")
 for i in ['SW_p','FT_mod','FTSIZE','AXUNIT','AXRIGHT','OFFSET']:
 	tmp=dat.readprocpar(i,dimension=1)
 	dat.writeprocpar(i,tmp,dimension=2)
-	print i + " is "+ tmp 
+	print(i + " is " + tmp)
 #stsr,stsi, si1, 

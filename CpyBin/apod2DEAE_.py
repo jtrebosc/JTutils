@@ -3,6 +3,7 @@
 # copyright Julien TREBOSC 2012-2013
 # check that variable PYTHONPATH points to the right folder for bruker.py library
 
+from __future__ import division, print_function
 
 Descript="""
 OK so what is this program doing exactly ?
@@ -33,13 +34,13 @@ parser.add_argument('-s',type=float, help='s=t2/t1 slope to follow for GB center
 parser.add_argument('infile',help='Full path of the dataset to process')
 
 args=parser.parse_args()
-#print bruker.splitprocpath(infile)
+#print(bruker.splitprocpath(infile))
 dat=bruker.dataset(bruker.splitprocpath(args.infile))
 
 # read ser file and correct automatically for digital filter
 serfile=dat.readserc()
 (td1,td2c)=serfile.shape
-print (td1,td2c)
+print(td1,td2c)
 
 dw2=1.0/float(dat.readacqpar("SW_h",status=True,dimension=1))
 dw1=1.0/float(dat.readacqpar("SW_h",status=True,dimension=2))
@@ -128,8 +129,8 @@ SUM[:,0,...]=SUM[:,0,...]*fcorF1
 rr=SUM[0]
 ri=SUM[1]
 
-#print s1.max(), s2.max()
-#print s1.min(), s2.min()
+#print(s1.max(), s2.max())
+#print(s1.min(), s2.min())
 
 # Apply zero filling according to final size SI1, SI2 from topspin processing parameters
 SI2=int(dat.readprocpar("SI",False,1))

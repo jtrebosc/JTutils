@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 # copyright Julien TREBOSC 2012-2013
+from __future__ import division, print_function
 
 import sys
 #import os
@@ -10,7 +11,7 @@ import bruker
 import numpy.core as n
 
 def usage():
-	print """transform a 2D processed dataset in a 1D stacked plot"""
+	print("""transform a 2D processed dataset in a 1D stacked plot""")
 
 # check for unused procno to receive the 1D dataset
 # to be done in bruker script
@@ -83,7 +84,7 @@ l1p=unit2point(l1)
 M=spect.max()
 
 if dat.readprocpar("AXUNIT",True,2)=="s":
-	print  dat.readprocpar("TDeff",True,2)
+	print(dat.readprocpar("TDeff",True,2))
 	tmp=int(dat.readprocpar("TDeff",True,2))
 	if tmp<si1 : si1=tmp
 
@@ -95,4 +96,4 @@ dat1D.writeprocpar("AXUNIT","exp")
 dat1D.writeprocpar("AXLEFT","0.5")
 dat1D.writeprocpar("AXRIGHT",str(si1+0.5))
 
-print si1,si,l1p,l2p,M
+print(si1,si,l1p,l2p,M)

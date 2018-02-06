@@ -3,6 +3,7 @@
 # copyright Julien TREBOSC 2012-2013
 # check that variable PYTHONPATH points to the right folder for bruker.py
 #      library
+from __future__ import division, print_function
 
 import numpy
 import sys
@@ -23,7 +24,6 @@ group.add_argument('-e', action='store_true', help='Sum only even echoes')
 group.add_argument('-o', action='store_true', help='Sum only odd echoes')
 
 args = parser.parse_args()
-# print bruker.splitprocpath(infile)
 dat = bruker.dataset(bruker.splitprocpath(args.infile))
 
 # lire la fid et eliminer le filter digital (par defaut)
@@ -51,7 +51,7 @@ ppc = cycle/dw
 npoints = int(cycle/dw)
 
 if ppc-npoints > 0.001:
-    print "Warning echo cycle is not multiple of dwell"
+    print("Warning echo cycle is not multiple of dwell")
     roundChunk = True
 else:
     roundChunk = False
@@ -62,8 +62,6 @@ TD = int(dat.readacqpar("TD"))
 if TD < npoints*2*L22+2*digFilLen:
     L22 -= int(2*L22 - (TD-2*digFilLen)/npoints) + 1
 
-# print digFilLen
-# print "dw=%5.3f D3=%5.3f D6=%5.3f P4=%5.3f L22=%d np=%d cy=%5.3f" % (dw, D3,D6,P4,L22,npoints,2*(D3+D6)+P4)
 
 # reshape le ser file en 3D (echo index, echo point index, Re/Im)
 if not roundChunk:
@@ -92,8 +90,6 @@ SUM = SUM.reshape(L22*npoints, 2)
 # separe Re et Im
 s1 = SUM[:, 0]
 s2 = SUM[:, 1]
-# print s1.max(), s2.max()
-# print s1.min(), s2.min()
 
 # fait du zero fill pour que topspin puisse processer et
 # remet les points correspondant au filtre digital

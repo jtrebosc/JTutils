@@ -4,6 +4,7 @@
 # check that variable PYTHONPATH points to the right folder for
 # bruker.py library
 
+from __future__ import division, print_function
 import numpy
 import sys
 import bruker
@@ -29,7 +30,7 @@ group.add_argument('-o', action='store_true', help='Sum only odd echoes')
 parser.add_argument('infile', help='Full path of the dataset to process')
 
 args = parser.parse_args()
-# print bruker.splitprocpath(infile)
+# print(bruker.splitprocpath(infile))
 dat = bruker.dataset(bruker.splitprocpath(args.infile))
 
 """
@@ -41,7 +42,7 @@ A faire :
 """
 # check dataset is 2D:
 if int(dat.readacqpar("PARMODE")) != 1:
-    print "dataset is not 2D : exiting..."
+    print("dataset is not 2D : exiting...")
     sys.exit()
 
 # 0 undef, 1 QF, 2 QSEQ, 3 TPPI, 4 states, 5 states-tppi, 6 echo=antiecho
@@ -54,8 +55,8 @@ if mode2D == 1:
 elif mode2D in [2, 3, 4, 5, 6]:
     HCsize = 2
 else:
-    print("Whoaoo, problem. Cannot determine wether F1 is\
-          hypercomplex or not. Please fix FnMODE or MC2")
+    print("""Whoaoo, problem. Cannot determine wether F1 is 
+          hypercomplex or not. Please fix FnMODE or MC2""")
     sys.exit()
 
 
@@ -97,7 +98,7 @@ ppc = (cycle)/dw
 # oneEchoSize=int(round((2*(D3+D6)+P2)/dw))
 oneEchoSize = int(round(cycle/dw))
 if abs(ppc-oneEchoSize) > 0.001:
-    print "Warning echo cycle is not multiple of dwell"
+    print("Warning echo cycle is not multiple of dwell")
     chunkNotRound = True
 else:
     chunkNotRound = False
@@ -107,26 +108,26 @@ digFilLen = int(round(dat.getdigfilt()))
 TD = int(dat.readacqpar("TD"))
 if TD < 2*oneEchoSize*nEchoes+2*digFilLen:
     nEchoes = (TD//2-digFilLen)//oneEchoSize
-    print "WARNING : FID is not long enough for L22 echo + 1. \
-           Actually using  %s echoes" % (nEchoes,)
+    print("""WARNING : FID is not long enough for L22 echo + 1. 
+           Actually using  %s echoes""" % (nEchoes,))
 
 # size of 2D array in t1
 TD1 = int(dat.readacqpar("TD", status=True, dimension=2))
 # TD1 is rounded to multiple of HCsize
 TD1 = TD1//HCsize*HCsize
 serfile = serfile[0:TD1]
-#print "HCsize=", HCsize
-#print "TD1=", TD1
+#print("HCsize=", HCsize)
+#print("TD1=", TD1)
 
-#print digFilLen
-# print "dw=%5.3f D3=%5.3f D6=%5.3f P2=%5.3f L22=%d np=%d cy=%5.3f" %
-# (dw,D3,D6,P2,nEchoes,oneEchoSize,2*(D3+D6)+P2)
+#print(digFilLen)
+# print("dw=%5.3f D3=%5.3f D6=%5.3f P2=%5.3f L22=%d np=%d cy=%5.3f" %
+# (dw,D3,D6,P2,nEchoes,oneEchoSize,2*(D3+D6)+P2))
 
 # reshape le ser file en 5D (TD1//HCsize, HCsize(F1) , echo index,
 # echo point index, Re/Im)
 if not chunkNotRound:
-#    print serfile[:, firstP:firstP+oneEchoSize*2*nEchoes].shape, TD1//HCsize*HCsize, nEchoes*oneEchoSize*2
-#    print serfile.shape, firstP, firstP+oneEchoSize, nEchoes, (TD1//HCsize, HCsize, nEchoes, oneEchoSize, 2)
+#    print(serfile[:, firstP:firstP+oneEchoSize*2*nEchoes].shape, TD1//HCsize*HCsize, nEchoes*oneEchoSize*2)
+#    print(serfile.shape, firstP, firstP+oneEchoSize, nEchoes, (TD1//HCsize, HCsize, nEchoes, oneEchoSize, 2))
     summed = serfile[:, firstP:firstP+oneEchoSize*2*nEchoes].reshape(TD1//HCsize, HCsize, nEchoes, oneEchoSize, 2)
 else:
     (si1, si) = serfile.shape
@@ -144,7 +145,7 @@ TDeff1 = (int(dat.readprocpar("TDeff", status=False, dimension=2)
 if TDeff1 > 0 and TDeff1 < TD1:
     TD1 = TDeff1
     summed = summed[:TD1//HCsize]
-#print summed.shape
+#print(summed.shape)
 
 # cree une fonction d'apodisation gaussienne
 # temporel exp(-(at)**2) -> spectral exp(-(w/2a)**2) avec largeur mi hauteur
@@ -193,7 +194,7 @@ LG *= L[numpy.newaxis, :, numpy.newaxis]
 for f1HC in range(HCsize):
     for f2HC in range(2):
         summed[:, f1HC, :, :, f2HC] *= LG
-        # print LG.shape, summed[:, i, :, :, j].shape
+        # print(LG.shape, summed[:, i, :, :, j].shape)
 # sum echoes odd, even or all
 if args.o:  # add only odd echoes (start 1) :
     a = 0
@@ -211,8 +212,8 @@ SUM = summed[:, :, a::c, :, :].sum(axis=2).reshape(TD1, oneEchoSize, 2)
 # separe Re et Im et remet
 s1 = SUM[..., 0]
 s2 = SUM[..., 1]
-# print s1.max(), s2.max()
-# print s1.min(), s2.min()
+# print(s1.max(), s2.max())
+# print(s1.min(), s2.min())
 
 
 # fait du zero fill pour que topspin puisse processer et
@@ -221,14 +222,14 @@ SI = int(dat.readprocpar("SI", False))
 SI1 = int(dat.readprocpar("SI", status=False, dimension=2))
 # RAJOUTER ZEROFILL t1
 # digFilLen=0
-#print digFilLen
+#print(digFilLen)
 r1 = numpy.hstack((numpy.zeros((TD1, digFilLen)), s1,
                    numpy.zeros((TD1, SI-oneEchoSize-digFilLen))))
 r2 = numpy.hstack((numpy.zeros((TD1, digFilLen)), s2,
                    numpy.zeros((TD1, SI-oneEchoSize-digFilLen))))
 r1 = numpy.vstack((r1, numpy.zeros((SI1-TD1, SI))))
 r2 = numpy.vstack((r2, numpy.zeros((SI1-TD1, SI))))
-#print r1.shape, r2.shape
+#print(r1.shape, r2.shape)
 
 # ecrit les fichiers 1r 1i
 dat.writespect2d(r1, name="2rr", dType="tt")

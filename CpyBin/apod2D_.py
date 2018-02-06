@@ -3,7 +3,7 @@
 # copyright Julien TREBOSC 2012-2013
 # check that variable PYTHONPATH points to the right folder for bruker.py library
 
-from __future__ import division
+from __future__ import division, print_function
 
 Descript="""
 OK so what is this program doing exactly ?
@@ -31,7 +31,7 @@ parser.add_argument('-c', type=float,  help='initial center position (at row 0) 
 parser.add_argument('infile', help='Full path of the dataset to process')
 
 args = parser.parse_args()
-#print bruker.splitprocpath(infile)
+#print(bruker.splitprocpath(infile))
 dat = bruker.dataset(bruker.splitprocpath(args.infile))
 
 # read ser file and correct automatically for digital filter
@@ -39,7 +39,7 @@ serfile = dat.readserc(rmGRPDLY=False)
 
 # calculates useful boudaries from TDeff and SI
 (td1, td2c) = serfile.shape
-print "td1=%d, td2c=%d" % (td1, td2c)
+print("td1=%d, td2c=%d" % (td1, td2c))
 tdeff2 = int(dat.readprocpar("TDeff", status=False, dimension=1))
 tdeff1 = int(dat.readprocpar("TDeff", status=False, dimension=2))
 SI2 = int(dat.readprocpar("SI", False, 1))
@@ -53,8 +53,8 @@ if 0 < tdeff2 and tdeff2 < 2*td2c:
 if SI2 < td2c:
     td2c=SI2
 
-print "td1=%d, tdeff1=%d, si1=%d" % (td1, tdeff1, SI1)
-print "td2=%d, tdeff2=%d, si2=%d" % (td2c, tdeff2, SI2)
+print("td1=%d, tdeff1=%d, si1=%d" % (td1, tdeff1, SI1))
+print("td2=%d, tdeff2=%d, si2=%d" % (td2c, tdeff2, SI2))
 serfile = serfile[0:td1, 0:td2c]
 
 # reshape data according to FnMODE
