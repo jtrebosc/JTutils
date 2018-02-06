@@ -115,23 +115,23 @@ TD1 = int(dat.readacqpar("TD", status=True, dimension=2))
 # TD1 is rounded to multiple of HCsize
 TD1 = TD1//HCsize*HCsize
 serfile = serfile[0:TD1]
-print "HCsize=", HCsize
-print "TD1=", TD1
+#print "HCsize=", HCsize
+#print "TD1=", TD1
 
-print digFilLen
+#print digFilLen
 # print "dw=%5.3f D3=%5.3f D6=%5.3f P2=%5.3f L22=%d np=%d cy=%5.3f" %
 # (dw,D3,D6,P2,nEchoes,oneEchoSize,2*(D3+D6)+P2)
 
 # reshape le ser file en 5D (TD1//HCsize, HCsize(F1) , echo index,
 # echo point index, Re/Im)
 if not chunkNotRound:
-    print serfile[:, firstP:firstP+oneEchoSize*2*nEchoes].shape, TD1//HCsize*HCsize, nEchoes*oneEchoSize*2
-    print serfile.shape, firstP, firstP+oneEchoSize, nEchoes, (TD1//HCsize, HCsize, nEchoes, oneEchoSize, 2)
+#    print serfile[:, firstP:firstP+oneEchoSize*2*nEchoes].shape, TD1//HCsize*HCsize, nEchoes*oneEchoSize*2
+#    print serfile.shape, firstP, firstP+oneEchoSize, nEchoes, (TD1//HCsize, HCsize, nEchoes, oneEchoSize, 2)
     summed = serfile[:, firstP:firstP+oneEchoSize*2*nEchoes].reshape(TD1//HCsize, HCsize, nEchoes, oneEchoSize, 2)
 else:
     (si1, si) = serfile.shape
-    print((si1, si), (TD1//HCsize, HCsize, si//2, 2),
-          len(serfile), len(serfile//TD1//2))
+#    print((si1, si), (TD1//HCsize, HCsize, si//2, 2),
+#          len(serfile), len(serfile//TD1//2))
     tmp = serfile.reshape(TD1//HCsize, HCsize, si//2, 2)
     summed = numpy.zeros((TD1//HCsize, HCsize, nEchoes, oneEchoSize, 2))
     for i in range(nEchoes):
@@ -144,7 +144,7 @@ TDeff1 = (int(dat.readprocpar("TDeff", status=False, dimension=2)
 if TDeff1 > 0 and TDeff1 < TD1:
     TD1 = TDeff1
     summed = summed[:TD1//HCsize]
-print summed.shape
+#print summed.shape
 
 # cree une fonction d'apodisation gaussienne
 # temporel exp(-(at)**2) -> spectral exp(-(w/2a)**2) avec largeur mi hauteur
@@ -221,13 +221,14 @@ SI = int(dat.readprocpar("SI", False))
 SI1 = int(dat.readprocpar("SI", status=False, dimension=2))
 # RAJOUTER ZEROFILL t1
 # digFilLen=0
+#print digFilLen
 r1 = numpy.hstack((numpy.zeros((TD1, digFilLen)), s1,
                    numpy.zeros((TD1, SI-oneEchoSize-digFilLen))))
 r2 = numpy.hstack((numpy.zeros((TD1, digFilLen)), s2,
                    numpy.zeros((TD1, SI-oneEchoSize-digFilLen))))
 r1 = numpy.vstack((r1, numpy.zeros((SI1-TD1, SI))))
 r2 = numpy.vstack((r2, numpy.zeros((SI1-TD1, SI))))
-print r1.shape, r2.shape
+#print r1.shape, r2.shape
 
 # ecrit les fichiers 1r 1i
 dat.writespect2d(r1, name="2rr", dType="tt")
@@ -235,8 +236,8 @@ dat.writespect2d(r2, name="2ir", dType="tt")
 # write some status processed parameters in procs file so topspin can display
 # and process the data properly
 
-# dat.writeprocpar("PKNL", "0", True)
-# dat.writeprocpar("PKNL", "0", False)
+dat.writeprocpar("PKNL", "no", status = True)
+# dat.writeprocpar("PKNL", "no", status = False)
 
 # set all optionnal processing parameters to 0
 ProcOptions = {"WDW": ["LB", "GB", "SSB", "TM1", "TM2"],
@@ -247,7 +248,9 @@ for dim in [1, 2]:
         dat.writeprocpar(par, "0", True, dimension=dim)
         for opt in ProcOptions[par]:
             dat.writeprocpar(opt, "0", True, dimension=dim)
-
+# need to deal with TDoff. Although not used in time domain  for indirect dimension it must be copied for further processing
+TDoff = dat.readprocpar("TDoff", status=False, dimension=2)
+dat.writeprocpar("TDoff", TDoff, status=True, dimension=2)
 
 # even though we are in time domain we need to set a SW_p in ppm
 # with respect to irradiation frequency SFO1
@@ -267,4 +270,4 @@ dat.writeprocpar("LB", str(args.gb), True, 1)
 dat.writeprocpar("AXUNIT", "s", True)
 dat.writeprocpar("AXUNIT", "s", True, dimension=1)
 dat.writeprocpar("AXRIGHT", str(SI*dw*1e-6), True)
-dat.writeprocpar("AXRIGHT", str(SI1*dw1*1e-6), True, dimension=2)
+dat.writeprocpar("AXRIGHT", str(SI1/HCsize*dw1*1e-6), True, dimension=2)
