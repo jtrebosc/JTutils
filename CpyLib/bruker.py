@@ -205,7 +205,9 @@ def getlistfilefullname(filename, type='PP'):
                     "VP",
                     "DS",
                     "PHASE",
-                    "VA"]
+                    "VA",
+                    ]
+
     if type not in allowedTypes:
         raise NameError("unknown type: should be in %s" % str(allowedTypes))
     nmrhome = os.getenv("XWINNMRHOME")
@@ -1313,7 +1315,7 @@ class dataset:
     def readspect1d(self, name="1r"):
         """
         reads a 1D processed bruker file
-        file name is either 1r (default) or 2i
+        file name is either 1r (default) or 1i
         returns a numpy array or None if file is not found
         """
         filename = self.returnprocpath() + name
