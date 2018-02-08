@@ -12,7 +12,7 @@ from __future__ import division
 
 import re
 import os
-DIRINST = os.path.dirname(sys.argv[0])+"/../"
+DIRINST = os.path.dirname(sys.argv[0]) + "/../"
 sys.path.append(DIRINST+"CpyLib")
 import brukerPAR
 
@@ -46,23 +46,23 @@ ppfile.close()
 
 # check if channels f1,..,f4 are present in pp
 for chan in range(0,4,1):
-	NUCx[chan] = "not active"
-	SFOx[chan] = "not active"
-	Ox[chan] = "not active"
-	BFx[chan] = "not active"
-	matchpattern = "^.*:f" + str(chan+1)
-	m[chan] = re.search(matchpattern, pp, flags=re.M)
-	if m[chan] : 
-		NUCx[chan] = dtst.readacqpar("NUC" + str(chan+1))
-		if NUCx[chan] == "off":
-			NUCx[chan] = "not active"
-			continue
-		SFOx[chan] = dtst.readacqpar("SFO" + str(chan+1))
-		BFx[chan] = dtst.readacqpar("BF" + str(chan+1))
-		Ox[chan] = dtst.readacqpar("O" + str(chan+1))
-		mnemonique.append(str(chan+1))
-		boutons.append("channel " + str(chan+1) + ": " + NUCx[chan])
-		channelmap.append(chan)		
+    NUCx[chan] = "not active"
+    SFOx[chan] = "not active"
+    Ox[chan] = "not active"
+    BFx[chan] = "not active"
+    matchpattern = "^.*:f" + str(chan+1)
+    m[chan] = re.search(matchpattern, pp, flags=re.M)
+    if m[chan] : 
+        NUCx[chan] = dtst.readacqpar("NUC" + str(chan+1))
+        if NUCx[chan] == "off":
+            NUCx[chan] = "not active"
+            continue
+        SFOx[chan] = dtst.readacqpar("SFO" + str(chan+1))
+        BFx[chan] = dtst.readacqpar("BF" + str(chan+1))
+        Ox[chan] = dtst.readacqpar("O" + str(chan+1))
+        mnemonique.append(str(chan+1))
+        boutons.append("channel " + str(chan+1) + ": " + NUCx[chan])
+        channelmap.append(chan)        
 # user selects the channel to set in F1
 channel = SELECT(title="available channels",
                  message="what channel do you want to use for F1 (click button) ?",
@@ -79,33 +79,35 @@ inf1 = 1e6/swh
 
 #MSG(str(swh)+"\n"+str(inf1))
 # check for command line argument : only SFF2 is checked manually
-if sys.argv > 1:
-	if sys.argv[1] == 'SFF2':
-		sf = float(dtst.readprocpar("SF",dimension=1,status=False))
-		print "read SF from F2"
-	else:
-		sf = float(dtst.readprocpar("SF",dimension=2,status=False))
+if len(sys.argv) > 1:
+    if sys.argv[1] == 'SFF2':
+        sf = float(dtst.readprocpar("SF",dimension=1,status=False))
+        print "read SF from F2"
+    else:
+        sf = float(dtst.readprocpar("SF",dimension=2,status=False))
+else:
+    sf = float(dtst.readprocpar("SF",dimension=2,status=False))
 
 
 # select spin number based on nucleus name from bruker table
-nuclei = TOPSPIN_HOME+"/exp/stan/nmr/lists/nuclei.all"
+nuclei = TOPSPIN_HOME + "/exp/stan/nmr/lists/nuclei.all"
 f = open(nuclei,'r')
 spin = ''
 while (1):
-	line = f.readline()
-	if (line == ''):
-		break
-	line.strip()
-	if (line.find('#') == 0):
-		continue
-	if (line.find(NUCx[chosenChan]) > 0):
-		tmp=line.split()
-		spinstr = tmp[4]
-		break
+    line = f.readline()
+    if (line == ''):
+        break
+    line.strip()
+    if (line.find('#') == 0):
+        continue
+    if (line.find(NUCx[chosenChan]) > 0):
+        tmp=line.split()
+        spinstr = tmp[4]
+        break
 if spinstr[1] == '/' :
-	spin = float(spinstr[0])/2
+    spin = float(spinstr[0])/2
 else :
-	spin = float(spinstr[0])
+    spin = float(spinstr[0])
 f.close()
 
 exptype = SELECT(title="Kind of experiment",
@@ -115,25 +117,25 @@ exptype = SELECT(title="Kind of experiment",
 # calculate scaling factor based on experiment type and spin
 # 3QMAS correlates 3Q coherence with CT coherence
 if exptype == 0:
-	ni = 3./2.
-	mi = -3./2.
-	nf = -1./2.
-	mf = 1./2.
+    ni = 3./2.
+    mi = -3./2.
+    nf = -1./2.
+    mf = 1./2.
 # 5QMAS correlates 3Q coherence with CT coherence
 if exptype==1:
-	ni = 5./2.
-	mi = -5./2.
-	nf = -1./2.
-	mf = 1./2.
+    ni = 5./2.
+    mi = -5./2.
+    nf = -1./2.
+    mf = 1./2.
 # STMAS correlates ST2 coherence with CT coherence
 if exptype == 2:
-	ni = 3./2.
-	mi = 1./2.
-	nf = -1./2.
-	mf = 1./2.
+    ni = 3./2.
+    mi = 1./2.
+    nf = -1./2.
+    mf = 1./2.
 
 mq = ni-mi
-I2 = spin*(spin+1.)
+I2 = spin*(spin + 1.)
 C4ni = ni*(18.*I2 - 34.*ni*ni - 5.)
 C4mi = mi*(18.*I2 - 34.*mi*mi - 5.)
 C4nf = nf*(18.*I2 - 34.*nf*nf - 5.)
@@ -176,5 +178,5 @@ dtst.writeprocpar("SF", str(sf), dimension=2, status=True)
 
 # maybe one need to calculate/set OFFSET parameter to actually 
 # change the reference frequency in topspin display
-#MSG(offset+"\n"+str(swh))
+#MSG(offset + "\n" + str(swh))
 RE(dataset)
