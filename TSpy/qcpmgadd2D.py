@@ -7,7 +7,7 @@ import subprocess
 #istallation directory is relative to current script location
 DIRINST=os.path.dirname(sys.argv[0])+"/../"
 CPYTHON=os.getenv("CPYTHON","NotDefined")
-if NotDefined in CPYTHON:
+if "NotDefined" in CPYTHON:
     MSG("CPYTHON is not defined")
     EXIT()
 
