@@ -169,10 +169,10 @@ expRatio = args.slope
 
 # create array with x
 t2_ind = numpy.arange(-oneEchoSize/2, oneEchoSize/2)*(1e-6*dw*GB)
-t2_ind2d = numpy.resize(t2_ind, (TD1/HCsize, oneEchoSize))
+t2_ind2d = numpy.resize(t2_ind, (TD1//HCsize, oneEchoSize))
 # create array with |x0| shift
 t1_ind = numpy.arange(TD1/HCsize)*(1e-6*dw1*expRatio*GB)
-t1_ind2d = numpy.resize(t1_ind, (oneEchoSize, TD1/HCsize))
+t1_ind2d = numpy.resize(t1_ind, (oneEchoSize, TD1//HCsize))
 t1_ind2d = t1_ind2d.T
 
 # gaussian with positive t1 shift
@@ -183,7 +183,7 @@ G_m = numpy.exp(-(t2_ind2d+t1_ind2d)**2)
 G = numpy.maximum(G_p, G_m)
 
 # extend apodization matrix with n echoes with LB
-LG = numpy.resize(G, (nEchoes, TD1/HCsize, oneEchoSize)).swapaxes(0, 1)
+LG = numpy.resize(G, (nEchoes, TD1//HCsize, oneEchoSize)).swapaxes(0, 1)
 # LG is now (TD1/2, necho, oneEchoSize) shape
 LB = 0.1
 L = numpy.exp(numpy.arange(nEchoes)*(-LB*1e-6*dw*oneEchoSize))
