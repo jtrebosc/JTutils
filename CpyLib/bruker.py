@@ -122,7 +122,7 @@ def splitprocpath(path):
         while path != drive + os.sep:
             (path, tmp) = os.path.split(path)
             list.insert(0, tmp)
-        if list[-1] == "nmr" and list[-3] == "data":
+        if len(list) >= 3 and list[-1] == "nmr" and list[-3] == "data":
             # we are in version <3
             list.pop()  # drops the nmr folder
             user = list.pop()
