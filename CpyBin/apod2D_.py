@@ -58,10 +58,15 @@ print("td1=%d, tdeff1=%d, si1=%d" % (td1, tdeff1, SI1))
 print("td2=%d, tdeff2=%d, si2=%d" % (td2c, tdeff2, SI2))
 serfile = serfile[0:td1, 0:td2c]
 
+mode2D = {'1': 'QF' , '2': 'QSEQ', '3': 'TPPI', 
+          '4': 'States', '5': 'States-TPPI', '6': 'Echo-AntiEcho' }
+
 # reshape data according to FnMODE
 FnMode = dat.readacqpar("FnMODE", status=True, dimension=2)
-if FnMode == "0":
-    FnMode == dat.readprocpar("MC2", status=False, dimension=2) 
+if FnMode == "0":  # if undefined then read MC2 processing parameter 
+    # note that MC2 has different meaning : same order as FnMode but with 0 starting for QF
+    # hence need to add 1 to MC2 to have same correspondance as for FnMode
+    FnMode == str(int(dat.readprocpar("MC2", status=False, dimension=2)) + 1) 
 
 if FnMode in "4 5 6":  # State, States-TPPI, Echo-AntiEcho
     HCsize = 2
@@ -141,8 +146,14 @@ for dim in [1, 2]:
             dat.writeprocpar(opt, "0", True, dimension=dim)
 
 # write 2rr and 2ir files in time/time mode : SI, STSI and some other parameters are set automatically
+
+if FnMode in "1 ":  # QF
+    imag_file = '2ii'
+elif FnMode in "2 3 4 5 6":  # QSEQ, TPPI, State, States-TPPI, Echo-AntiEcho
+    imag_file = '2ir'
+
 dat.writespect2d(rr.real, "2rr", "tt")
-dat.writespect2d(rr.imag, "2ir", "tt")
+dat.writespect2d(rr.imag, imag_file, "tt")
 
 # even though we are in time domain we need to set a SW_p in ppm
 # with respect to irradiation frequency SFO1
@@ -153,7 +164,7 @@ sfo2=float(dat.readacqpar("SFO1", status=True, dimension=1))
 dat.writeprocpar("SW_p", str(sw2/sfo2), status=True,dimension=1)
 dat.writeprocpar("SW_p", str(sw1/sfo1), status=True,dimension=2)
 
-# digital filter is already removed: PKNL must be set to False
+# digital filter is not removed: PKNL must be set to False
 dat.writeprocpar("PKNL", "no", status=True)
 dat.writeprocpar("WDW", "2", status=True)
 dat.writeprocpar("LB", str(-args.gb), status=True)
