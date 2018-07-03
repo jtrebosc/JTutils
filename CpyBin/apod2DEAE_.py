@@ -169,5 +169,5 @@ dat.writeprocpar("MC2","3",True,2)                      # States
 dat.writeprocpar("AXUNIT","s",status=True)
 dat.writeprocpar("AXUNIT","s",status=True,dimension=2)
 dat.writeprocpar("AXRIGHT",str(SI2*dw2),status=True)
-dat.writeprocpar("AXRIGHT",str(SI1*dw1),status=True,dimension=2)
+dat.writeprocpar("AXRIGHT",str(SI1*dw1/2),status=True,dimension=2)
 

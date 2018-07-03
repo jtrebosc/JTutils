@@ -157,5 +157,5 @@ dat.writeprocpar("GB", "0", status=True)
 dat.writeprocpar("AXUNIT", "s", status=True, dimension=1)
 dat.writeprocpar("AXUNIT", "s", status=True, dimension=2)
 dat.writeprocpar("AXRIGHT", str(SI2*dw2), status=True)
-dat.writeprocpar("AXRIGHT", str(SI1*dw1/HCsize), status=True, dimension=2)
+dat.writeprocpar("AXRIGHT", str(SI1*dw1/2.0), status=True, dimension=2)
 
