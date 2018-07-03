@@ -28,13 +28,14 @@ parser.add_argument('-l', '--lb', type=float,  help='Lorentzian broadening (Hz F
 parser.add_argument('-g', '--gb', type=float,  help='Gaussian broadening (Hz FWHM) applied along t2 centered at t2=s*t1+c', default=0)
 parser.add_argument('-s', type=float,  help='s=t2/t1 slope to follow for GB center', default=0)
 parser.add_argument('-c', type=float,  help='initial center position (at row 0) in us excluding digital filter delay', default=0)
+parser.add_argument('-e','--echoOnly',action='store_true', help='Apodize only along the echo signal (positive slope)')
 parser.add_argument('infile', help='Full path of the dataset to process')
 
 args = parser.parse_args()
 #print(bruker.splitprocpath(infile))
 dat = bruker.dataset(bruker.splitprocpath(args.infile))
 
-# read ser file and correct automatically for digital filter
+# read ser file 
 serfile = dat.readserc(rmGRPDLY=False)
 
 # calculates useful boudaries from TDeff and SI
@@ -113,7 +114,10 @@ Tl = numpy.dot(dw1*J, OI)
 #2D array (td1//HCsize, td2c) representing the time t0 for lorentzian apodization
 T0l = numpy.zeros((td1//HCsize, td2c))-centerpoint*dw2
 # generates the Gaussian function array
-G = numpy.maximum(gauss(args.gb, Tg, T0gp), gauss(args.gb, Tg, T0gm))
+if args.echoOnly:
+    G = gauss(args.gb, Tg, T0gp)
+else:
+    G = numpy.maximum(gauss(args.gb, Tg, T0gp), gauss(args.gb, Tg, T0gm))
 # Apodization array
 ApodArray = G*lorentz(args.lb, Tl, T0l)
 
