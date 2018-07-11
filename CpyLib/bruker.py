@@ -89,7 +89,7 @@ import sys
 import os.path
 import os
 import re
-import numpy.core as n
+import numpy.core as np
 import numpy.fft as fft
 
 __version__ = '1.6'
@@ -276,7 +276,7 @@ def serc2DEAE2HC(ser):
     ser = ser[0:td1]
     tmp = ser.reshape(td1//2, 2, td2)
     tmp = tmp.swapaxes(1, 0)
-    R = n.concatenate((0.5*(tmp[0]+tmp[1]), 0.5*(tmp[0]-tmp[1])
+    R = np.concatenate((0.5*(tmp[0]+tmp[1]), 0.5*(tmp[0]-tmp[1])
                        )).reshape(2, td1//2, td2//2)
     return R
 
@@ -321,7 +321,7 @@ def ser2DEAE2HC(ser):
     tmp = ser.reshape(td1//2, 2, td2//2, 2)
     tmp = tmp[..., 0] + 1j*tmp[..., 1]
     tmp = tmp.swapaxes(1, 0)
-    R = n.concatenate((0.5*(tmp[0] + tmp[1]), 0.5*(tmp[0]-tmp[1])
+    R = np.concatenate((0.5*(tmp[0] + tmp[1]), 0.5*(tmp[0]-tmp[1])
                        )).reshape(2, td1//2, td2//2)
     return R
 
@@ -335,8 +335,8 @@ def rephase(self, NdArray, phase=0, dim=0):
         dimension containing the Re/Im pairs
     OUTPUT: NdArray
     """
-    cosP = n.cos(phase/360.0*2*n.pi)
-    sinP = n.sin(phase/360.0*2*n.pi)
+    cosP = np.cos(phase/360.0*2*np.pi)
+    sinP = np.sin(phase/360.0*2*np.pi)
     NdArray.swapaxes(dim, -1)
     NdArray[..., 0], NdArray[..., 1] = (
             cosP*NdArray[..., 0] - sinP*NdArray[..., 1],
@@ -478,7 +478,7 @@ class dataset:
         except:
             BrukDTYPA = 0
 
-        self.dtypeA = n.dtype(brukBYTORD[brukBYTORDA] + brukDTYP[BrukDTYPA])
+        self.dtypeA = np.dtype(brukBYTORD[brukBYTORDA] + brukDTYP[BrukDTYPA])
         # print "acq data stored as %s of size %d" % (self.dtypeA,
         #                                             self.dtypeA.itemsize)
         if brukBYTORDA == 0:
@@ -516,7 +516,7 @@ class dataset:
         except:
             BrukDTYPP = 0
 
-        self.dtypeP = n.dtype(brukBYTORD[brukBYTORDP] + brukDTYP[BrukDTYPP])
+        self.dtypeP = np.dtype(brukBYTORD[brukBYTORDP] + brukDTYP[BrukDTYPP])
 #        print "proc data stored as %s" % (self.dtypeP, )
         if brukBYTORDP == 0:
             self.bytencP = 'little'
@@ -982,7 +982,7 @@ class dataset:
             return None
         scale = int(self.readacqpar("NC", True))
         td = int(self.readacqpar("TD", True))
-        res = n.fromfile(filename, dtype=self.dtypeA, count=td).astype(float)
+        res = np.fromfile(filename, dtype=self.dtypeA, count=td).astype(float)
         npts = 2*int(round(self.getdigfilt()))
         if raw:
             return res
@@ -998,7 +998,7 @@ class dataset:
         from math import log as ln
         filename = self.returnacqpath() + "fid"
         # recalculate a good NC value
-        MAX = n.abs(spect).max()
+        MAX = np.abs(spect).max()
         NC = int(ceil(ln(MAX/2)/ln(2)))-29
 
         TD = len(spect)
@@ -1009,7 +1009,7 @@ class dataset:
         tdblock = int(ceil(TD/ptpblk)*ptpblk)
 #        print TD, tdblock, tdblock-TD
         spect = spect/2**NC
-        res = n.concatenate((spect, n.zeros(tdblock-len(spect))))
+        res = np.concatenate((spect, np.zeros(tdblock-len(spect))))
 
         self.writeacqpar("NC", str(NC), True)
         self.writeacqpar("TD", str(TD), True)
@@ -1028,7 +1028,7 @@ class dataset:
             print filename + " does not exist!!"
             return None
         td = int(self.readacqpar("TD", True))
-        res = n.fromfile(filename, dtype=self.dtypeA, count=td).astype(float)
+        res = np.fromfile(filename, dtype=self.dtypeA, count=td).astype(float)
         res = res.reshape((td/2, 2))
         R = res[:, 0]+1j*res[:, 1]
         phcfilt = self.getdigfilt()
@@ -1049,9 +1049,9 @@ class dataset:
             # Apply reverse processing: roll -1 then reverse order then
             #       ifftshift then ifft
             fftsize = int(td/4)*2
-            PH = n.exp(-1j*n.pi*2*phcfilt*n.arange(fftsize)/float(fftsize))
-            FT = n.roll(fft.fftshift(fft.fft(R, fftsize))[::-1], 1)
-            R = fft.ifft(fft.ifftshift(n.roll(FT*PH, -1)[::-1]))
+            PH = np.exp(-1j*np.pi*2*phcfilt*np.arange(fftsize)/float(fftsize))
+            FT = np.roll(fft.fftshift(fft.fft(R, fftsize))[::-1], 1)
+            R = fft.ifft(fft.ifftshift(np.roll(FT*PH, -1)[::-1]))
             # discard the digital filter points at the end of FID
             R = R[0:td/2-npts]
         return R
@@ -1065,7 +1065,7 @@ class dataset:
         from math import log as ln
         filename = self.returnacqpath() + "fid"
         # recalculate a good NC value
-        MAX = n.absolute(spect).max()
+        MAX = np.absolute(spect).max()
         NC = int(ceil(ln(MAX/2)/ln(2)))-29
 
         TD = len(spect)*2
@@ -1076,7 +1076,7 @@ class dataset:
         tdblock = int(ceil(TD/ptpblk)*ptpblk)
 #        print TD, tdblock, tdblock-TD
         spect = spect/2**NC
-        S = n.zeros(tdblock)
+        S = np.zeros(tdblock)
         S[0:TD:2] = spect.real
         S[1:TD:2] = spect.imag
 #        print NC
@@ -1122,7 +1122,7 @@ class dataset:
         tdblock = int(ceil(TD/ptpblk)*ptpblk)
 
         tdnd.append(tdblock)
-        res = n.fromfile(filename, dtype=self.dtypeA,
+        res = np.fromfile(filename, dtype=self.dtypeA,
                          count=tdn*tdblock).astype(float)
         res.resize(tdnd)
         # get digital filter length
@@ -1183,7 +1183,7 @@ class dataset:
         tdnd.append(2)
 
         # read file
-        res = n.fromfile(filename, dtype=self.dtypeA,
+        res = np.fromfile(filename, dtype=self.dtypeA,
                          count=tdn*tdblock).astype(float)
         # reshape or resize ? there should be no reason to change overal
         # size if tdn*tdblock are read but returning a view or copy may matter.
@@ -1209,10 +1209,10 @@ class dataset:
             phcfilt = self.getdigfilt()
             npts = int(phcfilt)
             fftsize = int(TD/4)*2
-            PH = n.exp(-1j*n.pi*2*phcfilt*n.arange(fftsize)/float(fftsize))
-            FT = n.roll(fft.fftshift(fft.fft(R, fftsize),
+            PH = np.exp(-1j*np.pi*2*phcfilt*np.arange(fftsize)/float(fftsize))
+            FT = np.roll(fft.fftshift(fft.fft(R, fftsize),
                                      axes=-1)[..., ::-1], 1, axis=-1)
-            R = fft.ifft(fft.ifftshift(n.roll(FT*PH, -1,
+            R = fft.ifft(fft.ifftshift(np.roll(FT*PH, -1,
                                        axis=-1)[..., ::-1], axes=-1))
             # discard the digital filter points at the end of FID
             R = R[..., 0:TD/2-npts]
@@ -1288,7 +1288,7 @@ class dataset:
 
 # calculates NC_proc to use maximum dynamics on signed 32 bits int
         sizeA = serArray.size
-        MAX = n.max(n.fabs(serArray.reshape(sizeA)))
+        MAX = np.max(np.fabs(serArray.reshape(sizeA)))
 #        print MAX
 
         if not raw:
@@ -1324,7 +1324,7 @@ class dataset:
             return None
         scale = int(self.readprocpar("NC_proc", True))
         si = int(self.readprocpar("SI", True))
-        res = n.fromfile(filename, dtype=self.dtypeP, count=si).astype(float)
+        res = np.fromfile(filename, dtype=self.dtypeP, count=si).astype(float)
         return res*2**scale
 
     def readspect1dri(self):
@@ -1347,7 +1347,7 @@ class dataset:
         f1 = self.returnprocpath() + "1r"
         f2 = self.returnprocpath() + "1i"
         # calculates NC_proc to use maximum dynamics on signed 32 bits int
-        MAX = n.max(n.absolute(s1+1j*s2))
+        MAX = np.max(np.absolute(s1+1j*s2))
         if MAX < 0.1:
             NC = 0
         else:
@@ -1396,7 +1396,7 @@ class dataset:
         rest1 = si1/xdim1
         rest2 = si/xdim2
 
-        spect = n.fromfile(filename, dtype=self.dtypeP,
+        spect = np.fromfile(filename, dtype=self.dtypeP,
                            count=si*si1).astype(float)
         spect = spect*2**scale
         spect = spect.reshape(rest1, rest2, xdim1, xdim2)
@@ -1421,7 +1421,7 @@ class dataset:
         if name == '2rr':
             # calculates NC_proc to use maximum dynamics on signed 32 bits int
             sizeA = spectArray.size
-            MAX = n.max(n.fabs(spectArray.reshape(sizeA)))
+            MAX = np.max(np.fabs(spectArray.reshape(sizeA)))
 #            print MAX
             if MAX < 0.1:
                 NC = 0
@@ -1508,7 +1508,7 @@ class dataset:
             tmpshape.append(XDIM[i])
         spectArray = spectArray.reshape(tmpshape)
         for i in range(DIM-1):
-            spectArray = n.rollaxis(spectArray, 2*(i+1), 1+i)
+            spectArray = np.rollaxis(spectArray, 2*(i+1), 1+i)
 
         spectArray.astype(self.dtypeP).tofile(filename)
         return
@@ -1535,14 +1535,14 @@ class dataset:
             size *= si[0]
             xdim.insert(0, int(self.readprocpar("XDIM", True, i+1)))
             rest.insert(0, si[0]/xdim[0])
-        spect = n.fromfile(filename, dtype=self.dtypeP,
+        spect = np.fromfile(filename, dtype=self.dtypeP,
                            count=size).astype(float)
         spect = spect*2**scale
         tmpshape = rest[:]
         tmpshape.extend(xdim)
         spect = spect.reshape(tmpshape)
         for i in range(dim-1):
-            spect = n.rollaxis(spect, dim+i, 1+2*i)
+            spect = np.rollaxis(spect, dim+i, 1+2*i)
         spect = spect.reshape(si)
         return spect
 
@@ -1552,7 +1552,7 @@ class dataset:
         """
         dw = 1/float(self.readacqpar("SW_h", True))
         td = int(self.readacqpar("TD", True))
-        return n.arange(0, td)*dw/2.
+        return np.arange(0, td)*dw/2.
 
     def getytime(self):
         """
@@ -1576,7 +1576,7 @@ class dataset:
         dw = 1/float(self.readacqpar("SW_h", True, 2))
         td = int(self.readacqpar("TD", True, 2))
         d0 = float(self.readacqpar("D 0", True, 1))
-        return n.arange(0, td)*dw/f+d0
+        return np.arange(0, td)*dw/f+d0
 
     def getprocxppm(self):
         """
@@ -1588,7 +1588,7 @@ class dataset:
         swp = sw/sf
         offset = float(self.readprocpar("OFFSET", True))
         ppmppt = swp/stsi
-        ppm = -(n.arange(stsi)+0.5)*ppmppt+offset
+        ppm = -(np.arange(stsi)+0.5)*ppmppt+offset
         return ppm
 
     def getprocxhz(self):
@@ -1601,7 +1601,7 @@ class dataset:
         swp = sw/sf
         offset = float(self.readprocpar("OFFSET", True))
         ppmppt = swp/stsi
-        ppm = (-(n.arange(stsi)+0.5)*ppmppt+offset)*sf
+        ppm = (-(np.arange(stsi)+0.5)*ppmppt+offset)*sf
         return ppm
 
     def getprocyppm(self):
@@ -1614,7 +1614,7 @@ class dataset:
         swp = sw/sf
         offset = float(self.readprocpar("OFFSET", True, 2))
         ppmppt = swp/stsi
-        ppm = -(n.arange(stsi)+0.5)*ppmppt+offset
+        ppm = -(np.arange(stsi)+0.5)*ppmppt+offset
         return ppm
 
     def getprocyhz(self):
@@ -1627,7 +1627,7 @@ class dataset:
         swp = sw/sf
         offset = float(self.readprocpar("OFFSET", True, 2))
         ppmppt = swp/stsi
-        ppm = (-(n.arange(stsi)+0.5)*ppmppt+offset)*sf
+        ppm = (-(np.arange(stsi)+0.5)*ppmppt+offset)*sf
         return ppm
 
 # the following procedures recalculate the scales from acquisition parameters
@@ -1641,7 +1641,7 @@ class dataset:
         stsr = float(self.readprocpar("STSR", True))
         sf = float(self.readprocpar("SF", True))
         sfo1 = float(self.readacqpar("SFO1", True))
-        hz = -sw/si*n.arange(-si/2, si/2)-(sfo1-sf)*1e6
+        hz = -sw/si*np.arange(-si/2, si/2)-(sfo1-sf)*1e6
         return hz[stsr:stsr+stsi]
 
     def getyhz(self):
@@ -1655,7 +1655,7 @@ class dataset:
         stsr = float(self.readprocpar("STSR", True, 2))
         sf = float(self.readprocpar("SF", True, 2))
         sfo1 = float(self.readacqpar("SFO1", True, 2))
-        hz = -sw/si*n.arange(-si/2, si/2)-(sfo1-sf)*1e6
+        hz = -sw/si*np.arange(-si/2, si/2)-(sfo1-sf)*1e6
         return hz[stsr:stsr+stsi]
 
     def getxppm(self):
@@ -1668,7 +1668,7 @@ class dataset:
         stsr = float(self.readprocpar("STSR", True))
         sf = float(self.readprocpar("SF", True))
         sfo1 = float(self.readacqpar("SFO1", True))
-        ppm = -(sw/si*n.arange(-si/2, si/2)-(sfo1-sf)*1e6)/sf
+        ppm = -(sw/si*np.arange(-si/2, si/2)-(sfo1-sf)*1e6)/sf
         return ppm[stsr:stsr+stsi]
 
     def getyppm(self):
@@ -1682,6 +1682,6 @@ class dataset:
         stsr = float(self.readprocpar("STSR", True, 2))
         sf = float(self.readprocpar("SF", True, 2))
         sfo1 = float(self.readacqpar("SFO1", True, 2))
-        ppm = -(sw/si*n.arange(-si/2, si/2)-(sfo1-sf)*1e6)/sf
+        ppm = -(sw/si*np.arange(-si/2, si/2)-(sfo1-sf)*1e6)/sf
         return ppm[stsr:stsr+stsi]
 
