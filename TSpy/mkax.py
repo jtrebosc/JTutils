@@ -11,7 +11,7 @@ def usage():
 DST=CURDATA()
 if len(sys.argv)<4:
     usage()
-	EXIT()
+    EXIT()
 if len(sys.argv)==5:
 	axunit=sys.argv[4]
 else:
