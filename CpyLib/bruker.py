@@ -1279,8 +1279,8 @@ class dataset:
         # rounds TD to the next block size
         tdblock = int(ceil(TD/ptpblk)*ptpblk)
         if tdblock != TD:
-            newshape = arrayShape.copy()
-            newshape[-1] = tdblock-TD
+            newShape = list(arrayShape)
+            newShape[-1] = tdblock-TD
             serArray = np.concatenate((serArray, np.zeros(newShape)),
                                       axis=len(newShape)-1)
 
@@ -1291,17 +1291,14 @@ class dataset:
         MAX = np.max(np.fabs(serArray.reshape(sizeA)))
 #        print MAX
 
-        if not raw:
-            if MAX < 0.1:
-                NC = 0
-            else:
-                # NC enlever 17 soit presque la moitie de 31 ????
-                NC = int(ceil(ln(MAX)/ln(2)))-17
-            if NC < 0:
-                serArray = serArray.astype(int) << -NC
-            if NC > 0:
-                serArray = serArray.astype(int) >> NC
-            self.writeacqpar("NC", str(NC), True)
+        if MAX < 0.1:
+            NC = 0
+        else:
+            # NC enlever 17 soit presque la moitie de 31 ????
+            NC = int(ceil(ln(MAX)/ln(2)))-17
+        if self.dtypeA != np.dtype('float64'):
+	        serArray /= 2**NC
+        self.writeacqpar("NC", str(NC), True)
         serArray.astype(self.dtypeA).tofile(filename)
         self.writeacqpar("TD", str(TD), True, 1)
 
