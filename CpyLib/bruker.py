@@ -464,7 +464,7 @@ class dataset:
                 self.haveRawData = False
         # --------------------------------------------------
         # DTYPA: 0 for integer on 4 bytes (int32)
-        #        1 for float on 4 bytes (float32)
+        #        1 for float on 4 bytes (float32): never used
         #        2 for float on 8 bytes (float64)
         # --------------------------------------------------
         brukDTYP = ['i4', 'f4', 'f8']
@@ -972,7 +972,7 @@ class dataset:
         """
         read an fid (1D) file and return it as numpy array
         The FID has the digital filter part removed and it's amplitude
-                is scaled according to NC parameter
+                is scaled according to NC parameter (NC such that stored data lie in between 2^28 and 2^29)
         If raw is true it returns the unscaled FID including the digital
             filter part
         """
@@ -997,9 +997,12 @@ class dataset:
         from math import ceil
         from math import log as ln
         filename = self.returnacqpath() + "fid"
-        # recalculate a good NC value
-        MAX = np.abs(spect).max()
-        NC = int(ceil(ln(MAX/2)/ln(2)))-29
+        if self.dtypeA != np.dtype('float64'):
+            # recalculate a good NC value
+            MAX = np.abs(spect).max()
+            NC = int(ceil(ln(MAX/2)/ln(2)))-29
+        else:
+            NC = 0
 
         TD = len(spect)
         # filesize should be a multiple of a block of 1024 bytes
@@ -1065,8 +1068,11 @@ class dataset:
         from math import log as ln
         filename = self.returnacqpath() + "fid"
         # recalculate a good NC value
-        MAX = np.absolute(spect).max()
-        NC = int(ceil(ln(MAX/2)/ln(2)))-29
+        if self.dtypeA != np.dtype('float64'):
+            MAX = np.absolute(spect).max()
+            NC = int(ceil(ln(MAX/2)/ln(2)))-29
+        else:
+            NC = 0
 
         TD = len(spect)*2
         # filesize should be a multiple of 1k block
@@ -1284,20 +1290,21 @@ class dataset:
             serArray = np.concatenate((serArray, np.zeros(newShape)),
                                       axis=len(newShape)-1)
 
-        scale = int(self.readacqpar("NC", True))
+        # scale = int(self.readacqpar("NC", True))
 
 # calculates NC_proc to use maximum dynamics on signed 32 bits int
+# actually NC such that max lies between 2^28 and 2^29 (to avoid overflow when rephasing)
+# cf. Bruker processing reference
         sizeA = serArray.size
-        MAX = np.max(np.fabs(serArray.reshape(sizeA)))
-#        print MAX
 
-        if MAX < 0.1:
-            NC = 0
-        else:
-            # NC enlever 17 soit presque la moitie de 31 ????
-            NC = int(ceil(ln(MAX)/ln(2)))-17
+        # NC enlever 17 soit presque la moitie de 31 ????
         if self.dtypeA != np.dtype('float64'):
+            NC = int(ceil(ln(MAX)/ln(2)))-29
+            MAX = np.max(np.fabs(serArray.reshape(sizeA)))
 	        serArray /= 2**NC
+        else:
+            NC = 0
+
         self.writeacqpar("NC", str(NC), True)
         serArray.astype(self.dtypeA).tofile(filename)
         self.writeacqpar("TD", str(TD), True, 1)
@@ -1345,10 +1352,7 @@ class dataset:
         f2 = self.returnprocpath() + "1i"
         # calculates NC_proc to use maximum dynamics on signed 32 bits int
         MAX = np.max(np.absolute(s1+1j*s2))
-        if MAX < 0.1:
-            NC = 0
-        else:
-            NC = int(ceil(ln(MAX)/ln(2)))-29
+        NC = int(ceil(ln(MAX)/ln(2)))-29
 #        print "NC=%d max=%f" % (NC, MAX)
         (si, ) = s1.shape
 #        print s1
@@ -1409,6 +1413,7 @@ class dataset:
             for frequency "e" for experiment (no unit)
         Examples: dType="ff", dType="ft", dType="fe"
         TODO: check for xdim calculation (now uses xdim=si)
+              one should write 2 or 4 files depending on quadrature used: 2rr and 2ii or 2rr, 2ir, 2ri and 2ii
         """
         from math import ceil
         from math import log as ln
@@ -1420,11 +1425,9 @@ class dataset:
             sizeA = spectArray.size
             MAX = np.max(np.fabs(spectArray.reshape(sizeA)))
 #            print MAX
-            if MAX < 0.1:
-                NC = 0
-            else:
-                # ??? -25 (xfb) ou -29 (xf2) ???
-                NC = int(ceil(ln(MAX)/ln(2)))-29
+#            NC should be calculated on magnitude spectrum (2rr, 2ri, 2ir or 2ii)
+#            not only on 2rr..
+            NC = int(ceil(ln(MAX)/ln(2)))-29
             xdim2 = si
             xdim1 = si1
             self.writeprocpar("NC_proc", str(NC), True)
@@ -1452,10 +1455,7 @@ class dataset:
 
         rest1 = si1/xdim1
         rest2 = si/xdim2
-        if NC < 0:
-            spectArray = spectArray.astype(int) << -NC
-        if NC > 0:
-            spectArray = spectArray.astype(int) >> NC
+        spectArray /= 2**(NC)
         spectArray = spectArray.reshape(rest1, xdim1, rest2, xdim2)
         spectArray = spectArray.swapaxes(1, 2)
         spectArray.astype(self.dtypeP).tofile(filename)
@@ -1482,6 +1482,7 @@ class dataset:
         Write a nD processed datafile
         File is 2rr (default), 2ri, 2ii, 3rrr, 4iii etc...
         Use the original NC_proc and XDIM stored in procs
+        TODO : calculate the NC
         """
         from math import ceil
         from math import log as ln
@@ -1495,10 +1496,7 @@ class dataset:
         REST = [i/j for i, j in zip(SI, XDIM)]
 
         NC = int(self.readprocpar("NC_proc", True))
-        if NC < 0:
-            spectArray = spectArray.astype(int) << -NC
-        if NC > 0:
-            spectArray = spectArray.astype(int) >> NC
+        spectArray /= 2**(NC)
         tmpshape = []
         for i in range(DIM):
             tmpshape.append(REST[i])
