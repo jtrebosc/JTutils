@@ -1301,7 +1301,7 @@ class dataset:
         if self.dtypeA != np.dtype('float64'):
             NC = int(ceil(ln(MAX)/ln(2)))-29
             MAX = np.max(np.fabs(serArray.reshape(sizeA)))
-	        serArray /= 2**NC
+            serArray /= 2**NC
         else:
             NC = 0
 
