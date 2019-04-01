@@ -18,12 +18,14 @@ parser.add_argument('-l', '--lb', type=float, help='Lorentzian broadening applie
 parser.add_argument('-g', '--gb', type=float, help='Gaussian broadening applied to each echo', default=0)
 parser.add_argument('-n', type=int, help='Number of echo to sum')
 parser.add_argument('-c', type=float, help='qcpmg cycle in us')
+parser.add_argument('--norm_noise', action='store_true', help='normalise noise level as function of number of echoes', default=False)
 parser.add_argument('infile', help='Full path of the dataset to process')
 group = parser.add_mutually_exclusive_group()
 group.add_argument('-e', action='store_true', help='Sum only even echoes')
 group.add_argument('-o', action='store_true', help='Sum only odd echoes')
 
 args = parser.parse_args()
+#print(args.__dict__)
 dat = bruker.dataset(bruker.splitprocpath(args.infile))
 
 # lire la fid et eliminer le filter digital (par defaut)
@@ -39,7 +41,7 @@ L22 = int(dat.readacqpar("L 22"))
 if args.n is None or args.n > L22:
     L22 = int(dat.readacqpar("L 22"))+1
 else:
-    L22 = args.n+1
+    L22 = args.n
 # calcule le shift du 1er point (delai entre DW_CLK_ON et P4/2 avant RG_ON)
 # shift=4.0+P3/2+D6+D3+P4/2.0
 shift = 0
@@ -48,7 +50,7 @@ firstP = int(shift/dw*2)
 cycle = 2*(D3+D6+2)+P4
 cycle = float(args.c)
 ppc = cycle/dw
-npoints = int(cycle/dw)
+npoints = int(round(cycle/dw))
 
 if ppc-npoints > 0.001:
     print("Warning echo cycle is not multiple of dwell")
@@ -85,17 +87,27 @@ for i in range(npoints):
 LB = args.lb/2
 SUME = numpy.zeros((npoints, 2))
 SUMA = numpy.zeros((npoints, 2))
+
+L_noise_weight = numpy.zeros(L22)
 for i in range(0, L22):
+    L_weight = numpy.exp(-LB*i*npoints*dw*1e-6)
+    L_noise_weight[i] = L_weight
     if i % 2:
-        SUME += summed[i, :, :] * apod*math.exp(-LB*i*npoints*dw*1e-6)
+        SUME += summed[i, :, :] * apod * L_weight
     else:
-        SUMA += summed[i, :, :] * apod*math.exp(-LB*i*npoints*dw*1e-6)
+        SUMA += summed[i, :, :] * apod * L_weight
 if args.e:
     SUM = SUME
 elif args.o:
     SUM = SUMA
 else:
     SUM = SUMA+SUME
+
+if args.norm_noise:
+#    print("normed for noise")
+    SUM /= numpy.sqrt(L_noise_weight.sum())
+else:
+    print("noise not normed")
 
 # ecrit le resultat dans les fichiers 1r et 1i:
 # separe Re et Im
