@@ -49,7 +49,7 @@ if int(dat.readacqpar("PARMODE")) != 1:
 mode2D = int(dat.readacqpar("FnMODE", dimension=2, status=True))
 
 if mode2D == 0:
-    mode2D = int(dat.readprocpar("MC2"))
+    mode2D = int(dat.readprocpar("MC2"))+1
 if mode2D == 1:
     HCsize = 1
 elif mode2D in [2, 3, 4, 5, 6]:
@@ -231,9 +231,15 @@ r1 = numpy.vstack((r1, numpy.zeros((SI1-TD1, SI))))
 r2 = numpy.vstack((r2, numpy.zeros((SI1-TD1, SI))))
 #print(r1.shape, r2.shape)
 
+fnmode = dat.readacqpar("FnMODE", status=True, dimension=1)
+
+if fnmode in "0 1 2 3" : # QF
+    imag_file = '2ii'
+elif fnmode in "4 5 6":
+    imag_file = '2ir'
 # ecrit les fichiers 1r 1i
 dat.writespect2d(r1, name="2rr", dType="tt")
-dat.writespect2d(r2, name="2ir", dType="tt")
+dat.writespect2d(r2, name=imag_file, dType="tt")
 # write some status processed parameters in procs file so topspin can display
 # and process the data properly
 
