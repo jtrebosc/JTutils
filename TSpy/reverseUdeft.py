@@ -46,7 +46,8 @@ def fullpath(dataset):
 	return fulldata
 fulldataPATH = fullpath(dataset)
 
-opt_args = "--tdeff %s --td %s" % (TDEFF, TD)
+opt_args = ""
+"--tdeff %s --td %s " % (TDEFF, TD)
 
 script = os.path.expanduser(DIRINST + "/CpyBin/reverseUdeft_.py")
 # os.system(" ".join((CPYTHON, script, opt_args, fulldataPATH)))

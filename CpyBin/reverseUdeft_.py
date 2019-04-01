@@ -6,6 +6,7 @@ import sys
 #sys.path.append('/opt/pulse_programs/CpyLib')
 import bruker
 import numpy.core as np
+from numpy import pad
 
 # arguments management
 import argparse
@@ -21,8 +22,8 @@ Only TDEFF points are stored back corresponding only to refocussed echo.
 parser = argparse.ArgumentParser(description=descriptProg)
 parser.add_argument('--td', required=False, type=int, default=0,
                     help='last FID point of refocused echo')
-parser.add_argument('--tdeff', required=True, type=int,
-                    help='only keep tdeff points')
+parser.add_argument('--tdeff', required=False, type=int,
+                    help='only keep tdeff points', default=0)
 parser.add_argument('infile', help='Full path of the dataset to process')
 args = parser.parse_args()
 
@@ -33,34 +34,57 @@ data = bruker.splitprocpath(args.infile)
 dat = bruker.dataset(data)
 
 #read 1D fid file and remove digital filter
-spect = dat.readfidc()
-digfilt = int(np.round(dat.getdigfilt()))
+spect = dat.readfidc(rmGRPDLY=False)
+digfilt = int(round(dat.getdigfilt()))
+(td_spectrum,) = spect.shape
 
+# calculate the theoretical td from pulse sequence parameters unless td is provided as argument
 if args.td:
     print "limit fid to " + str(args.td), digfilt
     td = args.td//2 - digfilt
+else:
+    "p13+3.5+d6*2+de*2+d3*2" # delays to consider
+    p13 = float(dat.readacqpar("P 13"))
+    d3 = float(dat.readacqpar("D 3"))*1e6
+    d6 = float(dat.readacqpar("D 6"))*1e6
+    de = float(dat.readacqpar("DE"))
+    dw = 1e6/float(dat.readacqpar("SW_h"))
+    td = int(round((p13+3.5+2*(d3+d6+de))/dw)+2*digfilt)
+    print("else ",td)
+#print td, td_spectrum
+# some times td is too short (final digital filter is truncated) and one must pad with 0
+if td_spectrum < td:
+    spect = pad(spect,(0,td-td_spectrum),mode='constant')
+#print spect.shape, digfilt
+else : # if too long then truncate FID to optimal td
     spect = spect[0:td]
-print spect.shape, digfilt
-tdeff = args.tdeff//2 - digfilt
-# reverse time and conjugate FID and truncate to TDeff
+
+# tdeff is read from proc file unless provided as argument
+if args.tdeff:
+    tdeff = args.tdeff//2 
+else :
+    tdeff = int(dat.readprocpar("TDeff", status=False))//2
+
+# reverse time, conjugate FID 
 spect = np.conj(spect[::-1])
+#print spect.shape
+# and truncate to TDeff
 if (spect.size > tdeff) and  (tdeff > 0):
     spect = spect[0:tdeff]
-print spect.shape
 
-# extend array to SI size
-tdc = spect.size
+# extend array to SI size (from proc file, this is zero filling)
+(tdc,) = spect.shape
 si = int(dat.readprocpar("SI", status=False, dimension=1))
 if (si < tdc):
-    si = tdc
+    tdc = si
+    spect = spect[0:si]
 spect = np.concatenate((spect,np.zeros(si-tdc)))
-print spect.shape
+#print spect.shape
 dat.writespect1dri(spect.real,spect.imag)
 
-# The FID stored will be considered as inverse fourier transform
-# in time domain 
-# digital filter has been removed
-dat.writeprocpar("PKNL", "yes", True)
+# The FID stored will be considered as unprocessed time domain
+# digital filter has not been removed
+dat.writeprocpar("PKNL", "yes", False)
 
 # set all optionnal status processing parameters to 0 (default)
 ProcOptions = {"WDW": ["LB", "GB", "SSB", "TM1", "TM2"],
@@ -74,7 +98,7 @@ for dim in [1]:
             dat.writeprocpar(opt, "0", True, dimension=dim)
 
 # adjust FT parameters
-dat.writeprocpar("FT_mod", "2", True, dimension=1)  # FT_mod set to ift
+dat.writeprocpar("FT_mod", "0", True, dimension=1)  # FT_mod set to ift
 dat.writeprocpar("FTSIZE", str(si), True, dimension=1)
 dat.writeprocpar("FCOR", "0", True, dimension=1)
 
