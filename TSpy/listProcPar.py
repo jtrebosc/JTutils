@@ -18,7 +18,8 @@ import os
 DIRINST=os.path.dirname(sys.argv[0])+"/../"
 PYTHONPATH=os.getenv("PYTHONPATH")
 #sys.path.append(PYTHONPATH)
-sys.path.append(DIRINST+"CpyLib")
+if not PYTHONPATH in sys.path:
+    sys.path.append(DIRINST+"CpyLib")
 import brukerPAR
 
 args=sys.argv[1:]

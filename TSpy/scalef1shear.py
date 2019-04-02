@@ -46,9 +46,12 @@ except SystemExit:
        
     
 
-DIRINST = os.path.dirname(sys.argv[0]) + "/../"
-sys.path.append(DIRINST+"CpyLib")
+DIRINST = os.path.dirname(sys.argv[0]) 
+LIBPATH = DIRINST+ "/../CpyLib"
+if LIBPATH not in sys.path:
+    sys.path.append(LIBPATH)
 import brukerPAR
+
 
 dataset = CURDATA()
 dtst = brukerPAR.dataset(dataset)

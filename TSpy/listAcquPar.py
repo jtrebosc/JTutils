@@ -16,10 +16,11 @@ import os
 import sys
 
 DIRINST = os.path.dirname(sys.argv[0]) + "/../"
-PYTHONPATH = os.getenv("PYTHONPATH")
+#PYTHONPATH = os.getenv("PYTHONPATH")
+LIBPATH = DIRINST+"CpyLib"
 #sys.path.append(PYTHONPATH)
-sys.path.append(DIRINST+"CpyLib")
-
+if LIBPATH not in sys.path:
+    sys.path.append(LIBPATH)
 import brukerPAR
 
 

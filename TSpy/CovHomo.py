@@ -5,11 +5,12 @@ import sys
 import subprocess
 
 #installation directory is relative to current script location
-DIRINST=os.path.dirname(sys.argv[0])+"/../"
-PYTHONPATH=os.getenv("PYTHONPATH")
 #add the Library path for importing brukerPAR
-sys.path.append(PYTHONPATH)
-#sys.path.append(DIRINST+"CpyLib")
+DIRINST=os.path.dirname(sys.argv[0])
+LIBPATH = DIRINST+"/../CpyLib"
+#sys.path.append(PYTHONPATH)
+if LIBPATH not in sys.path:
+    sys.path.append(LIBPATH)
 # where is the external python executable
 CPYTHON=os.getenv('CPYTHON',"NotDefined")
 

@@ -1,7 +1,11 @@
 # set all optionnal processing parameters to 0
 import sys
 import os
-print sys.path.append(os.getenv("PYTHONPATH"))
+
+DIRINST = os.path.dirname(sys.argv[0]) 
+LIBPATH = DIRINST+ "/../CpyLib"
+if LIBPATH not in sys.path:
+    sys.path.append(LIBPATH)
 from brukerPAR import dataset
 
 ProcOptions = ["WDW", "PH_mod", "BC_mod", "ME_mod", "FT_mod"]
