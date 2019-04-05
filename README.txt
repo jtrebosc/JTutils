@@ -12,19 +12,20 @@ JTutils sets of script comprises:
                      scripts
 	JTutils/CpyLib : contains python libraries to deal with Bruker data
 
-Tested with python 2.4
+Developped with python 2.7 (ubuntu, macosx/topspin 4)
+Tested (a bit) with python 2.4 (centos 5/topspin 2.1)
 
 Requirements for running python program: 
 All programs rely on 
  - bruker.py or brukerPAR.py package which needs at least
 	* python 2.2 
 	* numpy
+Some scripts may need newer numpy version (to be tested)
 
 Most programs will need packages that may not be part of standard modules :
  - numpy
  - argparse (included in python from version 2.7)
  - processing (only for covariance for now)
-
 
 These modules usually can be found in standard linux repository.
 
@@ -81,3 +82,6 @@ on Windows :
 setup your environment variables according to instructions at
 https://msdn.microsoft.com/en-us/library/windows/desktop/ms682653(v=vs.85).aspx
 
+Old versions of topspin :
+Old versions of topspin are using too old version of jython. This version can be updated by changing jython.jar file found in TOPSPIN_INSTALL_DIR/classes/lib/ with one more recent. Be aware that jython.jar files on jython website also depend on java version. For example, only jython version up to 2.5 can be installed on topspin 2.1 since higher versions of jython (2.7) require java 7 while topspin 2.1 only provides java 6.
+For jython versions <2.7, argparse module can be installed in TOPSPIN_INSTALL_DIR/jython/Lib
