@@ -6,7 +6,7 @@
 # dataset must be series of 1D spectra alternated S/S0
 # if a point of S0 spectrum is below the defined threshold
 # then set S0 point to threshold if S0 below threshold
-from __future__ import division, print_function
+from __future__ import division
 
 import sys
 import bruker

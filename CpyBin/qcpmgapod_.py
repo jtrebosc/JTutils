@@ -3,7 +3,7 @@
 # copyright Julien TREBOSC 2012-2013
 # check that variable PYTHONPATH points to the right folder for bruker.py
 #      library
-from __future__ import division, print_function
+from __future__ import division
 
 import numpy
 import sys

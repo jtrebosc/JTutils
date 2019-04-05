@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 # copyright Julien TREBOSC 2012-2013
-from __future__ import division, print_function
+from __future__ import division
 
 import sys
 #import os
