@@ -62,7 +62,8 @@ if args.n and (0 < args.n)  and (args.n <= n_echoes):
 ppc = cycle/dw
 npoints = int(round(cycle/dw))
 
-if ppc-npoints > 0.001:
+print(ppc, npoints, ppc-npoints)
+if abs(ppc-npoints) > 0.001:
     print("Warning echo cycle is not multiple of dwell")
     roundChunk = True
 else:
@@ -75,13 +76,14 @@ TD = int(dat.readacqpar("TD"))
 # (mostly because of digital filter using some TD points)
 if TD < npoints*2*n_echoes+2*digFilLen:
     n_echoes -= int(2*n_echoes - (TD-2*digFilLen)/npoints) + 1
+    print("only %d echoes used" % (n_echoes,))
 
 
 # reshape FID into 3D array (echo index, echo point index, Re/Im)
 if not roundChunk:
     summed = serfile[0:npoints*2*n_echoes].reshape(n_echoes, npoints, 2)
 else:
-    tmp = serfile.reshape(len(serfile)/2, 2)
+    tmp = serfile.reshape(len(serfile)//2, 2)
     summed = numpy.zeros((n_echoes, npoints, 2))
     for i in range(n_echoes):
         summed[i, :, :] += tmp[int(i*ppc+0.5):int(ppc*i+0.5) + npoints, :]
@@ -128,7 +130,8 @@ if args.norm_noise:
 #    print("normed for noise")
     SUM /= numpy.sqrt(L_noise_weight.sum())
 else:
-    print("noise not normed")
+#    print("noise not normed")
+    pass
 
 # separate Re and Im
 s1 = SUM[:, 0]
