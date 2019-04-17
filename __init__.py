@@ -1,0 +1,32 @@
+# -*- coding: utf-8 -*-
+__all__ = ['TSpy', 'CpyLib', 'fullpath', 'get_cpython_path', 'CpyBin_path_to' ]
+
+# special treatment for topspin<3
+def fullpath(dataset):
+    """
+    return absolute path to dataset
+    dataset is an array as returned by CURDATA()
+    """
+    dat = dataset[:] # make a copy because I don't want to modify the original array
+    if len(dat) ==5: # for topspin 2-
+            dat[3] = "%s/data/%s/nmr" % (dat[3], dat[4])
+    fulldata = "%s/%s/%s/pdata/%s/" % (dat[3], dat[0], dat[1], dat[2])
+    return fulldata
+
+def get_cpython_path():
+    """ Return absolute path to external C python interpreter 
+    as read from CPYTHON environment variable
+    """
+    from  os import getenv
+    CPYTHON = getenv('CPYTHON', "NotDefined")
+    if CPYTHON == "NotDefined":
+        raise ValueError("CPYTHON variable environment not found")
+        pass
+    return CPYTHON
+
+def CpyBin_path_to(name):
+    """
+    return absolute path to "name" script found in current module JTutils/CpyBin 
+    """
+    from os.path import dirname, abspath
+    return dirname(abspath(__file__)) + "/CpyBin/" + name

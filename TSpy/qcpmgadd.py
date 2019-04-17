@@ -30,15 +30,14 @@ def add_echoes(lb=None, gb=None, n_echoes=None, cycle=None, echo_position=None, 
     # if this function is called from imported module then one needs to import TOPSPIN functions
     # so that they are available in the current namespace
     from TopCmds import CURDATA, GETPAR, GETPARSTAT, PUTPAR, RE, INPUT_DIALOG, MSG
-
-    # installation directory is relative to current script location
-    DIRINST = os.path.dirname(sys.argv[0])+"/../"
-    print(DIRINST)
-    # where is the external python executable
-    CPYTHON = os.getenv('CPYTHON', "NotDefined")
-    if "python" not in CPYTHON:
-            MSG("CPYTHON environment not defined")
-            EXIT()
+    import JTutils
+    try :
+        CPYTHON = JTutils.get_cpython_path()
+    except ValueError:
+        _, msg, _ = sys.exc_info()
+        MSG(str(msg))
+        EXIT()
+    SCRIPT = JTutils.CpyBin_path_to('qcpmgadd_.py')
 
 # whether CURDATA should be called here or specific dataset should be provided as argument is not clear
     if dataset == None:
@@ -110,14 +109,7 @@ def add_echoes(lb=None, gb=None, n_echoes=None, cycle=None, echo_position=None, 
     PUTPAR("USERP2", echo_position)
     PUTPAR("USERP3", n_echoes)
 
-    # special treatment for topspin<3
-    def fullpath(dataset):
-        dat = dataset[:] # make a copy because I don't want to modify the original array
-        if len(dat) ==5: # for topspin 2-
-                dat[3] = "%s/data/%s/nmr" % (dat[3], dat[4])
-        fulldata = "%s/%s/%s/pdata/%s/" % (dat[3], dat[0], dat[1], dat[2])
-        return fulldata
-    fulldataPATH = fullpath(dataset)
+    fulldataPATH = JTutils.fullpath(dataset)
 
     opt_args = " -g %s -l %s -n %s -c %s " % (gb, lb, n_echoes, cycle)
     if norm_noise:
@@ -126,15 +118,10 @@ def add_echoes(lb=None, gb=None, n_echoes=None, cycle=None, echo_position=None, 
         opt_args += "-e "
     if  odd_only:
         opt_args += "-o "
-        
 
+    print([CPYTHON]+[SCRIPT]+opt_args.split()+[fulldataPATH])    
+    subprocess.call([CPYTHON]+[SCRIPT]+opt_args.split()+[fulldataPATH])    
 
-    script = os.path.expanduser(DIRINST+"/CpyBin/qcpmgadd_.py")
-    # os.system(" ".join((CPYTHON, script, opt_args, fulldataPATH)))
-    print([CPYTHON]+[script]+opt_args.split()+[fulldataPATH])    
-    subprocess.call([CPYTHON]+[script]+opt_args.split()+[fulldataPATH])    
-
-    RE(dataset)
 
 if __name__ == '__main__':
     try : 
@@ -183,3 +170,4 @@ if __name__ == '__main__':
     add_echoes(lb=args.lb, gb=args.gb, n_echoes=args.n, cycle=args.c, echo_position=args.echo_position,
                 norm_noise=args.norm_noise, odd_only=args.e, even_only=args.o, noDialog=args.noDialog,
                 dataset=dataset)
+    RE(dataset)
