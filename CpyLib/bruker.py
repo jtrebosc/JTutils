@@ -1419,6 +1419,7 @@ class dataset:
         from math import log as ln
         filename = self.returnprocpath() + name
         (si1, si) = spectArray.shape
+#        print(si1, si)
 
         if name == '2rr':
             # calculates NC_proc to use maximum dynamics on signed 32 bits int
@@ -1470,10 +1471,29 @@ class dataset:
                 self.writeprocpar("FT_mod", "0", True, 1)
                 self.writeprocpar("FTSIZE", "0", True, 1)
                 self.writeprocpar("AXUNIT", "s", True, 1)
+                # even though we are in time domain we need to set a SW_p in ppm
+                # with respect to irradiation frequency SFO1
+                # otherwise the OFFSET is not properly calculated in further 
+                # topspin calculations especially in indirect dimension...
+                sw2 = float(self.readacqpar("SW_h", status=True, dimension=1))
+                dw2 = 1/sw2
+                sfo2 = float(self.readacqpar("SFO1", status=True, dimension=1))
+                self.writeprocpar("SW_p", str(sw2/sfo2), status=True, dimension=1)
+                self.writeprocpar("AXRIGHT", str(si*dw2), status=True)
             if dType[1] == 't':
                 self.writeprocpar("FT_mod", "0", True, 2)
                 self.writeprocpar("FTSIZE", "0", True, 2)
                 self.writeprocpar("AXUNIT", "s", True, 2)
+                # even though we are in time domain we need to set a SW_p in ppm
+                # with respect to irradiation frequency SFO1
+                # otherwise the OFFSET is not properly calculated in further 
+                # topspin calculations especially in indirect dimension...
+                sw1 = float(self.readacqpar("SW_h", status=True, dimension=2))
+                dw1 = 1/sw1
+                sfo1 = float(self.readacqpar("SFO1", status=True, dimension=2))
+                self.writeprocpar("SW_p", str(sw1/sfo1), status=True, dimension=2)
+                self.writeprocpar("AXRIGHT", str(si1*dw1/2.0), status=True, dimension=2)
+                
             # print dType[0]
         return
 
