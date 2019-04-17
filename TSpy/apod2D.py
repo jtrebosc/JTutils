@@ -10,7 +10,7 @@ DIRINST=os.path.dirname(sys.argv[0])+"/../"
 CPYTHON=os.getenv('CPYTHON',"NotDefined")
 
 dataset=CURDATA()
-LB=GETPAR("1 LB")
+#LB=GETPAR("1 LB")
 GB=GETPAR("LB")
 s=GETPAR("USERP1")
 c=GETPAR("USERP2")
@@ -43,7 +43,7 @@ if e:
 	echoOnly = '-e'
 else:
   echoOnly = ''
-opt_args=" -g %s -l %s -s %s -c %s %s " % (GB, "0", s, c, echoOnly)
+opt_args=" -g %s -s %s -c %s %s " % (GB, s, c, echoOnly)
 
 script=os.path.expanduser(DIRINST+"/CpyBin/apod2D_.py")
 # os.system(" ".join((CPYTHON,script,opt_args,fulldataPATH)))
