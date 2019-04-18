@@ -19,8 +19,7 @@ Requirements for running python program:
 All programs rely on 
  - bruker.py or brukerPAR.py package which needs at least
 	* python 2.2 
-	* numpy
-Some scripts may need newer numpy version (to be tested)
+	* numpy 1.0 or 1.7 depending on script
 
 Most programs will need packages that may not be part of standard modules :
  - numpy
