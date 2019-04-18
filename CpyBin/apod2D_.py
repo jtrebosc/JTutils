@@ -24,11 +24,11 @@ import bruker
 # manage arguments
 import argparse
 parser = argparse.ArgumentParser(description='Read Ser file and apply 2D apodisation (LB along t1 and GB along F2. GB is centered at t2=s*t1+c')
-parser.add_argument('-l', '--lb', type=float,  help='Lorentzian broadening (Hz FWHM) applied along F1', default=0)
+#parser.add_argument('-l', '--lb', type=float,  help='Lorentzian broadening (Hz FWHM) applied along F1', default=0)
 parser.add_argument('-g', '--gb', type=float,  help='Gaussian broadening (Hz FWHM) applied along t2 centered at t2=s*t1+c', default=0)
 parser.add_argument('-s', type=float,  help='s=t2/t1 slope to follow for GB center', default=0)
 parser.add_argument('-c', type=float,  help='initial center position (at row 0) in us excluding digital filter delay', default=0)
-parser.add_argument('-e','--echoOnly',action='store_true', help='Apodize only along the echo signal (positive slope)')
+parser.add_argument('-e', '--echoOnly', action='store_true', help='Apodize only along the echo signal (positive slope)')
 parser.add_argument('infile', help='Full path of the dataset to process')
 
 args = parser.parse_args()
@@ -47,8 +47,8 @@ SI2 = int(dat.readprocpar("SI", False, 1))
 SI1 = int(dat.readprocpar("SI", False, 2))
 if 0 < tdeff1 and tdeff1 < td1:
     td1 = tdeff1
-if SI1 < td1:
-    td1 = SI1
+if SI1 < td1//2:
+    td1 = 2*SI1
 if 0 < tdeff2 and tdeff2 < 2*td2c:
     td2c = tdeff2//2
 if SI2 < td2c:
@@ -70,7 +70,7 @@ if FnMode == "0":  # if undefined then read MC2 processing parameter
 
 if FnMode in "4 5 6":  # State, States-TPPI, Echo-AntiEcho
     HCsize = 2
-    td1 = 2*int(td1//2)  # one only keeps an even number of rows
+    td1 = 2*(td1//2)  # one only keeps an even number of rows
     serfile=serfile[0:td1, :]
 elif FnMode in "0 1 2 3":  # undefined, QF, QSEQ, TPPI
     HCsize = 1
@@ -78,7 +78,7 @@ else:
     print("FnMODE is outside acceptable range (0..6)!!! Problem with acqu2s or proc2 file")
 
 serfile = serfile.reshape((td1//HCsize, HCsize, td2c))
-serfile = numpy.swapaxes(serfile,0,1)  # serfile shape is HCsize,td1//2,td2c)
+serfile = numpy.swapaxes(serfile, 0, 1)  # serfile shape is HCsize, td1//2, td2c)
 
 sw2=float(dat.readacqpar("SW_h", status=True, dimension=1))
 sw1=float(dat.readacqpar("SW_h", status=True, dimension=2))
@@ -106,7 +106,7 @@ centerpoint = args.c/dw2/1e6 + digfilt
 
 # create a mesh index matrix
 OI = numpy.ones(td2c).reshape((1, td2c))
-I = numpy.arange(td2c).reshape((1, td2c))-centerpoint
+I = numpy.arange(td2c).reshape((1, td2c)) - centerpoint
 OJ = numpy.ones(td1//HCsize).reshape((td1//HCsize, 1))
 J = numpy.arange(td1//HCsize).reshape((td1//HCsize, 1))
 #2D array (td1//HCsize, td2c) representing the time t for gaussian apodization
@@ -115,35 +115,37 @@ Tg = numpy.dot(OJ, I*dw2)
 T0gp = numpy.dot( J*dw1*args.s, OI)
 T0gm = numpy.dot(-J*dw1*args.s, OI)
 #2D array (td1//HCsize, td2c) representing the time t for lorentzian apodization in F1
-Tl = numpy.dot(dw1*J, OI)
+#Tl = numpy.dot(dw1*J, OI)
 #2D array (td1//HCsize, td2c) representing the time t0 for lorentzian apodization
-T0l = numpy.zeros((td1//HCsize, td2c))-centerpoint*dw2
+#T0l = numpy.zeros((td1//HCsize, td2c))-centerpoint*dw2
 # generates the Gaussian function array
 if args.echoOnly:
     G = gauss(args.gb, Tg, T0gp)
 else:
     G = numpy.maximum(gauss(args.gb, Tg, T0gp), gauss(args.gb, Tg, T0gm))
 # Apodization array
-ApodArray = G*lorentz(args.lb, Tl, T0l)
+ApodArray = G # *lorentz(args.lb, Tl, T0l)
 
 #apply apodization (use auto expansion of ApodArray for summed(:, ...) first dimension)
 SUM = serfile*ApodArray  # multiply with broadcasting on HCsize dimension
 
-SUM=numpy.swapaxes(SUM, 0, 1).reshape((td1,td2c))
+SUM = numpy.swapaxes(SUM, 0, 1).reshape((td1, td2c))
 
 # Apply zero filling according to final size SI1, SI2 from topspin processing parameters
 rr = numpy.pad(SUM, ((0, SI1-td1), (0, SI2-td2c)), 'constant')
-print("rr shape is ",rr.shape)
+print("rr shape is ", rr.shape)
 
 # set all optionnal processing parameters to 0
 ProcOptions = {"WDW": ["LB", "GB", "SSB", "TM1", "TM2"],
                "PH_mod": ["PHC0", "PHC1"], "BC_mod": ["BCFW", "COROFFS"],
-               "ME_mod": ["NCOEF", "LPBIN", "TDoff"], "FT_mod": ["FTSIZE","FCOR"]}
+               "ME_mod": ["NCOEF", "LPBIN", "TDoff"], "FT_mod": ["FTSIZE", "FCOR",
+               "STSR", "STSI", "REVERSE"],
+              }
 for dim in [1, 2]:
     for par in ProcOptions.keys():
-        dat.writeprocpar(par, "0", True, dimension=dim)
+        dat.writeprocpar(par, "0", status=True, dimension=dim)
         for opt in ProcOptions[par]:
-            dat.writeprocpar(opt, "0", True, dimension=dim)
+            dat.writeprocpar(opt, "0", status=True, dimension=dim)
 
 # write 2rr and 2ir files in time/time mode : SI, STSI and some other parameters are set automatically
 
@@ -155,22 +157,12 @@ elif FnMode in "2 3 4 5 6":  # QSEQ, TPPI, State, States-TPPI, Echo-AntiEcho
 dat.writespect2d(rr.real, "2rr", "tt")
 dat.writespect2d(rr.imag, imag_file, "tt")
 
-# even though we are in time domain we need to set a SW_p in ppm
-# with respect to irradiation frequency SFO1
-# otherwise the OFFSET is not properly calculated in further 
-# topspin calculations especially in indirect dimension...
-sfo1=float(dat.readacqpar("SFO1", status=True, dimension=2))
-sfo2=float(dat.readacqpar("SFO1", status=True, dimension=1))
-dat.writeprocpar("SW_p", str(sw2/sfo2), status=True,dimension=1)
-dat.writeprocpar("SW_p", str(sw1/sfo1), status=True,dimension=2)
 
 # digital filter is not removed: PKNL must be set to False
 dat.writeprocpar("PKNL", "no", status=True)
 dat.writeprocpar("WDW", "2", status=True)
 dat.writeprocpar("LB", str(-args.gb), status=True)
 dat.writeprocpar("GB", "0", status=True)
-dat.writeprocpar("AXUNIT", "s", status=True, dimension=1)
-dat.writeprocpar("AXUNIT", "s", status=True, dimension=2)
-dat.writeprocpar("AXRIGHT", str(SI2*dw2), status=True)
-dat.writeprocpar("AXRIGHT", str(SI1*dw1/2.0), status=True, dimension=2)
+# unselect apodization for further processing
+dat.writeprocpar("WDW", "0", status=False)
 
