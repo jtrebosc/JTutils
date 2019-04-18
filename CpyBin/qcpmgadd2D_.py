@@ -49,14 +49,13 @@ if int(dat.readacqpar("PARMODE")) != 1:
 mode2D = int(dat.readacqpar("FnMODE", dimension=2, status=True))
 
 if mode2D == 0:
-    mode2D = int(dat.readprocpar("MC2"))+1
-if mode2D == 1:
+    mode2D = int(dat.readprocpar("MC2"), dimension=1)+1
+if mode2D == 1:  # QF
     HCsize = 1
-elif mode2D in [2, 3, 4, 5, 6]:
+elif mode2D in [4, 5, 6]: # States, States-TPPI, Echo/Antiecho
     HCsize = 2
 else:
-    print("""Whoaoo, problem. Cannot determine wether F1 is 
-          hypercomplex or not. Please fix FnMODE or MC2""")
+    print("Problem: only QF, States, States-TPPI, Echo-AntiEcho acquisition supported.")
     sys.exit()
 
 
@@ -231,11 +230,9 @@ r1 = numpy.vstack((r1, numpy.zeros((SI1-TD1, SI))))
 r2 = numpy.vstack((r2, numpy.zeros((SI1-TD1, SI))))
 #print(r1.shape, r2.shape)
 
-fnmode = dat.readacqpar("FnMODE", status=True, dimension=1)
-
-if fnmode in "0 1 2 3" : # QF
+if mode2D in [1, ] : # QF only
     imag_file = '2ii'
-elif fnmode in "4 5 6":
+elif fnmode in [4, 5, 6,]: # states, states-TPPI, Echo-AntiEcho
     imag_file = '2ir'
 # ecrit les fichiers 1r 1i
 dat.writespect2d(r1, name="2rr", dType="tt")
