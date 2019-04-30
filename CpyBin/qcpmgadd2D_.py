@@ -49,7 +49,7 @@ if int(dat.readacqpar("PARMODE")) != 1:
 mode2D = int(dat.readacqpar("FnMODE", dimension=2, status=True))
 
 if mode2D == 0:
-    mode2D = int(dat.readprocpar("MC2"), dimension=1)+1
+    mode2D = int(dat.readprocpar("MC2", dimension=1))+1
 if mode2D == 1:  # QF
     HCsize = 1
 elif mode2D in [4, 5, 6]: # States, States-TPPI, Echo/Antiecho
