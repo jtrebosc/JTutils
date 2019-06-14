@@ -5,7 +5,7 @@ import sys
 #setup the following path to dmfit executable and to wine executablefor linux and mac os x
 WIN_dmfit_path=r'C:/Program Files (x86)/dmfit/dm2011.exe'
 
-LIN_dmfit_path=r'.wine/drive_c/Program Files/dmfit2015/dm2015.exe'
+LIN_dmfit_path=r'.wine/drive_c/Program Files (x86)/dmfit2015/dm2015_vs.exe'
 MAC_dmfit_path=r'.wine/drive_c/Program Files/dmfit2015/dm2015.exe'
 
 MAC_wine=r'/usr/local/bin/wine'
