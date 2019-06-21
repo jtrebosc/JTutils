@@ -124,6 +124,15 @@ def add_echoes(lb=None, gb=None, n_echoes=None, cycle=None, echo_position=None, 
 
 
 if __name__ == '__main__':
+    # argparse prints help messages to stdout and error to stderr so we need to redirect these
+    from StringIO import StringIO
+    import sys
+    old_stdout = sys.stdout
+    old_stderr = sys.stderr
+
+    my_stdout = StringIO()
+    sys.stdout = my_stdout
+    sys.stderr = my_stdout
     try : 
         import argparse
         parser  =  argparse.ArgumentParser(
@@ -162,10 +171,21 @@ if __name__ == '__main__':
                 self.o = False
         args = dummy()
     except SystemExit:
-        MSG(""" Script is exiting : either you asked for help or there is an argument error.
-        Check console for additional information
-        """  + parser.format_help() )
+        # argparse has triggered an exception : print the error in a MSG box
+        # and restore the stdout and err
+        err_msg = my_stdout.getvalue()
+        sys.stdout = old_stdout
+        sys.stderr = old_stderr
+        MSG(err_msg)
+        print(err_msg)
+
         EXIT()
+
+    err_msg = my_stdout.getvalue()
+    sys.stdout = old_stdout
+    sys.stderr = old_stderr
+    print(err_msg)
+
     dataset = CURDATA()
     add_echoes(lb=args.lb, gb=args.gb, n_echoes=args.n, cycle=args.c, echo_position=args.echo_position,
                 norm_noise=args.norm_noise, odd_only=args.e, even_only=args.o, noDialog=args.noDialog,
