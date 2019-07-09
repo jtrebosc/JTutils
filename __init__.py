@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-__all__ = ['TSpy', 'CpyLib', 'fullpath', 'get_cpython_path', 'CpyBin_path_to' ]
+from .CpyLib import brukerPAR
+__all__ = ['TSpy', 'brukerPAR', 'fullpath', 'get_cpython_path', 'CpyBin_path_to' ]
 
 # special treatment for topspin<3
 def fullpath(dataset):
