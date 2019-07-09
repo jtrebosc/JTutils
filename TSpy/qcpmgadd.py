@@ -118,8 +118,7 @@ def add_echoes(lb=None, gb=None, n_echoes=None, cycle=None, echo_position=None, 
         opt_args += "-e "
     if  odd_only:
         opt_args += "-o "
-
-    print([CPYTHON]+[SCRIPT]+opt_args.split()+[fulldataPATH])    
+#    print([CPYTHON]+[SCRIPT]+opt_args.split()+[fulldataPATH])    
     subprocess.call([CPYTHON]+[SCRIPT]+opt_args.split()+[fulldataPATH])    
 
 

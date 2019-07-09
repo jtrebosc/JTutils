@@ -62,7 +62,7 @@ if args.n and (0 < args.n)  and (args.n <= n_echoes):
 ppc = cycle/dw
 npoints = int(round(cycle/dw))
 
-print(ppc, npoints, ppc-npoints)
+#print(ppc, npoints, ppc-npoints)
 if abs(ppc-npoints) > 0.001:
     print("Warning echo cycle is not multiple of dwell")
     roundChunk = True
