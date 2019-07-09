@@ -18,7 +18,7 @@ Tested (a bit) with python 2.4 (centos 5/topspin 2.1)
 
 Requirements for running python program: 
  - in CpyLib: bruker.py or brukerPAR.py package will needs at least
-	* python 2.2 
+	* python 2.5 
 	* numpy 1.7
 - in CpyBin : same requirement as CpyLib + processing module for covariance script
 - in TSpy : all scripts should work with topspin provided jython version except for argparse which comes only in jython 2.7 
@@ -33,6 +33,7 @@ math
 shutil
 re
 array
+subprocess
 
 INSTALLATION
 1) Copy all folder JTutils to destination directory DESTDIR
