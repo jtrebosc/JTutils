@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from .CpyLib import brukerPAR
-__all__ = ['TSpy', 'brukerPAR', 'fullpath', 'get_cpython_path', 'CpyBin_path_to' ]
+from .CpyLib import brukerPAR 
+__all__ = ['TSpy', 'brukerPAR', 'fullpath', 'get_cpython_path', 'CpyBin_path_to', 'CPYTHON', 'CpyBin' ]
 
 # special treatment for topspin<3
 def fullpath(dataset):
@@ -8,14 +8,16 @@ def fullpath(dataset):
     return absolute path to dataset
     dataset is an array as returned by CURDATA()
     """
+    import os
     dat = dataset[:] # make a copy because I don't want to modify the original array
-    if len(dat) ==5: # for topspin 2-
-            dat[3] = "%s/data/%s/nmr" % (dat[3], dat[4])
-    fulldata = "%s/%s/%s/pdata/%s/" % (dat[3], dat[0], dat[1], dat[2])
+    if len(dat) == 5: # for topspin 2-
+            dat[3] = os.path.join(dat[3], 'data', dat[4], 'nmr')
+    fulldata = os.path.join(dat[3], dat[0], dat[1], 'pdata', dat[2])
     return fulldata
 
 def get_cpython_path():
-    """ Return absolute path to external C python interpreter 
+    """
+    Return absolute path to external C python interpreter 
     as read from CPYTHON environment variable
     """
     from  os import getenv
@@ -31,3 +33,6 @@ def CpyBin_path_to(name):
     """
     from os.path import dirname, abspath
     return dirname(abspath(__file__)) + "/CpyBin/" + name
+
+CPYTHON = get_cpython_path()
+CpyBin = CpyBin_path_to('')
