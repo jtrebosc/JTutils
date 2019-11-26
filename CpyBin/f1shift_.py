@@ -19,6 +19,7 @@ args=parser.parse_args()
 #print bruker.splitprocpath(infile)
 dat=bruker.dataset(bruker.splitprocpath(args.infile))
 
+# let's shift 2rr but what about the other imaginary ? shift also or HT ?
 # lire la fid et eliminer le filter digital (par defaut)
 spectrr=dat.readspect2d('2rr')
 spectri=dat.readspect2d('2ri')
