@@ -21,140 +21,108 @@ import sys
 # ask for prefix...
 # need add all kind of check 
 
+def launch_dmfit(datfile, config):
+    from JTutils.TSpy.dmfit_setup import get_os_version
+    if 'DMFITPATH' in config.keys():
+        dmfit_path = config['DMFITPATH']
+    if 'WINEPATH' in config.keys():
+        wine_path = config['WINEPATH']
+    if 'WINEPREFIX' in config.keys():
+        environment_var = os.environ.copy()
+        environment_var['WINEPREFIX'] = config['WINEPREFIX']
 
-def which(program):
-    import os
-    def is_exe(fpath):
-        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
-
-    fpath, fname = os.path.split(program)
-    if fpath:
-        if is_exe(program):
-            return program
+    OS = get_os_version()
+    if OS.startswith('linux') or OS.startswith('mac'):
+        #check for wine is exec
+        subp_args = [wine_path, dmfit_path]
     else:
-        for path in os.environ["PATH"].split(os.pathsep):
-            exe_file = os.path.join(path, program)
-            if is_exe(exe_file):
-                return exe_file
+        # check for dmfit is exec
+        subp_args = [dmfit_path]
+    if datfile is not None:
+        subp_args.append(datfile)
+    subprocess.call(subp_args, env=environment_var)
 
-    return None
+if __name__ == '__main__':
+    from JTutils.TSpy.dmfit_setup import read_config_file, run_setup
+    from JTutils import fullpath
 
-def get_os_version():
-    ver = sys.platform.lower()
-    if ver.startswith('java'):
-        import java.lang
-        ver = java.lang.System.getProperty("os.name").lower()
-    return ver
-
-prop_dir = os.getenv('USERHOME_DOT_TOPSPIN', "not defined")
-environment_var = os.environ.copy()
-dmfit_path = dict()
-with open(os.path.join(prop_dir,'JTutils','dmfit.path'), 'r') as f:
-    for line in f:
-        line = line.strip()
-        if line.lstrip()[0] == '#': continue
-        var, path = line.split('=')
-        if var == 'DMFIT_PATH':
-            versions = path.split(';')
-            for ver in versions:
-                key, path = ver.split(':')
-                dmfit_path[key] = path
-                default_key = key
-        if var == 'WINEPREFIX':
-            environment_var[var] = path
-            
-
-WIN_dmfit_path = r'C:/Program Files (x86)/dmfit/dm2011.exe'
-LIN_dmfit_path = r'/home/trebosc/.wine32/drive_c/Program Files/dmfit2015/dm2015.exe'
-MAC_dmfit_path = r'.wine/drive_c/Program Files/dmfit2015/dm2015.exe'
-        
-#setup the following path to dmfit executable and to wine executablefor linux and mac os x
-
-MAC_wine = r'/usr/local/bin/wine'
-LIN_wine = r'/usr/bin/wine'
-wine_path = which('wine')
-# check if wine is exe
-print wine_path
-
-
-OS = get_os_version()
-
-
-if OS.startswith('mac'):
-    # for Linux with wine
-    wine = os.path.normpath(MAC_wine)
-    home = os.getenv("HOME")
-    dmfit_location = os.path.join(os.path.normpath(home),os.path.normpath(MAC_dmfit_path))
-    if not os.path.exists(wine):
-        MSG("""wine executable not not found at 
-               %s
-               Please update MAC_wine variable in this script
-              """ % (wine,))
+    try :
+        config = read_config_file()
+    except Exception as e:
+        MSG(str(e))
+        MSG("Failed to read configuration file. Let's launch the setup procedure...")
+        run_setup()
         EXIT()
-    if not os.path.exists(dmfit_location):
-        MSG("""dmfit not not found at 
-               %s
-               Please update MAC_dmfit_path variable in this script
-              """ % (dmfit_location,))
+    if config == dict():
+        MSG("Configuration is empty. Let's launch the setup procedure...")
+        run_setup()
         EXIT()
-        
-elif OS.startswith('linux'):
-    # for Linux with wine
-    wine = os.path.normpath(LIN_wine)
-    home = os.getenv("HOME")
-    dmfit_location = os.path.join(os.path.normpath(home),os.path.normpath(LIN_dmfit_path))
-    if not os.path.exists(wine):
-        MSG("""wine executable not not found at 
-               %s
-               Please update LIN_wine variable in this script
-              """ % (wine,))
+    # argparse prints help messages to stdout and error to stderr so we need to redirect these to get argument errors or help
+    from StringIO import StringIO
+    import sys
+    old_stdout = sys.stdout
+    old_stderr = sys.stderr
+
+    my_stdout = StringIO()
+    sys.stdout = my_stdout
+    sys.stderr = my_stdout
+    try : 
+        import argparse
+        HelpText = """Launch dmfit to open current dataset
+    Several versions can be defined in configuration (see dmfit_setup.py)
+"""
+        parser  =  argparse.ArgumentParser(
+            description='Launch dmfit to open current dataset')
+        parser.add_argument('version', nargs='?',
+            help='''Version of dmfit installed with dmfit_setup : 
+currently installed versions are: %s''' % (', '.join(config.keys())), 
+            default=None)
+        version = parser.parse_args(sys.argv[1:]).version
+    except ImportError:
+        if len(sys.argv) > 1:
+            version = sys.argv[1]
+        else: 
+            version = None
+    except SystemExit:
+        # argparse has triggered an exception : print the error in a MSG box
+        # and restore the stdout and err
+        err_msg = my_stdout.getvalue()
+        sys.stdout = old_stdout
+        sys.stderr = old_stderr
+        MSG(err_msg)
+        print(err_msg)
         EXIT()
-    if not os.path.exists(dmfit_location):
-        MSG("""dmfit not not found at 
-               %s
-               Please update LIN_dmfit_path variable in this script
-              """ % (dmfit_location,))
-        EXIT()
-else: 
-    # that's windows
-    dmfit_location = os.path.normpath(WIN_dmfit_path)
-    if not os.path.exists(dmfit_location):
-        MSG("""dmfit not not found at 
-               %s
-               Please update WIN_dmfit_path variable in this script
-              """ % (dmfit_location,))
-        EXIT()
-
-
-#TS 2 :  [EXPNAME, EXPNO, PROCNO, DIR, USER]
-#TS >3 : [EXPNAME, EXPNO,PROC, DIR]
-# topspin 2- or 3+
-dtset = CURDATA()
-if len(dtset) == 5: # for topspin 2-
-	dtset[3] = os.path.join(dtset[3], "data", dtset[4], "nmr")
-
-dim = GETPROCDIM()
-if dim == 1 :
-    spectname = "1r"
-elif dim == 2 :
-    spectname = "2rr"
-else :
-    MSG("dmfit can only open 1D or 2D datasets")
-    EXIT()
- 
-datfile = os.path.join(dtset[3], dtset[0], dtset[1], "pdata", dtset[2], spectname)
-
-if len(sys.argv)>1:
-    key = sys.argv[1]
-    if key not in dmfit_path.keys():
-        key = default_key
-else: 
-    key = default_key
+    err_msg = my_stdout.getvalue()
+    sys.stdout = old_stdout
+    sys.stderr = old_stderr
+    print(err_msg)
     
+    print config
+    if version == None :
+        for key in config.keys():
+            if config[key]['DEFAULT']:
+                version = key
+                break
+    try :
+        setup_dict = config[version]
+    except KeyError:
+        MSG("""The version %s was not found in configuration file.
+Allowed versions are : %s """  % (version, ', '.join(config.keys())))
+        EXIT()
 
-if OS.startswith('linux') or OS.startswith('mac'):
-    #check for wine is exec
-    subprocess.call([wine_path, dmfit_path[key], datfile], env=environment_var)
-else:
-    # check for dmfit is exec
-    subprocess.call([dmfit_path[key], datfile])
+    current_data = CURDATA()
+    if current_data is None:
+        datfile = None
+    else:
+        dataset = fullpath(current_data)
+        dim = GETPROCDIM()
+        if dim ==  1 :
+            spectname = "1r"
+        elif dim == 2 :
+            spectname = "2rr"
+        else :
+            MSG("dmfit can only open 1D or 2D datasets")
+            EXIT()
+        datfile = os.path.join(dataset, spectname)
+    launch_dmfit(datfile, setup_dict)
+ 
