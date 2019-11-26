@@ -47,6 +47,10 @@ INSTALLATION
 4) Update the environment variables to define:
      CPYTHON = <path to the C python executable file> (required to run the JTutils/CpyBin scripts)
      PYTHONPATH = <Path to JTutils/CpyLib> (required to locate the bruker library from TSpy and CpyBin scripts.)
+5) make a link in TOPSPIN_INSTALL_DIR/jython/Lib to JTutil folder
+for example :
+under linux and MACOS in a terminal : ln -s /opt/topspin4.0.7/jython/Lib/ ~/Documents/JTutils
+under windows in a command prompt (CMD) : MKLINK /D  C:\Bruker\TOPSPIN4.0.7\jython\Lib\JTutils C:\USERS\toto\Documents\JTutils\
 
 Details about step 4)
 
@@ -78,8 +82,8 @@ setup your environment variables according to instructions at
 https://msdn.microsoft.com/en-us/library/windows/desktop/ms682653(v=vs.85).aspx
 
 On windows 10 + anaconda python 2.7, it has been observed a probem with DLL 
-not found when importing numpy in scripts launched from topspin 4.
-Topspin 4 for windows redefines the PATH variable. 
+not found when importing numpy in scripts launched from topspin 3.6 and 4 .
+Topspin 3.6 and 4 for windows redefines the PATH variable. 
 The consequence is external programs like anaconda python that seems to
 rely on PATH to find dll (notably for numpy) will fail.
 For now the workaround is to edit topspin.cmd file to modify the line 
