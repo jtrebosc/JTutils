@@ -67,6 +67,9 @@ def write_config_file(config):
     """ Write a configuration file for dmfit given a dictionnary """
 
     config_dir = os.path.join(prop_dir,'JTutils')
+    # test if JTutils folder exist
+    if not os.path.exists(config_dir):
+        os.makedirs(config_dir)
     config_file = os.path.join(prop_dir,'JTutils','dmfit.path')
     
     with open(config_file, 'w') as f:

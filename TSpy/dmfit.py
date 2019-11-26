@@ -23,12 +23,12 @@ import sys
 
 def launch_dmfit(datfile, config):
     from JTutils.TSpy.dmfit_setup import get_os_version
+    environment_var = os.environ.copy()
     if 'DMFITPATH' in config.keys():
         dmfit_path = config['DMFITPATH']
     if 'WINEPATH' in config.keys():
         wine_path = config['WINEPATH']
     if 'WINEPREFIX' in config.keys():
-        environment_var = os.environ.copy()
         environment_var['WINEPREFIX'] = config['WINEPREFIX']
 
     OS = get_os_version()
