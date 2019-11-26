@@ -408,13 +408,13 @@ class dataset:
     - write part: write parameter/fid or ser file/ processed spectra...
     """
 
-    def __init__(self, set=['', '', '', '', '']):
-        self.dataset = set
+    def __init__(self, dset=['', '', '', '', '']):
+        self.dataset = dset
         # if list is 5 arguments then it's topspin version < 3
         # else it's topspin version 3
-        if len(set) == 5:
+        if len(dset) == 5:
             self.version = 2
-        if len(set) == 4:
+        if len(dset) == 4:
             self.version = 3
 
         if not os.path.exists(self.returnacqpath()):
