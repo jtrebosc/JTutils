@@ -1,0 +1,27 @@
+##TITLE= Audit trail, TOPSPIN		Version 3.1
+##JCAMPDX= 5.01
+##ORIGIN= Bruker BioSpin GmbH
+##OWNER= trebosc
+$$ /opt/data/RMN800AVIII/nmr/800.JT-121130/3/pdata/3/auditp.txt
+##AUDIT TRAIL=  $$ (NUMBER, WHEN, WHO, WHERE, PROCESS, VERSION, WHAT)
+(   1,<2012-11-30 16:39:11.188 +0100>,<solidnmr>,<rmn800av.univ-lille1.fr>,<go>,<TOPSPIN 3.0>,
+      <created by zg
+	started at 2012-11-30 16:33:33.764 +0100,
+	POWCHK disabled, PULCHK disabled,
+       configuration hash MD5:
+       5F BE AC 3F B2 8C 85 24 17 09 FB 0D 04 75 49 36
+       data hash MD5: 58500
+       B0 7E 57 B1 50 4A B2 3E 74 B3 03 1B 95 D0 EF AF>)
+(   2,<2012-11-30 18:57:05.027 +0100>,<trebosc>,<pc32.ensc-lille.fr>,<proc1d>,<TOPSPIN 3.1>,
+      <Start of raw data processing
+       fp FT_mod = 6 PKNL = 1 PHC0 = 20.03329 PHC1 = 195108.8 SI = 128K 
+       data hash MD5: 128K
+       17 93 A9 32 31 1A E7 2D 56 23 44 4A 3F C7 36 43>)
+(   3,<2012-11-30 18:57:12.236 +0100>,<trebosc>,<pc32.ensc-lille.fr>,<dirdata>,<TOPSPIN 3.1>,
+      <wrp from 1 3 "800.JT-121130" "/opt/data/RMN800AVIII/nmr"
+       data hash MD5: 128K
+       17 93 A9 32 31 1A E7 2D 56 23 44 4A 3F C7 36 43>)
+##END=
+
+$$ hash MD5
+$$ 50 8E E3 07 99 C4 E9 A8 5B ED 72 F1 2E 5C 84 C8

@@ -1,0 +1,209 @@
+
+Report of AU program poptau
+
+Number of experiments: 9
+total experiment time will be:  1 min 30 sec
+
+F1P=33.885ppm F2P=-144.012ppm
+PH_mode=1  FT_mod=6 
+
+
+PROCNO=999
+
+Linear optimization of pl1 in 9 steps, as Step: Group 0
+starting at 14.000000000  endval= 6.000000000  
+OPTIMUM= POSMAX
+VARMOD= LIN
+
+Experiment        pl1         Maximum point   Minimum point       Integral
+     1      14.000000000000        35102135       -33312973       -126768.989642
+     2      13.000000000000        37206847       -34018290        -63450.158610
+     3      12.000000000000        56735789       -41147023        270197.571213
+     4      11.000000000000        71568208       -34513379        593566.711049
+     5      10.000000000000       143334138       -39087482       -283838.563876
+     6       9.000000000000       314145114       -59603539        633022.096893
+     7       8.000000000000       431375280       -86237232       1386722.241044
+     8       7.000000000000       494801651       -98222072        665660.459862
+     9       6.000000000000       405822283       -83517634       1363209.836642
+poptau for pl1 finished.
+POSMAX at experiment 8:  pl1 = 7.0000  
+
+
+Report of AU program poptau
+
+Number of experiments: 7
+total experiment time will be:  1 min 10 sec
+
+F1P=33.885ppm F2P=-144.012ppm
+PH_mode=1  FT_mod=6 
+
+
+PROCNO=998
+
+Linear optimization of pl1 in 7 steps, as Step: Group 0
+starting at 8.000000000   endval= 5.600000000  
+OPTIMUM= POSMAX
+VARMOD= LIN
+
+Experiment        pl1         Maximum point   Minimum point       Integral
+     1       8.000000000000       232918126       -45885290       1006174.091929
+     2       7.600000000000       145472885       -32029261        597507.406129
+     3       7.200000000000       179505846       -35768511        893912.706733
+     4       6.800000000000       408432107       -80334996       1531417.663358
+     5       6.400000000000       333377884       -66495784       1164558.097324
+     6       6.000000000000       197549973       -43296792        505388.707812
+     7       5.600000000000        15537143       -15517572       -225172.022011
+poptau for pl1 finished.
+POSMAX at experiment 4:  pl1 = 6.8000  
+
+
+Report of AU program poptau
+
+Number of experiments: 26
+total experiment time will be:  4 min 20 sec
+
+F1P=33.885ppm F2P=-144.012ppm
+PH_mode=1  FT_mod=6 
+
+
+PROCNO=997
+
+Linear optimization of pl1 in 7 steps, as Step: Group 0
+starting at 8.000000000   endval= 5.600000000  
+OPTIMUM= POSMAX
+VARMOD= LIN
+
+poptaustop was executed for pl1, step 3
+
+Report of AU program poptau
+
+Number of experiments: 19
+total experiment time will be:  3 min 10 sec
+
+F1P=33.885ppm F2P=-144.012ppm
+PH_mode=1  FT_mod=6 
+
+
+PROCNO=997
+
+Linear optimization of p4 in 19 steps, as Step: Group 0
+starting at 1.000000000   endval= 19.000000000 
+OPTIMUM= POSMAX
+VARMOD= LIN
+
+Experiment         p4         Maximum point   Minimum point       Integral
+     1       1.000000000000        63273406      -144376662       -507212.682564
+     2       2.000000000000       107893012      -120638056        147494.192490
+     3       3.000000000000       162234204      -112020006       -313613.929435
+     4       4.000000000000       185453905       -87155890         87479.185153
+     5       5.000000000000       198488092       -64637949        418889.353474
+     6       6.000000000000       234294091       -48116139        -19603.390160
+     7       7.000000000000       246381862       -60438150        948208.086966
+     8       8.000000000000       259873174       -52390025        848529.944325
+     9       9.000000000000       294755024       -52854285       1258832.515106
+    10      10.000000000000       301508879       -66383808        859861.798015
+    11      11.000000000000       320927493       -86009113       1016124.034312
+    12      12.000000000000       402913064      -100570984       1155247.179327
+    13      13.000000000000       410657275       -87623517        946342.739750
+    14      14.000000000000       419793842       -88127184       1131315.870522
+    15      15.000000000000       426718998       -95674981       1486305.291757
+    16      16.000000000000       384064908       -88435361       1832061.861243
+    17      17.000000000000       363814540       -95497812       1112494.875917
+    18      18.000000000000       321201102       -85760894       1461280.108114
+    19      19.000000000000       307243977       -65665899        787298.500216
+poptau for p4 finished.
+POSMAX at experiment 15:  p4 = 15.0000  
+
+
+Report of AU program poptau
+
+
+Report of AU program poptau
+
+Number of experiments: 13
+total experiment time will be:  2 min 10 sec
+
+F1P=33.885ppm F2P=-144.012ppm
+PH_mode=1  FT_mod=6 
+
+
+PROCNO=999
+
+Linear optimization of pl1 in 13 steps, as Step: Group 0
+starting at 8.000000000   endval= 5.600000000  
+OPTIMUM= POSMAX
+VARMOD= LIN
+
+popthalt was executed for pl1, step 8
+
+Experiment        pl1         Maximum point   Minimum point       Integral
+     1       8.000000000000       109555245       -37825797       1609793.659473
+     2       7.800000000000       125028485       -33761379       3731319.187095
+     3       7.600000000000       162616356       -46791744       2652655.533664
+     4       7.400000000000       257380088       -36116562       5230890.211696
+     5       7.200000000000       307424771       -32860268       5701491.123004
+     6       7.000000000000       254043138       -34713908       5333481.542080
+     7       6.800000000000       221782463       -39013632       2253966.440872
+     8       6.600000000000       155713883       -34743905       2496885.090634
+poptau for pl1 finished.
+POSMAX at experiment 5:  pl1 = 7.2000  
+
+
+Report of AU program poptau
+
+Number of experiments: 9
+total experiment time will be:  3 min  0 sec
+
+F1P=-6.942ppm F2P=-184.839ppm
+PH_mode=1  FT_mod=6 
+
+
+PROCNO=998
+
+Linear optimization of pcpd2 in 9 steps, as Step: Group 0
+starting at 4.500000000   endval= 8.500000000  
+OPTIMUM= POSMAX
+VARMOD= LIN
+
+popthalt was executed for pcpd2, step 6
+
+Experiment      pcpd2         Maximum point   Minimum point       Integral
+     1       4.500000000000       298378613       -27030597       5115320.824773
+     2       5.000000000000       304932312       -25986020       5143338.979284
+     3       5.500000000000       295474696       -22700181       6151845.348511
+     4       6.000000000000       306162031       -26456355       4037288.467631
+     5       6.500000000000       299325675       -22249601       5549667.516185
+     6       7.000000000000       285570950       -27064671       4569494.283125
+poptau for pcpd2 finished.
+POSMAX at experiment 4:  pcpd2 = 6.0000  
+
+
+Report of AU program poptau
+
+Number of experiments: 9
+total experiment time will be:  3 min  0 sec
+
+F1P=-6.942ppm F2P=-184.839ppm
+PH_mode=1  FT_mod=6 
+
+
+PROCNO=998
+
+Linear optimization of pcpd2 in 9 steps, as Step: Group 0
+starting at 4.500000000   endval= 8.500000000  
+OPTIMUM= POSMAX
+VARMOD= LIN
+
+Experiment      pcpd2         Maximum point   Minimum point       Integral
+     1       4.500000000000       277727054       -40396100       2401390.854985
+     2       5.000000000000       277015054       -48388945       2465394.154510
+     3       5.500000000000       290368597       -42380866       2480302.077687
+     4       6.000000000000       271832282       -36398925       3029821.063228
+     5       6.500000000000       288178183       -40664950       3124203.165516
+     6       7.000000000000       283249734       -43095271       2697768.003453
+     7       7.500000000000       297263492       -34676831       2755006.068623
+     8       8.000000000000       285024948       -35890233       2542617.163142
+     9       8.500000000000       292640503       -41157925       2371547.826716
+poptau for pcpd2 finished.
+POSMAX at experiment 7:  pcpd2 = 7.5000  
+

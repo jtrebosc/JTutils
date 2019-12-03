@@ -1,0 +1,25 @@
+F1P=33.885ppm F2P=-144.012ppm
+PH_mode=1  FT_mod=6 
+
+
+PROCNO=999
+
+Linear optimization of pl1 in 13 steps, as Step: Group 0
+starting at 8.000000000   endval= 5.600000000  
+OPTIMUM= POSMAX
+VARMOD= LIN
+
+popthalt was executed for pl1, step 8
+
+Experiment        pl1         Maximum point   Minimum point       Integral
+     1       8.000000000000       109555245       -37825797       1609793.659473
+     2       7.800000000000       125028485       -33761379       3731319.187095
+     3       7.600000000000       162616356       -46791744       2652655.533664
+     4       7.400000000000       257380088       -36116562       5230890.211696
+     5       7.200000000000       307424771       -32860268       5701491.123004
+     6       7.000000000000       254043138       -34713908       5333481.542080
+     7       6.800000000000       221782463       -39013632       2253966.440872
+     8       6.600000000000       155713883       -34743905       2496885.090634
+poptau for pl1 finished.
+POSMAX at experiment 5:  pl1 = 7.2000  
+
