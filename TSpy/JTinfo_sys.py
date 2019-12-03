@@ -126,5 +126,6 @@ if save_report :
     f = open("report.txt",'w')
     f.write(message)
     f.write(env_list)
+    f.close()
     MSG("""report written in %s.""" % (curdir+"/report.txt",))
 
