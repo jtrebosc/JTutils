@@ -10,17 +10,8 @@ import os
 import os.path
 import subprocess
 
+import JTutils
 from JTutils.TSpy import qcpmgadd
-
-#installation directory is relative to current script location
-DIRINST = os.path.dirname(sys.argv[0])+"/../"
-# where is the external python executable
-CPYTHON = os.getenv('CPYTHON', "NotDefined")
-if "python" not in CPYTHON:
-		MSG("CPYTHON environment not defined")
-		EXIT()
-#MSG(CPYTHON)
-
 
 dataset = CURDATA()
 N = str(1+int(GETPARSTAT("L 22")))
@@ -37,15 +28,7 @@ cycle = str(cycle)
 PUTPAR("LB", LB)
 PUTPAR("USERP1", GB)
 
-
 print cycle
-# special treatment for topspin<3
-def fullpath(dataset):
-    dat = dataset[:] # make a copy because I don't want to modify the original array
-    if len(dat) == 5: # for topspin 2-
-        dat[3] = "%s/data/%s/nmr" % (dat[3], dat[4])
-    fulldata = "%s/%s/%s/pdata/%s/" % (dat[3], dat[0], dat[1], dat[2])
-    return fulldata
 
 def canceled(event):
 	frame0.dispose()
@@ -58,13 +41,13 @@ def validated(event):
         opt_args += " -o "
     if JRB_evenecho.isSelected():
         opt_args += " -e "
-    script = os.path.expanduser(DIRINST+"/CpyBin/qcpmgadd_.py")
-    #	os.system(" ".join((CPYTHON, script, opt_args, fulldataPATH)))
-    subprocess.call([CPYTHON]+[script]+opt_args.split()+[fulldataPATH])
+    script = JTutils.CpyBin_script("qcpmgadd_.py")
+    #	os.system(" ".join((JTutils.CPYTHON, script, opt_args, fulldataPATH)))
+    subprocess.call([JTutils.CPYTHON] + [script] + opt_args.split() + [fulldataPATH])
     frame0.dispose()
     EXEC_PYSCRIPT("RE_PATH('%s')"%(fulldataPATH,))
 
-fulldataPATH = fullpath(dataset)
+fulldataPATH = JTutils.fullpath(dataset)
 
 """
 JLabel("GB:")  

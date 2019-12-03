@@ -31,13 +31,7 @@ def add_echoes(lb=None, gb=None, n_echoes=None, cycle=None, echo_position=None, 
     # so that they are available in the current namespace
     from TopCmds import CURDATA, GETPAR, GETPARSTAT, PUTPAR, RE, INPUT_DIALOG, MSG
     import JTutils
-    try :
-        CPYTHON = JTutils.get_cpython_path()
-    except ValueError:
-        _, msg, _ = sys.exc_info()
-        MSG(str(msg))
-        EXIT()
-    SCRIPT = JTutils.CpyBin_path_to('qcpmgadd_.py')
+    script = JTutils.CpyBin_script('qcpmgadd_.py')
 
 # whether CURDATA should be called here or specific dataset should be provided as argument is not clear
     if dataset == None:
@@ -118,8 +112,8 @@ def add_echoes(lb=None, gb=None, n_echoes=None, cycle=None, echo_position=None, 
         opt_args += "-e "
     if  odd_only:
         opt_args += "-o "
-#    print([CPYTHON]+[SCRIPT]+opt_args.split()+[fulldataPATH])    
-    subprocess.call([CPYTHON]+[SCRIPT]+opt_args.split()+[fulldataPATH])    
+#    print([JTutils.CPYTHON]+[script]+opt_args.split()+[fulldataPATH])    
+    subprocess.call([JTutils.CPYTHON]+[script]+opt_args.split()+[fulldataPATH])    
 
 
 if __name__ == '__main__':

@@ -21,15 +21,7 @@ def apodize_echoes(gb=None, cycle=None, echo_position=None, noDialog=False, data
     # if this function is called from imported module then one needs to import TOPSPIN functions
     # so that they are available in the current namespace
     from TopCmds import CURDATA, GETPAR, GETPARSTAT, PUTPAR, RE, INPUT_DIALOG, MSG
-
-    # installation directory is relative to current script location
-    DIRINST = os.path.dirname(sys.argv[0])+"/../"
-    # where is the external python executable
-    CPYTHON = os.getenv('CPYTHON', "NotDefined")
-    if "python" not in CPYTHON:
-            MSG("CPYTHON environment not defined")
-            EXIT()
-    # MSG(CPYTHON)
+    import JTutils
 
 # whether CURDATA should be called here or specific dataset should be provided as argument is not clear
     if dataset == None:
@@ -83,20 +75,13 @@ def apodize_echoes(gb=None, cycle=None, echo_position=None, noDialog=False, data
     PUTPAR("USERP1", gb)
     PUTPAR("USERP2", echo_position)
 
-    # special treatment for topspin<3
-    def fullpath(dataset):
-        dat=dataset[:] # make a copy because I don't want to modify the original array
-        if len(dat) == 5: # for topspin 2-
-                dat[3] = "%s/data/%s/nmr" % (dat[3], dat[4])
-        fulldata = "%s/%s/%s/pdata/%s/" % (dat[3], dat[0], dat[1], dat[2])
-        return fulldata
-    fulldataPATH=fullpath(dataset)
+    fulldataPATH = JTutils.fullpath(dataset)
 
     opt_args = " -g %s -c %s -s %s" % (gb, cycle, echo_position)
 
-    script = os.path.expanduser(DIRINST+"/CpyBin/qcpmgapod_.py")
-    # os.system(" ".join((CPYTHON, script, opt_args, fulldataPATH)))
-    subprocess.call([CPYTHON] + [script] + opt_args.split() + [fulldataPATH])    
+    script = JTutils.CpyBin_script("qcpmgapod_.py")
+    # os.system(" ".join((JTutils.CPYTHON, script, opt_args, fulldataPATH)))
+    subprocess.call([JTutils.CPYTHON] + [script] + opt_args.split() + [fulldataPATH])    
     RE(dataset)
 
 if __name__ == '__main__':

@@ -22,59 +22,42 @@ parser.add_argument('-c',type=float, help='qcpmg cycle in us')
 parser.add_argument('infile',help='Full path of the dataset to process')
 """
 
-#installation directory is relative to current script location
-DIRINST=os.path.dirname(sys.argv[0])+"/../"
-# where is the external python executable
-CPYTHON=os.getenv('CPYTHON',"NotDefined")
-if "python" not in CPYTHON:
-		MSG("CPYTHON environment not defined")
-		EXIT()
-#MSG(CPYTHON)
+import JTutils
 
-
-dataset=CURDATA()
-N=str(1+int(GETPARSTAT("L 22")))
-LB=GETPAR("LB")
-GB=GETPAR("USERP1")
-slope=GETPAR("USERP2")
-cycle=float(GETPARSTAT("P 60"))
+dataset = CURDATA()
+N = str(1+int(GETPARSTAT("L 22")))
+LB = GETPAR("LB")
+GB = GETPAR("USERP1")
+slope = GETPAR("USERP2")
+cycle = float(GETPARSTAT("P 60"))
 if cycle < 1: # P60 is not likely to have stored the cycle time then uses historic calculation
     # historic qcpmg.jt cycle calculation
-    D3=float(GETPARSTAT("D 3"))*1e6
-    D6=float(GETPARSTAT("D 6"))*1e6
-    P4=float(GETPARSTAT("P 4"))
-    cycle=2*(D3+D6)+P4
-cycle=str(cycle)
+    D3 = float(GETPARSTAT("D 3"))*1e6
+    D6 = float(GETPARSTAT("D 6"))*1e6
+    P4 = float(GETPARSTAT("P 4"))
+    cycle = 2*(D3+D6)+P4
+cycle = str(cycle)
 
 
 print cycle
-# special treatment for topspin<3
-def fullpath(dataset):
-	dat=dataset[:] # make a copy because I don't want to modify the original array
-	if len(dat)==5: # for topspin 2-
-	        dat[3]="%s/data/%s/nmr" % (dat[3],dat[4])
-	fulldata="%s/%s/%s/pdata/%s/" % (dat[3],dat[0],dat[1],dat[2])
-	return fulldata
-fulldataPATH=fullpath(dataset)
-
-
+fulldataPATH = JTutils.fullpath(dataset)
 
 def canceled(event):
 	frame0.dispose()
 
 def validated(event):
-	(GB,LB,slope,N,cycle)= [JTFgb.getText(),JTFlb.getText(),JTFslope.getText(),JTFn.getText(),JTFcycle.getText()]
+	(GB, LB, slope, N, cycle) = [JTFgb.getText(), JTFlb.getText(), JTFslope.getText(), JTFn.getText(), JTFcycle.getText()]
 	
-	opt_args=" -g %s -l %s -n %s -c %s -s %s" % (GB,LB,N,cycle,slope)
+	opt_args = " -g %s -l %s -n %s -c %s -s %s" % (GB, LB, N, cycle, slope)
 	if echoB.isSelected():
-			opt_args+=" -o "
+			opt_args += " -o "
 	if aechoB.isSelected():
-			opt_args+=" -e "
-	script=os.path.expanduser(DIRINST+"/CpyBin/qcpmgadd2D_.py")
-    #  os.system(" ".join((CPYTHON,script,opt_args,fulldataPATH)))
-    subprocess.call([CPYTHON]+[script]+opt_args.split()+[fulldataPATH])    
+			opt_args += " -e "
+	script = JTutils.CpyBin_script("qcpmgadd2D_.py")
+    #  os.system(" ".join((JTutils.CPYTHON,script,opt_args,fulldataPATH)))
+    subprocess.call([JTutils.CPYTHON] + [script] + opt_args.split() + [fulldataPATH])    
 	frame0.dispose()
-	EXEC_PYSCRIPT("RE_PATH('%s')"%(fulldataPATH,))
+	EXEC_PYSCRIPT("RE_PATH('%s')" % (fulldataPATH, ))
 	#PUTPAR("LB",LB)
   #PUTPAR("USERP1",GB)
 
@@ -95,27 +78,27 @@ button_HELP
 
 
 # defined a frame with 2 buttons
-Lgb=JLabel("GB", SwingConstants.RIGHT)
-JTFgb=JTextField(GB)
+Lgb = JLabel("GB", SwingConstants.RIGHT)
+JTFgb = JTextField(GB)
 
-Llb=JLabel("LB", SwingConstants.RIGHT)
-JTFlb=JTextField(LB)
+Llb = JLabel("LB", SwingConstants.RIGHT)
+JTFlb = JTextField(LB)
 
-Ln=JLabel("N", SwingConstants.RIGHT)
-JTFn=JTextField(N)
+Ln = JLabel("N", SwingConstants.RIGHT)
+JTFn = JTextField(N)
 
-Lslope=JLabel("Slope", SwingConstants.RIGHT)
-JTFslope=JTextField(slope)
+Lslope = JLabel("Slope", SwingConstants.RIGHT)
+JTFslope = JTextField(slope)
 
-Lcycle=JLabel("Cycle", SwingConstants.RIGHT)
-JTFcycle=JTextField(cycle)
+Lcycle = JLabel("Cycle", SwingConstants.RIGHT)
+JTFcycle = JTextField(cycle)
 
-echoB=JRadioButton("sum odd echoes")
-aechoB=JRadioButton("sum even echoes")
-bechoB=JRadioButton("sum all echoes")
+echoB = JRadioButton("sum odd echoes")
+aechoB = JRadioButton("sum even echoes")
+bechoB = JRadioButton("sum all echoes")
 
-button1 = JButton('OK', actionPerformed = validated) 
-button2 = JButton('Cancel', actionPerformed = canceled)
+button1 = JButton('OK', actionPerformed=validated) 
+button2 = JButton('Cancel', actionPerformed=canceled)
 
 # create window with title
 frame0 = JFrame('TopSPin / Python GUI Example') 
@@ -123,14 +106,14 @@ frame0 = JFrame('TopSPin / Python GUI Example')
 frame0.setSize(500, 300) 
 frame0.setLayout(GridLayout(0,1)) 
 
-frame1=JPanel(GridLayout(0,2))
+frame1 = JPanel(GridLayout(0,2))
 frame0.add(frame1)
-frame2=JPanel()
+frame2 = JPanel()
 frame0.add(frame2)
-frame3=JPanel()
+frame3 = JPanel()
 frame0.add(frame3)
 
-grpB=ButtonGroup()
+grpB = ButtonGroup()
 grpB.add(echoB)
 grpB.add(aechoB)
 grpB.add(bechoB)
