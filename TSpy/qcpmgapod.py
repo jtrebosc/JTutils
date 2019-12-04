@@ -98,7 +98,7 @@ if __name__ == '__main__':
         parser.add_argument('-c', help='qcpmg cycle in us', default=None)
         parser.add_argument('--echo_position', default=None,
            help='echo position from start of FID (digital filter excluded) in us')
-        parser.add_argument('--noDialog',action='store_true', help='Do not show dialog : use default or provided optional arguments')
+        parser.add_argument('--noDialog', action='store_true', help='Do not show dialog : use default or provided optional arguments')
         
         args  =  parser.parse_args(sys.argv[1:])
     except ImportError :
