@@ -31,7 +31,7 @@ try :
     explor=getFileExplorer()
 #    print " ".join((explor,datfile))
     # os.system(" ".join((explor,datfile)))
-    subprocess.check_call([explor]+[datfile])
+    subprocess.call([explor]+[datfile])
     
 except : 
     MSG("can't open file manager")
