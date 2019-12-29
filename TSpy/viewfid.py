@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # set all optionnal processing parameters to 0
 import sys
 import os

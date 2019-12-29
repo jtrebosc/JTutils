@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ## does summation of echoes using external python script
 import sys
 import os

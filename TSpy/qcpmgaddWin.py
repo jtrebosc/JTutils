@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Simple GUI example
 from javax.swing import *
 from java.awt import *

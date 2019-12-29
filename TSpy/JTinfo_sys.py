@@ -1,4 +1,4 @@
-#encoding=utf-8
+# -*- coding: utf-8 -*-
 # get information on current setup
 # print information in MSG box, in console and it should propose to save the report in a file
 

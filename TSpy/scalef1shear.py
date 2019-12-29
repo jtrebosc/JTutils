@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # for datasets acquired with topspin > 2.1 (requires INF)
 # scale F1 dimension to get unified scale for MQMAS/STMAS experiments
 # the program rewrites BF1/SFO1/O1/SW/SF/OFFSET according to 
