@@ -6,7 +6,7 @@ import sys
 #sys.path.append('/opt/pulse_programs/CpyLib')
 import bruker
 import numpy.core as np
-from numpy import pad
+
 
 # arguments management
 import argparse
@@ -54,7 +54,7 @@ else:
 #print td, td_spectrum
 # some times td is too short (final digital filter is truncated) and one must pad with 0
 if td_spectrum < td:
-    spect = pad(spect,(0,td-td_spectrum),mode='constant')
+    spect = bruker.pad(spect,(0,td-td_spectrum),mode='constant')
 #print spect.shape, digfilt
 else : # if too long then truncate FID to optimal td
     spect = spect[0:td]

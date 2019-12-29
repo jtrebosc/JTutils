@@ -101,6 +101,36 @@ if pyver < "2.2":
     print "python version: " + pyver
     raise "Error", "current version %s. version >= 2.2 required!" % pyver
 
+# a workaround for pad function not available with numpy version < 1.7 : lets make it available within bruker library:
+try:
+    raise
+    from numpy import pad
+except:
+    from numpy import concatenate, vstack, hstack, stack
+    def pad(array2pad, pad_shape, dummy):
+        """
+        pad the spectra in selected dimensions. Same as numpy pad.
+        array2pad : the array that is zero filled
+        pad_shape : a tuple of (before, after) pad size
+        example  :  a = np.array([[1,2] [3, 4]])
+                    pad(a,((0,2), (1, 1)),'')
+                    a == [[0, 1, 2, 0], [0, 3, 4, 0], [0, 0, 0, 0]]
+        """
+        pad_shape = np.asarray(pad_shape)
+        if len(pad_shape.shape) == 1:
+            pad_shape = pad_shape.reshape(1,len(pad_shape))
+        for i in range(len(pad_shape)):
+            shape = array2pad.shape
+            before_shape = list(shape)
+            after_shape = list(shape)
+            before, after = pad_shape[i] 
+            after_shape[i] = after
+            before_shape[i] = before
+            array2pad = concatenate((np.zeros(before_shape), array2pad, np.zeros(after_shape)), axis=i)
+        return array2pad
+#        return r1 = numpy.concatenate((numpy.zeros(int_before), array2pad,
+#                                       numpy.zeros(int_after)))
+            
 
 def splitprocpath(path):
         """

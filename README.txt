@@ -19,10 +19,10 @@ Tested (a bit) with python 2.4 (centos 5/topspin 2.1)
 Requirements for running python program: 
  - in CpyLib: bruker.py or brukerPAR.py package will needs at least
 	* python 2.5 
-	* numpy 1.7
+	* numpy 1.0.1 (1.7 required to use numpy.pad)
 - in CpyBin : same requirement as CpyLib + processing module for covariance script
-- in TSpy : all scripts should work with topspin provided jython version except for argparse which comes only in jython 2.7 
-which in part of topspin >=3.5.
+- in TSpy : all scripts should work with topspin provided jython version except for those using argparse and subprocess.check_call 
+            which exist only in jython 2.7 which in part of topspin >=3.5.
 Scripts can run without but adding argparse is easy :
 copy argparse.py file found at https://github.com/ThomasWaldmann/argparse/ in <TOPSPIN_DIR>/jython/Lib/ directory
 

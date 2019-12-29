@@ -132,7 +132,7 @@ SUM = serfile*ApodArray  # multiply with broadcasting on HCsize dimension
 SUM = numpy.swapaxes(SUM, 0, 1).reshape((td1, td2c))
 
 # Apply zero filling according to final size SI1, SI2 from topspin processing parameters
-rr = numpy.pad(SUM, ((0, SI1-td1), (0, SI2-td2c)), 'constant')
+rr = bruker.pad(SUM, ((0, SI1-td1), (0, SI2-td2c)), 'constant')
 print("rr shape is ", rr.shape)
 
 # set all optionnal processing parameters to 0

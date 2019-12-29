@@ -179,9 +179,9 @@ print(rr.shape)
 # Apply zero filling according to final size SI1, SI2 from topspin processing parameters
 #SI2 = int(dat.readprocpar("SI", False, 1))
 #SI1 = int(dat.readprocpar("SI", False, 2))
-# note that pad is only available from numpy 1.7.0
-rr = numpy.pad(rr, ((0, SI1-td1), (0, SI2-td2c)), 'constant')
-ri = numpy.pad(ri, ((0, SI1-td1), (0, SI2-td2c)), 'constant')
+# note that pad is only available from numpy 1.7.0 : implemented in bruker library
+rr = bruker.pad(rr, ((0, SI1-td1), (0, SI2-td2c)), 'constant')
+ri = bruker.pad(ri, ((0, SI1-td1), (0, SI2-td2c)), 'constant')
 # set all optionnal processing parameters to 0
 ProcOptions = {"WDW": ["LB", "GB", "SSB", "TM1", "TM2"],
                "PH_mod": ["PHC0", "PHC1"], "BC_mod": ["BCFW", "COROFFS"],
