@@ -4,7 +4,7 @@ import sys
 import os
 import os.path
 import subprocess
-import JTtutils
+import JTutils
 
 
 import argparse
