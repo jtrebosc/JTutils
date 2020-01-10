@@ -34,7 +34,7 @@ def apodize_echoes(gb=None, cycle=None, echo_position=None, noDialog=False, data
         try : 
             test_gb = float(gb)
         except ValueError:
-            noDialog = True
+            noDialog = False
 
     D3 = float(GETPARSTAT("D 3"))*1e6
     D6 = float(GETPARSTAT("D 6"))*1e6
