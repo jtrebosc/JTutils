@@ -1,0 +1,18 @@
+##TITLE= Audit trail, TOPSPIN		Version 3.2
+##JCAMPDX= 5.01
+##ORIGIN= Bruker BioSpin GmbH
+##OWNER= zorba
+$$ /opt/data/zorba/snmr/2019_11_25_Lafon/104/audita.txt
+##AUDIT TRAIL=  $$ (NUMBER, WHEN, WHO, WHERE, PROCESS, VERSION, WHAT)
+(   1,<2019-12-02 07:18:02.405 +0100>,<zorba>,<spectroENS>,<go>,<TOPSPIN 3.2>,
+      <created by zg
+	started at 2019-12-02 04:19:22.980 +0100,
+	POWCHK enabled, PULCHK disabled,
+       configuration hash MD5:
+       28 32 8B A0 C9 D9 3D 20 04 A5 18 4D B3 A3 F1 9E
+       data hash MD5: 16500
+       A1 96 45 82 F7 B6 2D BB A4 5A 16 92 F7 49 8A C4>)
+##END=
+
+$$ hash MD5
+$$ A6 E8 B4 FE 26 90 49 A9 D1 2A 8F 91 EF 69 70 A6

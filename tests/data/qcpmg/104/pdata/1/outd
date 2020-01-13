@@ -1,0 +1,16 @@
+##TITLE= Parameter file, TOPSPIN		Version 3.2
+##JCAMPDX= 5.0
+##DATATYPE= Parameter Values
+##NPOINTS= 1	$$ modification sequence number
+##ORIGIN= Bruker BioSpin GmbH
+##OWNER= zorba
+$$ 2019-11-29 18:36:17.618 +0100  zorba@spectroENS
+$$ /opt/data/zorba/snmr/2019_11_25_Lafon/104/pdata/1/outd
+$$ process /opt/topspin3.2.6/prog/mod/edparproc
+##$CURPLOT= <OfficeJet8100>
+##$CURPRIN= <$OfficeJet8100>
+##$DFORMAT= <normdp>
+##$LAYOUT= <+/1D_BB.xwp>
+##$LFORMAT= <normlp>
+##$PFORMAT= <normpl>
+##END=

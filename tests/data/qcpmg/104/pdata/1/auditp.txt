@@ -1,0 +1,27 @@
+##TITLE= Audit trail, TopSpin 4.0.7
+##JCAMPDX= 5.01
+##ORIGIN= Bruker BioSpin GmbH
+##OWNER= trebosc
+$$ /home/trebosc/Documents/topspin-perso/JTutils/tests/data/qcpmg/104/pdata/1/auditp.txt
+##AUDIT TRAIL=  $$ (NUMBER, WHEN, WHO, WHERE, PROCESS, VERSION, WHAT)
+(   1,<2019-12-02 07:18:02.405 +0100>,<zorba>,<spectroENS>,<go>,<TOPSPIN 3.2>,
+      <created by zg
+	started at 2019-12-02 04:19:22.980 +0100,
+	POWCHK enabled, PULCHK disabled,
+       configuration hash MD5:
+       28 32 8B A0 C9 D9 3D 20 04 A5 18 4D B3 A3 F1 9E
+       data hash MD5: 16500
+       A1 96 45 82 F7 B6 2D BB A4 5A 16 92 F7 49 8A C4>)
+(   2,<2020-01-13 21:41:00.513 +0100>,<trebosc>,<trebosc-Latitude-7390>,<proc1d>,<TopSpin 4.0.7>,
+      <Start of raw data processing
+       efp LB = 10 FT_mod = 6 PKNL = 1 PHC0 = 19.79172 PHC1 = 231.8956 SI = 64K 
+       data hash MD5: 64K
+       45 67 2B 17 EC 2C A1 B6 E8 1A 50 E5 55 AA 5C CB>)
+(   3,<2020-01-13 21:41:00.524 +0100>,<trebosc>,<trebosc-Latitude-7390>,<proc1d>,<TopSpin 4.0.7>,
+      <abs n ABSG = 5 
+       data hash MD5: 64K
+       F0 26 9E 5F 0F 8F F6 39 4C 3D 9F B9 4C A5 3E 8B>)
+##END=
+
+$$ hash MD5
+$$ 07 A8 54 D0 4E BD 2A 8E 74 C7 95 E6 01 86 72 9F
