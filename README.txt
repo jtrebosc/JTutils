@@ -42,7 +42,7 @@ INSTALLATION
    for python script
 
 3) Install a working python + numpy environment (tested with anaconda on 
-   MacOSX and windows)
+   MacOSX and windows: please check the (unrecommended but required for now) checkbox "add anaconda to path")
 
 4) Update the environment variables to define:
      CPYTHON = <path to the C python executable file> (required to run the JTutils/CpyBin scripts)
