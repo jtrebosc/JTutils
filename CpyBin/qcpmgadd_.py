@@ -54,33 +54,34 @@ elif P60 > 0: # pulse program should store status cycle in P60
 else : # default behavior may depend on pulse program implementation
     cycle = 2*(D3+D6+2)+P4
 
-# get the number of echoes
+# get the number of echoes: L22+1
 n_echoes = int(dat.readacqpar("L 22")) + 1
 if args.n and (0 < args.n)  and (args.n <= n_echoes):
     n_echoes = args.n  # in argument is the real number of echoes
 
+# dwell point per cycle : should be integer but may not if improper acquisition parameter used
 ppc = cycle/dw
+# approximate number of dwell point per cycle
 npoints = int(round(cycle/dw))
 
 #print(ppc, npoints, ppc-npoints)
 if abs(ppc-npoints) > 0.001:
     print("Warning echo cycle is not multiple of dwell")
-    roundChunk = True
+    rounding_chunks = True
 else:
-    roundChunk = False
+    rounding_chunks = False
 
 # verifie si TD est coherent avec n_echoes
 digFilLen = int(round(dat.getdigfilt()))
 TD = int(dat.readacqpar("TD"))
-# some times TD is too short to contain L22+1 echoes 
+# sometimes TD is too short to contain L22+1 echoes 
 # (mostly because of digital filter using some TD points)
-if TD < npoints*2*n_echoes+2*digFilLen:
-    n_echoes -= int(2*n_echoes - (TD-2*digFilLen)/npoints) + 1
-    print("only %d echoes used" % (n_echoes,))
-
+if TD < ppc*2*n_echoes+2*digFilLen:
+    print("Warning FID cannot hold all echoes : only %d echoes used" % (n_echoes,))
+    n_echoes = int((TD-2*digFilLen)/ppc/2)
 
 # reshape FID into 3D array (echo index, echo point index, Re/Im)
-if not roundChunk:
+if not rounding_chunks:
     summed = serfile[0:npoints*2*n_echoes].reshape(n_echoes, npoints, 2)
 else:
     tmp = serfile.reshape(len(serfile)//2, 2)
