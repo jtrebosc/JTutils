@@ -241,6 +241,7 @@ class ConfigPanel(JFrame):
         self.panelEntries.remove(self.config_item_dict[key]['JP'])
         self.revalidate()
         del self.config_item_dict[key]
+        self.pack()
 
     def save_config(self,event):
         self.update_config_from_UI()
@@ -334,6 +335,7 @@ class ConfigPanel(JFrame):
             UI_key_dict['JPP'].add(UI_key_dict[param]['JP'])
         UI_key_dict['JPP'].add(Box.createRigidArea(Dimension(0, 20)))
         self.config_item_dict[key]=UI_key_dict
+        self.pack()
         pass
 
     def initUI(self, config):
