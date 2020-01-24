@@ -129,6 +129,16 @@ def scalef1sheared(F2toF1=False, exptype='3QMAS', dataset=None):
                      buttons=["3QMAS","5QMAS","STMAS"])
         exptype = theTypes[typeIndex]
 
+    folding_times = "0"
+    result = INPUT_DIALOG("number of times the spectrum is folded (-1, 0, +1,...
+_", 
+          """ Adjust the scale of a folded spectrum. Input how many times the spectrum is folded
+          a positive number shift the scale to higher ppm value
+          """, 
+             ["fold times="],
+             [folding_times])
+    folding_times = int(result[0])
+
     # calculate scaling factor based on experiment type and spin
     # 3QMAS correlates 3Q coherence with CT coherence
     if exptype == '3QMAS':
@@ -166,6 +176,9 @@ def scalef1sheared(F2toF1=False, exptype='3QMAS', dataset=None):
     sfo *= factor
     bf *= factor
     o *= factor
+# change the apparent carrier frequency if spectrum is folded
+    sfo += folding_times*swh/1e6 
+    o += folding_times*swh
     # recalculate SW: note that topspin uses SFO instead of SF for calculating SW in ppm. 
     # This make the SW parameter not accurately meaningful
     # 
