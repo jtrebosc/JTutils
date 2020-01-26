@@ -46,7 +46,8 @@ def add_echoes(lb=None, gb=None, n_echoes=None, cycle=None, echo_position=None, 
         try : 
             test_gb = float(gb)
         except ValueError:
-            noDialog = True
+        		gb = "0"
+            noDialog = False
 
     D3 = float(GETPARSTAT("D 3"))*1e6
     D6 = float(GETPARSTAT("D 6"))*1e6
