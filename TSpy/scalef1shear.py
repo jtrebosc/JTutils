@@ -130,8 +130,7 @@ def scalef1sheared(F2toF1=False, exptype='3QMAS', dataset=None):
         exptype = theTypes[typeIndex]
 
     folding_times = "0"
-    result = INPUT_DIALOG("number of times the spectrum is folded (-1, 0, +1,...
-_", 
+    result = INPUT_DIALOG("number of times the spectrum is folded (-1, 0, +1,...)", 
           """ Adjust the scale of a folded spectrum. Input how many times the spectrum is folded
           a positive number shift the scale to higher ppm value
           """, 
