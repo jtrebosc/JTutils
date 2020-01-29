@@ -446,7 +446,7 @@ class dataset:
             self.version = 2
         if len(dset) == 4:
             self.version = 3
-
+        self.MC2_list = ["QF", "QSEQ", "TPPI", "States", "States-TPPI", "echo-antiecho", "QF(no-frequency)"]
         if not os.path.exists(self.returnacqpath()):
             print("Wrong dataset:\n" + self.returnacqpath() +
                   " does not exist!!")
@@ -1435,7 +1435,133 @@ class dataset:
         spect = spect.reshape(si1, si)
         return spect
 
-    def writespect2d(self, spectArray, name="2rr", dType=None):
+    def writespect2dall(self, spect_array_list, MC2=None, dType=None):
+        """
+        write a spectrum to 2D processed datafiles (2rr, 2ri etc..)
+        written files are chosen according to FnMode/MC2 parameters 
+        dType is data type in F2/F1: "XY" with X or Y being "t" for time, "f"
+            for frequency "e" for experiment (no unit)
+        Examples: dType="ff", dType="ft", dType="fe"
+        """
+        from math import ceil
+        from math import log as ln
+        dir_proc_path = self.returnprocpath()
+        if MC2 is None:
+            MC2 = int(self.readprocpar("MC2", dimension=2, status=False))
+        """
+        # managing dType  "f2/f1" "tt", "ft", "ff", "te", "fe", "tf"
+        t means time domain : if F1 is in time domain we consider hypercomplex is not treated yet (ft_mode(F1) not is ift)
+        f means frequency domain
+        # managing MC2 (see self.MC2_list for valid values)
+        QF (tt, ft, ff : 2rr 2ii)
+        not QF (tt, ft: 2rr 2ir, ff: + 2ri + 2ii)
+        """
+        QF_names = ["2rr", "2ii"]
+        other = ["2rr", "2ir"]
+        if dType[1] == 'f': 
+            if   dType[0] == 't':
+                """ dType='tf' is not implemented yet"""
+                raise(dTypeValueError)
+            elif dType[0] == 'f':
+                if MC2 == 0: #QF
+                    names = ['2rr', '2ii']
+                else :
+                    names = ['2rr', '2ir', '2ri', '2ii']
+        elif dType[1] == 't':
+            if MC2 == 0: # QF
+                names = ['2rr', '2ii']
+            else :
+                names = ['2rr', '2ir']
+        elif dType[1] == 'e':
+            """e requires QF, or QF(no-frequency) : MC2 is not checked"""
+            names = ['2rr', '2ii']
+        
+        MAXar = np.absolute(np.ravel(spect_array_list[0]) + 1j*np.ravel(spect_array_list[1]))
+        MAX = np.max(MAXar)
+        if len(names) == 4:
+            MAXai = np.absolute(np.ravel(spect_array_list[2]) + 1j*np.ravel(spect_array_list[3] ))
+            MAX = np.max(np.absolute(MAXar) + 1j*np.absolute(MAXai))
+
+        # xdim is not optimized... I use :
+        (si1, si) = spect_array_list[0].shape
+        xdim2 = si
+        xdim1 = si1
+
+        NC = int(ceil(ln(MAX)/ln(2)))-29
+        self.writeprocpar("NC_proc", str(NC), True)
+        self.writeprocpar("NC_proc", str(NC), True, 2)
+        self.writeprocpar("XDIM", str(xdim2), True)
+        self.writeprocpar("XDIM", str(xdim1), True, 2)
+        self.writeprocpar("STSI", str(si1), True, 2)
+        self.writeprocpar("SI", str(si1), True, 2)
+        self.writeprocpar("STSI", str(si), True)
+        self.writeprocpar("SI", str(si), True)
+        # topspin YMAX/YMIN to scale display to full amplitude:
+        # note it is using the int value not the absolute (int*2^NC_proc)
+        smin = int(spect_array_list[0].ravel().min()/2**NC)
+        smax = int(spect_array_list[0].ravel().max()/2**NC)
+        if smax > 2**31 or smin < -2**31:
+            print "whoowww Pb but I will continue: max=" + smax
+        self.writeprocpar("YMAX_p", str(smax), True, 2)
+        self.writeprocpar("YMIN_p", str(smin), True, 2)
+        self.writeprocpar("YMAX_p", str(smax), True)
+        self.writeprocpar("YMIN_p", str(smin), True)
+
+        self.writeprocpar("MC2", str(MC2), True, 2)
+        if dType[0] == 'f':  # assume fqc FT applied in direct dimension
+            self.writeprocpar("FT_mod", "6", True, 1)
+            self.writeprocpar("FTSIZE", si, True, 1)
+        if dType[1] == 'f':  
+            self.writeprocpar("FTSIZE", si1, True, 2)
+            if MC2 == 0 | MC2 == 3 | MC2 == 5:
+                # fqc(6) used after xfb with MC2=0 QF
+                # fqc(6) used after xfb with MC2=3 States
+                # fqc(6) used after xfb with MC2=5 echo-antiecho
+                self.writeprocpar("FT_mod", "6", True, 2)
+            elif MC2 == 4:
+                # fsc(4) used after xfb with MC2=4 States-TPPI
+                self.writeprocpar("FT_mod", "4", True, 2)
+            elif MC2 == 2:
+                # fsc(5) used after xfb with MC2=2 TPPI
+                self.writeprocpar("FT_mod", "5", True, 2)
+        if dType[0] == 't':
+            self.writeprocpar("FT_mod", "0", True, 1)
+            self.writeprocpar("FTSIZE", "0", True, 1)
+            self.writeprocpar("AXUNIT", "s", True, 1)
+            # even though we are in time domain we need to set a SW_p in ppm
+            # with respect to irradiation frequency SFO1
+            # otherwise the OFFSET is not properly calculated in further 
+            # topspin calculations especially in indirect dimension...
+            sw2 = float(self.readacqpar("SW_h", status=True, dimension=1))
+            dw2 = 1/sw2
+            sfo2 = float(self.readacqpar("SFO1", status=True, dimension=1))
+            self.writeprocpar("SW_p", str(sw2/sfo2), status=True, dimension=1)
+            self.writeprocpar("AXRIGHT", str(si*dw2), status=True)
+        if dType[1] == 't':
+            self.writeprocpar("FT_mod", "0", True, 2)
+            self.writeprocpar("FTSIZE", "0", True, 2)
+            self.writeprocpar("AXUNIT", "s", True, 2)
+            # even though we are in time domain we need to set a SW_p in ppm
+            # with respect to irradiation frequency SFO1
+            # otherwise the OFFSET is not properly calculated in further 
+            # topspin calculations especially in indirect dimension...
+            sw1 = float(self.readacqpar("SW_h", status=True, dimension=2))
+            dw1 = 1/sw1
+            sfo1 = float(self.readacqpar("SFO1", status=True, dimension=2))
+            self.writeprocpar("SW_p", str(sw1/sfo1), status=True, dimension=2)
+            self.writeprocpar("AXRIGHT", str(si1*dw1/2.0), status=True, dimension=2)
+        rest1 = si1/xdim1
+        rest2 = si/xdim2
+        for i, name in enumerate(names):
+            filename = self.returnprocpath() + name
+            spect_array_list[i] /= 2**(NC)
+            spect_array_list[i] = spect_array_list[i].reshape(rest1, xdim1, rest2, xdim2)
+            spect_array_list[i] = spect_array_list[i].swapaxes(1, 2)
+            print(filename, si, si1)
+            spect_array_list[i].astype(self.dtypeP).tofile(filename)
+            
+
+    def writespect2d(self, spectArray, name="2rr", dType=None, MAX=None):
         """
         write a 2D processed datafile
         file is 2rr (default), 2ri, 2ir or 2ii
@@ -1443,7 +1569,8 @@ class dataset:
             for frequency "e" for experiment (no unit)
         Examples: dType="ff", dType="ft", dType="fe"
         TODO: check for xdim calculation (now uses xdim=si)
-              one should write 2 or 4 files depending on quadrature used: 2rr and 2ii or 2rr, 2ir, 2ri and 2ii
+              I REALLY should write 2 or 4 files depending on quadrature used: 2rr and 2ii or 2rr, 2ir, 2ri and 2ii
+              There is also a the mode ift which is time but with hypercomplex t1 processed.
         """
         from math import ceil
         from math import log as ln
@@ -1454,7 +1581,8 @@ class dataset:
         if name == '2rr':
             # calculates NC_proc to use maximum dynamics on signed 32 bits int
             sizeA = spectArray.size
-            MAX = np.max(np.fabs(spectArray.reshape(sizeA)))
+            if MAX is None:
+                MAX = np.max(np.fabs(spectArray.reshape(sizeA)))
 #            print MAX
 #            NC should be calculated on magnitude spectrum (2rr, 2ri, 2ir or 2ii)
 #            not only on 2rr..
@@ -1495,6 +1623,11 @@ class dataset:
                 self.writeprocpar("FT_mod", "6", True, 1)
                 self.writeprocpar("FTSIZE", si, True, 1)
             if dType[1] == 'f':  # assume fqc FT applied
+                # fqc(6) used after xfb with MC2=0 QF
+                # fsc(5) used after xfb with MC2=2 TPPI
+                # fqc(6) used after xfb with MC2=3 States
+                # fsc(4) used after xfb with MC2=4 States-TPPI
+                # fqc(6) used after xfb with MC2=5 echo-antiecho
                 self.writeprocpar("FT_mod", "6", True, 2)
                 self.writeprocpar("FTSIZE", si1, True, 2)
             if dType[0] == 't':

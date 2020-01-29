@@ -38,9 +38,9 @@ def cpmgadd2D(dataset, lb=0, gb=0, nEchoes=None, slope=0,
         print("Problem: only QF, States, States-TPPI, Echo-AntiEcho acquisition supported.")
         sys.exit()
 
-
     # lire la fid et eliminer le filter digital (par defaut)
     serfile = dataset.readser()
+    print(serfile.shape)
     # fcor = float(dataset.readprocpar("FCOR"))
     # fcor1 = float(dataset.readprocpar("FCOR", dimension=2))
     # serfile[0, :] *= fcor1
@@ -86,7 +86,10 @@ def cpmgadd2D(dataset, lb=0, gb=0, nEchoes=None, slope=0,
         nEchoes = (TD//2 - digFilLen) // oneEchoSize
         print("""WARNING : FID is not long enough for L22 echo + 1. 
                Actually using  %s echoes""" % (nEchoes,))
-
+    print serfile.dtype
+    print(TD,  2*oneEchoSize*nEchoes + 2*digFilLen)
+    serfile = serfile[:,0:2*oneEchoSize*nEchoes ]
+    print(serfile.shape,  2*oneEchoSize*nEchoes )
     # size of 2D array in t1
     TD1 = int(dataset.readacqpar("TD", status=True, dimension=2))
     # TD1 is rounded to multiple of HCsize
@@ -107,10 +110,11 @@ def cpmgadd2D(dataset, lb=0, gb=0, nEchoes=None, slope=0,
         summed = serfile[:, firstP:firstP+oneEchoSize*2*nEchoes].reshape(TD1//HCsize, HCsize, nEchoes, oneEchoSize, 2)
     else:
         (si1, si) = serfile.shape
-    #    print((si1, si), (TD1//HCsize, HCsize, si//2, 2),
-    #          len(serfile), len(serfile//TD1//2))
+        print((si1, si), (TD1//HCsize, HCsize, si//2, 2),
+              len(serfile), len(serfile)//HCsize)
         tmp = serfile.reshape(TD1//HCsize, HCsize, si//2, 2)
         summed = numpy.zeros((TD1//HCsize, HCsize, nEchoes, oneEchoSize, 2))
+        print(summed.shape)
         for i in range(nEchoes):
             summed[:, :, i, :, :] += tmp[:, :,
                                          firstP+int(i*ppc+0.5):
@@ -190,6 +194,7 @@ def cpmgadd2D(dataset, lb=0, gb=0, nEchoes=None, slope=0,
     s2 = SUM[..., 1]
     # print(s1.max(), s2.max())
     # print(s1.min(), s2.min())
+    smax = numpy.absolute(s1+i*s2).max()
 
 
     # fait du zero fill pour que topspin puisse processer et
@@ -212,8 +217,9 @@ def cpmgadd2D(dataset, lb=0, gb=0, nEchoes=None, slope=0,
     elif mode2D in [4, 5, 6,]: # states, states-TPPI, Echo-AntiEcho
         imag_file = '2ir'
     # ecrit les fichiers 1r 1i
-    dataset.writespect2d(r1, name="2rr", dType="tt")
-    dataset.writespect2d(r2, name=imag_file, dType="tt")
+    dataset.writespect2dall([r1, r2], MC2=mode2D-1, dType="tt")
+    #   dataset.writespect2d(r1, name="2rr", dType="tt", MAX=smax)
+    #   dataset.writespect2d(r2, name=imag_file, dType="tt",MAX=smax)
     # write some status processed parameters in procs file so topspin can display
     # and process the data properly
 
