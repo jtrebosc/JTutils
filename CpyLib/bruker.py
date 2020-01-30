@@ -106,7 +106,7 @@ try:
     raise
     from numpy import pad
 except:
-    from numpy import concatenate, vstack, hstack, stack
+    from numpy import concatenate
     def pad(array2pad, pad_shape, dummy):
         """
         pad the spectra in selected dimensions. Same as numpy pad.
