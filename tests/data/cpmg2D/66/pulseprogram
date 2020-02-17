@@ -1,0 +1,226 @@
+# 1 "/root/.topspin-BladeEpu/local_acqu/ppDirs/stmas_split_t1_Zcpmg.jt"
+# 1 "<built-in>"
+# 1 "<command-line>"
+# 1 "/root/.topspin-BladeEpu/local_acqu/ppDirs/stmas_split_t1_Zcpmg.jt"
+;stmas_split_t1_cpmg.jt (TOPSPIN 1.2)
+; pulse sequence for (satellite transition) STMAS spectroscopy
+; on 3/2 nuclei only
+; with coherence transfer pathway 0 -> +1/-1 -> +2/-2 -> 0 -> -1/+1
+; uses split t1 technique and z-filter
+;then a cpmg train is added
+; see J. Trebosc, J.-P. Amoureux, and Zhehong Gan, SSNMR 31 (2007) 1-9
+; see  JP Amoureux et al JMR 175,285 (2005) 
+; written by julien trebosc
+; CHANGES :
+; 
+
+;parameters:
+;ns : 16 * n
+;p1 : excitation pulse
+;p2 : mixing pulse
+;p3 : selective  90 degree pulse
+;p4 : selective 180 degree pulse
+;p7 : set delay such that delB>0.3u and delA>0
+;pl1 : =119 dB, not used
+;pl11 : power for hard pules
+;pl21 : power for selective pulse
+;l1 : first d0 span l1 Tr
+;l7 : run time test counter
+;d1 : recycle delay
+;d4 : z-filter delay, typ. 20 us
+;d23 : offset for d10/d11 calculation not being negative
+;d6 : cpmg half echo delay
+;d3 : for dead time
+;p60:  storage of cpmg cycle time
+;cnst31 : spinning frequency
+;in0 : =1/spinning frequency for rotor synchronisation,
+;	or half of it for half rotor synchronisation
+;FnMode : States or States-TPPI
+
+;$COMMENT=stmas for 3/2 spins with t1 split and cpmg acquisition
+;$CLASS=Solids
+;$DIM=2D
+;$TYPE=half integer quadrupoles
+;$SUBTYPE=STMAS
+;$OWNER=Trebosc
+# 1 "/root/.topspin-BladeEpu/local_acqu/ppDirs/Avancesolids.inc" 1
+;Avancesolids.incl
+;   for AV 4
+;
+;avance-version (15/09/23)
+;
+;$CLASS=Solids INCL
+;$COMMENT=definitions for setrtp and setnmr
+
+
+# 13 "/root/.topspin-BladeEpu/local_acqu/ppDirs/Avancesolids.inc"
+;generate dwell clock
+
+
+# 20 "/root/.topspin-BladeEpu/local_acqu/ppDirs/Avancesolids.inc"
+;gating pulse for RX, ADC and HPPR auto mode
+
+
+# 41 "/root/.topspin-BladeEpu/local_acqu/ppDirs/Avancesolids.inc"
+;define data sampling for WAHUHA type experiments, 
+;   samples analogue or digitally for d9, closes receiver
+
+
+# 47 "/root/.topspin-BladeEpu/local_acqu/ppDirs/Avancesolids.inc"
+;explicit transmitter blanking, not supported yet
+
+;NCO switching, to be implemented
+
+# 60 "/root/.topspin-BladeEpu/local_acqu/ppDirs/Avancesolids.inc"
+;$Id: Avancesolids4.incl,v 1.3 2015/09/23 17:38:52 ber Exp $
+# 44 "/root/.topspin-BladeEpu/local_acqu/ppDirs/stmas_split_t1_Zcpmg.jt" 2
+
+
+# 59 "/root/.topspin-BladeEpu/local_acqu/ppDirs/stmas_split_t1_Zcpmg.jt"
+# 60 "/root/.topspin-BladeEpu/local_acqu/ppDirs/stmas_split_t1_Zcpmg.jt"
+
+"p4=2*p3"
+define delay del1
+define delay del3
+"del3=d3-2u"
+"del1=del3+2u-((p3)/2)"
+
+define loopcounter tmpD3
+define delay d3best
+;d3best set d3 to this value for rotr synchronized echoes
+define loopcounter tmpTD
+define loopcounter TDtot
+;TDtot set TD to this value + dig filter to record all echoes
+define delay rest
+define delay Spik_int 
+define delay showInASED
+define delay cycle
+define delay PTSperCycle
+# 79 "/root/.topspin-BladeEpu/local_acqu/ppDirs/stmas_split_t1_Zcpmg.jt"
+; Calculate best d3 for rotor synchronisation
+"tmpD3=(d6+p4/2)*cnst31"
+"d3best=(1s*(tmpD3+1)/cnst31)-d6-(p4/2.0)"
+;"d3=d3best"
+;calculate minimum TD to set
+"tmpTD=0.5*(((d6*2+d3*2+p4)*l22)+2*d6+2*d3+p4+4u)/dw"
+"TDtot=(tmpTD+1)*2"
+"cycle=(d6*2+d3*2+p4)"
+"p60=cycle"
+"PTSperCycle=cycle/(2*dw)"
+"rest=aq-(TDtot*dw)"
+"Spik_int=1s/(d6*2+d3*2+p4)"
+; to make TDtot, etc. show up in ased
+"showInASED=TDtot+d3best+Spik_int+p60+PTSperCycle"
+
+
+# 105 "/root/.topspin-BladeEpu/local_acqu/ppDirs/stmas_split_t1_Zcpmg.jt"
+# 106 "/root/.topspin-BladeEpu/local_acqu/ppDirs/stmas_split_t1_Zcpmg.jt"
+
+
+# 109 "/root/.topspin-BladeEpu/local_acqu/ppDirs/stmas_split_t1_Zcpmg.jt"
+define delay halfTr
+define delay delA
+define delay delB
+"halfTr=0.5s/cnst31"
+"delB=p7"
+"delA=delB+(p2-p1)/2.0"
+
+"d0=1s*(l1*1/cnst31)"
+"d10=d0/9.0 -p1/2 -p4/2 +d23"
+"d11=8*d0/9.0 - p2/2 - p4/2 -d23 -delB"
+
+"in0=inf1"
+"in11=8.0*in0/9.0"
+"in10=in0/9.0"
+# 124 "/root/.topspin-BladeEpu/local_acqu/ppDirs/stmas_split_t1_Zcpmg.jt"
+dwellmode auto
+
+# 1 "mc_line 126 file /root/.topspin-BladeEpu/local_acqu/ppDirs/stmas_split_t1_Zcpmg.jt exp. def. part of mc cmd. before ze"
+; dimension 2D; AQ_mode  (F1) States-TPPI
+define delay MCWRK
+define delay MCREST
+define loopcounter ST1CNT
+"ST1CNT = trunc(td1 / 2)"
+"MCREST = 100m - 100m"
+"MCWRK = 0.333333*100m"
+# 126 "/root/.topspin-BladeEpu/local_acqu/ppDirs/stmas_split_t1_Zcpmg.jt"
+1 ze
+# 1 "mc_line 126 file /root/.topspin-BladeEpu/local_acqu/ppDirs/stmas_split_t1_Zcpmg.jt exp. def. of mc cmd. after ze"
+LBLAV, MCWRK
+# 127 "/root/.topspin-BladeEpu/local_acqu/ppDirs/stmas_split_t1_Zcpmg.jt"
+"showInASED=1us"
+# 1 "mc_line 128 file /root/.topspin-BladeEpu/local_acqu/ppDirs/stmas_split_t1_Zcpmg.jt exp. start label for mc cmd."
+2 MCWRK 
+LBLSTS1, MCWRK 
+LBLF1, MCWRK
+  MCREST
+# 129 "/root/.topspin-BladeEpu/local_acqu/ppDirs/stmas_split_t1_Zcpmg.jt"
+"d10=d0/9.0 -p1/2 -p4/2 +d23"
+"d11=8*d0/9.0 - p2/2 - p4/2 -d23 -delB"
+
+# 139 "/root/.topspin-BladeEpu/local_acqu/ppDirs/stmas_split_t1_Zcpmg.jt"
+;presaturation only if -DPRESAT in ZGOPTNS
+ 
+  d1 
+  (1u pl11 ph1):f1
+ 
+  (1u adc ph31 syrec)
+  (1u ph30:r):f1
+ 
+  
+
+  (p1 ph1):f1         ; first pulse
+
+  d10          ; ST1Q evol
+# 153 "/root/.topspin-BladeEpu/local_acqu/ppDirs/stmas_split_t1_Zcpmg.jt"
+  (p4 pl21 ph2):f1    ; DQ filter
+
+  d11                 ; ST2Q evol
+  
+72419 (delB pl11 ph3):f1
+
+  (p2 pl11 ph3):f1   ; reconversion pulse
+  50u  ; Z filter delay
+  (p3 pl21 ph4):f1   ; SPAM pulse
+  d6                 ; +1/-1 evolution for echo creation
+  del1
+  (p4 pl21 ph5):f1 
+  del3 setrtp1|0
+  1u
+  1u 
+  d6 setrtp1|26
+3 d6 setrtp1|26
+  2u 
+  del3 setrtp1^26
+  (p4 pl21 ph6):f1
+  del3 
+  2u 
+  d6 setrtp1|26
+  lo to 3 times l22
+  d6
+  del3 setrtp1^26
+  rest 
+  1u 
+  rcyc=2
+# 1 "mc_line 184 file /root/.topspin-BladeEpu/local_acqu/ppDirs/stmas_split_t1_Zcpmg.jt exp. mc cmd. in line"
+  MCWRK  wr #0 if #0 zd ip1
+  lo to LBLSTS1 times 2
+  MCWRK id0
+  lo to LBLF1 times ST1CNT
+  MCWRK rf #0
+  lo to LBLAV times tdav
+# 185 "/root/.topspin-BladeEpu/local_acqu/ppDirs/stmas_split_t1_Zcpmg.jt"
+# 185 "/root/.topspin-BladeEpu/local_acqu/ppDirs/stmas_split_t1_Zcpmg.jt"
+exit
+
+ph30=0
+ph1= 0 2
+ph2= {{0}*2}^2
+ph3= {{0}*4}^1^2^3
+ph4={{0}*16}^2
+ph5= 1
+ph6= 1
+ph31={{{0 2}^2}^2^0^2}^2 ; cycling of 32
+;ph31=-ph1-ph2+2*ph3+ph4 for +1 +2 +1 -1 pathway
+; phase of presat
+

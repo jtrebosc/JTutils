@@ -1,0 +1,23 @@
+##TITLE= Parameter file, TopSpin 3.5 pl 5
+##JCAMPDX= 5.0
+##DATATYPE= Parameter Values
+##NPOINTS= 1	$$ modification sequence number
+##ORIGIN= Bruker BioSpin GmbH
+##OWNER= solidnmr
+$$ 2016-11-27 22:34:04.917 +0100  solidnmr@rmn800av.univ-lille1.fr
+$$ /opt/data_800AVIII/data/solidnmr/nmr/800.JT-161125/45/acqu2
+$$ process /opt/topspin3.5pl5/prog/au/bin/iexpno
+##$ACQT0= 0
+##$BF1= 800.13
+##$FnMODE= 5
+##$NUC1= <1H>
+##$NusJSP= 0
+##$NusT2= 1
+##$NusTD= 0
+##$O1= 1000
+##$ProjAngle= 0
+##$SFO1= 800.131
+##$SW= 24.9958525787833
+##$SW_h= 20000
+##$TD= 400
+##END=

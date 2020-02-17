@@ -1,0 +1,28 @@
+##TITLE= Parameter file, TopSpin 4.0.1
+##JCAMPDX= 5.0
+##DATATYPE= Parameter Values
+##NPOINTS= 98	$$ modification sequence number
+##ORIGIN= Bruker BioSpin GmbH
+##OWNER= solidnmr
+$$ 2017-11-04 16:33:32.634 +0100  julien@MacBook-Pro-de-Julien.local
+$$ /Volumes/JTrebosc/NMRDATA/data/TGE900/nmr/900.JT-170220/66/acqu2s
+$$ process /opt/topspin4.0.1/prog/mod/dataserver
+##$ACQT0= 0
+##$BF1= 518.576458444
+##$DE= 5
+##$DECIM= 1
+##$DR= 32
+##$FW= 2.4e+08
+##$FnILOOP= 1
+##$FnMODE= 5
+##$NUC1= 71Ga
+##$NusJSP= 0
+##$NusT2= 1
+##$NusTD= 28
+##$O1= 64672.42
+##$ProjAngle= 0
+##$SFO1= 518.641130864
+##$SW= 120.507218346
+##$SW_h= 62500.0000001149
+##$TD= 28
+##END=

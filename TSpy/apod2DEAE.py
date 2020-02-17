@@ -28,8 +28,6 @@ PUTPAR("USERP1",s)
 fulldataPATH = JTutils.fullpath(dataset)
 opt_args = " -g %s -l %s -s %s" % (GB,"0",s)
 
-script = JTutils.CpyBin_script("apod2DEAE_.py")
-# os.system(" ".join((JTutils.CPYTHON,script,opt_args,fulldataPATH)))
-subprocess.call([JTutils.CPYTHON]+[script]+opt_args.split()+[fulldataPATH])    
+JTutils.run_CpyBin_script('apod2DEAE_.py', opt_args.split()+[fulldataPATH])
 
 RE(dataset)

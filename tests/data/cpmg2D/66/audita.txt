@@ -1,0 +1,98 @@
+##TITLE= Audit trail, TopSpin 4.0.b.20170208 pl 0
+##JCAMPDX= 5.01
+##ORIGIN= Bruker BioSpin GmbH
+##OWNER= root
+$$ /root/.topspin-BladeEpu/local_acqu/900.JT-170220/66/audita.txt
+##AUDIT TRAIL=  $$ (NUMBER, WHEN, WHO, WHERE, PROCESS, VERSION, WHAT)
+(   1,<2017-02-27 05:53:03.864 +0000>,<root>,<BladeEpu>,<go4.deb>,<TopSpin 4.0.b.20170208.0>,
+      <created by zg
+	started at 2017-02-26 10:45:05.208 +0000,
+	POWCHK enabled, PULCHK disabled,
+       configuration hash MD5:
+       C8 37 B5 A2 A9 80 1B A7 C6 6B 91 BA 0E D6 0A 80
+       double data hash MD5: 99950 * 28
+       77 DD DD 11 23 62 73 10 C4 1C CA FE 94 65 02 5A>)
+(   2,<2017-11-03 16:40:49.512 +0100>,<julien>,<MacBook-Pro-de-Julien.local>,<dataserver>,<TopSpin 4.0.1>,
+      <changed parameter F1 NUC1 from 71Ga to 71Ga
+       data hash MD5: 99950 * 28
+       A9 35 91 CB 4B FC 85 67 F4 12 68 D0 86 15 C7 63>)
+(   3,<2017-11-03 16:40:49.565 +0100>,<julien>,<MacBook-Pro-de-Julien.local>,<dataserver>,<TopSpin 4.0.1>,
+      <changed parameter F1 BF1 from 274.5404780 to 274.540478
+       data hash MD5: 99950 * 28
+       A9 35 91 CB 4B FC 85 67 F4 12 68 D0 86 15 C7 63>)
+(   4,<2017-11-03 16:40:49.615 +0100>,<julien>,<MacBook-Pro-de-Julien.local>,<dataserver>,<TopSpin 4.0.1>,
+      <changed parameter F1 SFO1 from 274.5747163 to 274.57471634
+       data hash MD5: 99950 * 28
+       A9 35 91 CB 4B FC 85 67 F4 12 68 D0 86 15 C7 63>)
+(   5,<2017-11-03 16:40:49.667 +0100>,<julien>,<MacBook-Pro-de-Julien.local>,<dataserver>,<TopSpin 4.0.1>,
+      <changed parameter F1 SW from 227.6247 to 227.624745763
+       data hash MD5: 99950 * 28
+       A9 35 91 CB 4B FC 85 67 F4 12 68 D0 86 15 C7 63>)
+(   6,<2017-11-03 16:47:22.501 +0100>,<julien>,<MacBook-Pro-de-Julien.local>,<dataserver>,<TopSpin 4.0.1>,
+      <changed parameter F1 NUC1 from 71Ga to 71Ga
+       data hash MD5: 99950 * 28
+       A9 35 91 CB 4B FC 85 67 F4 12 68 D0 86 15 C7 63>)
+(   7,<2017-11-03 16:47:22.578 +0100>,<julien>,<MacBook-Pro-de-Julien.local>,<dataserver>,<TopSpin 4.0.1>,
+      <changed parameter F1 BF1 from 274.5404780 to 274.540478
+       data hash MD5: 99950 * 28
+       A9 35 91 CB 4B FC 85 67 F4 12 68 D0 86 15 C7 63>)
+(   8,<2017-11-03 16:47:22.639 +0100>,<julien>,<MacBook-Pro-de-Julien.local>,<dataserver>,<TopSpin 4.0.1>,
+      <changed parameter F1 SFO1 from 274.5747163 to 274.57471634
+       data hash MD5: 99950 * 28
+       A9 35 91 CB 4B FC 85 67 F4 12 68 D0 86 15 C7 63>)
+(   9,<2017-11-03 16:47:22.718 +0100>,<julien>,<MacBook-Pro-de-Julien.local>,<dataserver>,<TopSpin 4.0.1>,
+      <changed parameter F1 SW from 227.6247 to 227.624745763
+       data hash MD5: 99950 * 28
+       A9 35 91 CB 4B FC 85 67 F4 12 68 D0 86 15 C7 63>)
+(  10,<2017-11-03 16:52:19.419 +0100>,<julien>,<MacBook-Pro-de-Julien.local>,<dataserver>,<TopSpin 4.0.1>,
+      <changed parameter F1 NUC1 from 71Ga to 71Ga
+       data hash MD5: 99950 * 28
+       A9 35 91 CB 4B FC 85 67 F4 12 68 D0 86 15 C7 63>)
+(  11,<2017-11-03 16:52:19.490 +0100>,<julien>,<MacBook-Pro-de-Julien.local>,<dataserver>,<TopSpin 4.0.1>,
+      <changed parameter F1 BF1 from 274.5404780 to 274.540478
+       data hash MD5: 99950 * 28
+       A9 35 91 CB 4B FC 85 67 F4 12 68 D0 86 15 C7 63>)
+(  12,<2017-11-03 16:52:19.541 +0100>,<julien>,<MacBook-Pro-de-Julien.local>,<dataserver>,<TopSpin 4.0.1>,
+      <changed parameter F1 SFO1 from 274.5747163 to 274.57471634
+       data hash MD5: 99950 * 28
+       A9 35 91 CB 4B FC 85 67 F4 12 68 D0 86 15 C7 63>)
+(  13,<2017-11-03 16:52:19.592 +0100>,<julien>,<MacBook-Pro-de-Julien.local>,<dataserver>,<TopSpin 4.0.1>,
+      <changed parameter F1 SW from 227.6247 to 227.624745763
+       data hash MD5: 99950 * 28
+       A9 35 91 CB 4B FC 85 67 F4 12 68 D0 86 15 C7 63>)
+(  14,<2017-11-03 17:59:48.408 +0100>,<julien>,<MacBook-Pro-de-Julien.local>,<dataserver>,<TopSpin 4.0.1>,
+      <changed parameter F1 NUC1 from 71Ga to 71Ga
+       data hash MD5: 99950 * 28
+       A9 35 91 CB 4B FC 85 67 F4 12 68 D0 86 15 C7 63>)
+(  15,<2017-11-03 17:59:48.524 +0100>,<julien>,<MacBook-Pro-de-Julien.local>,<dataserver>,<TopSpin 4.0.1>,
+      <changed parameter F1 BF1 from 274.5404780 to 274.540478
+       data hash MD5: 99950 * 28
+       A9 35 91 CB 4B FC 85 67 F4 12 68 D0 86 15 C7 63>)
+(  16,<2017-11-03 17:59:48.592 +0100>,<julien>,<MacBook-Pro-de-Julien.local>,<dataserver>,<TopSpin 4.0.1>,
+      <changed parameter F1 SFO1 from 274.5747163 to 274.57471634
+       data hash MD5: 99950 * 28
+       A9 35 91 CB 4B FC 85 67 F4 12 68 D0 86 15 C7 63>)
+(  17,<2017-11-03 17:59:48.642 +0100>,<julien>,<MacBook-Pro-de-Julien.local>,<dataserver>,<TopSpin 4.0.1>,
+      <changed parameter F1 SW from 227.6247 to 227.624745763
+       data hash MD5: 99950 * 28
+       A9 35 91 CB 4B FC 85 67 F4 12 68 D0 86 15 C7 63>)
+(  18,<2017-11-04 16:33:32.433 +0100>,<julien>,<MacBook-Pro-de-Julien.local>,<dataserver>,<TopSpin 4.0.1>,
+      <changed parameter F1 NUC1 from 71Ga to 71Ga
+       data hash MD5: 99950 * 28
+       A9 35 91 CB 4B FC 85 67 F4 12 68 D0 86 15 C7 63>)
+(  19,<2017-11-04 16:33:32.510 +0100>,<julien>,<MacBook-Pro-de-Julien.local>,<dataserver>,<TopSpin 4.0.1>,
+      <changed parameter F1 BF1 from 274.5404780 to 274.540478
+       data hash MD5: 99950 * 28
+       A9 35 91 CB 4B FC 85 67 F4 12 68 D0 86 15 C7 63>)
+(  20,<2017-11-04 16:33:32.601 +0100>,<julien>,<MacBook-Pro-de-Julien.local>,<dataserver>,<TopSpin 4.0.1>,
+      <changed parameter F1 SFO1 from 274.5747163 to 274.57471634
+       data hash MD5: 99950 * 28
+       A9 35 91 CB 4B FC 85 67 F4 12 68 D0 86 15 C7 63>)
+(  21,<2017-11-04 16:33:32.656 +0100>,<julien>,<MacBook-Pro-de-Julien.local>,<dataserver>,<TopSpin 4.0.1>,
+      <changed parameter F1 SW from 227.6247 to 227.624745764
+       data hash MD5: 99950 * 28
+       A9 35 91 CB 4B FC 85 67 F4 12 68 D0 86 15 C7 63>)
+##END=
+
+$$ hash MD5
+$$ 48 04 1F 94 F8 69 F5 23 A6 2C E5 33 F6 67 29 C0

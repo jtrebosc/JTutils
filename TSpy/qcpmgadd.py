@@ -26,12 +26,10 @@ def add_echoes(lb=None, gb=None, n_echoes=None, cycle=None, echo_position=None, 
     import sys
     import os
     import os.path
-    import subprocess
     # if this function is called from imported module then one needs to import TOPSPIN functions
     # so that they are available in the current namespace
     from TopCmds import CURDATA, GETPAR, GETPARSTAT, PUTPAR, RE, INPUT_DIALOG, MSG
     import JTutils
-    script = JTutils.CpyBin_script('qcpmgadd_.py')
 
 # whether CURDATA should be called here or specific dataset should be provided as argument is not clear
     if dataset == None:
@@ -113,8 +111,7 @@ def add_echoes(lb=None, gb=None, n_echoes=None, cycle=None, echo_position=None, 
         opt_args += "-e "
     if  odd_only:
         opt_args += "-o "
-#    print([JTutils.CPYTHON]+[script]+opt_args.split()+[fulldataPATH])    
-    subprocess.call([JTutils.CPYTHON]+[script]+opt_args.split()+[fulldataPATH])    
+    JTutils.run_CpyBin_script('qcpmgadd_.py', opt_args.split()+[fulldataPATH])
 
 
 if __name__ == '__main__':

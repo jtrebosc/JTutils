@@ -35,8 +35,6 @@ PUTPAR("USERP2", s)
 fulldataPATH = JTutils.fullpath(dataset)
 opt_args=" -g %s -l %s -n %s -s %s -c %s" % (GB, LB, N, s, cycle)
 
-script = JTutils.CpyBin_script("qcpmgadd2D_.py")
-# os.system(" ".join((JTutils.CPYTHON,script,opt_args,fulldataPATH)))
-subprocess.call([JTutils.CPYTHON] + [script] + opt_args.split() + [fulldataPATH])    
+JTutils.run_CpyBin_script('qcpmgadd2D_.py', opt_args.split()+[fulldataPATH])
 
 RE(dataset)

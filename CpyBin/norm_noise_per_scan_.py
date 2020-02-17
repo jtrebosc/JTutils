@@ -10,7 +10,6 @@ import sys
 import bruker
 import math
 
-
 # gestion des arguments
 import argparse
 parser  =  argparse.ArgumentParser(description='normalize the noise level to one scan : divide intensity by sqrt(NS)')
@@ -22,7 +21,7 @@ args  =  parser.parse_args()
 dat = bruker.dataset(bruker.splitprocpath(args.infile))
 
 if args.ns:
-    ns = args.ns
+    ns = int(args.ns)
 else:
     ns = int(dat.readacqpar("NS",status=True))
 # lire la fid et eliminer le filter digital (par defaut)

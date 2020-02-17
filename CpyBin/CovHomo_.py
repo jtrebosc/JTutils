@@ -54,7 +54,7 @@ if (si2==0):
 	sys.exit()
 swh2=float(dat.readacqpar("SW_h",dimension=1))
 HzpPTf2=swh2/si2
-sistart=si2/2-int(dat.readprocpar("STSR",dimension=1))
+sistart=si2//2-int(dat.readprocpar("STSR",dimension=1))
 #init_t1=D0+args.extradelay/1e6
 #print(init_t1)
 
@@ -78,18 +78,18 @@ print("NUSFLAG is %s" % (NUSflag))
 if NUSflag=="2":
 	NUSfile=dat.returnacqpath()+"nuslist"
 	list=open(NUSfile,"r").read().strip("\n").split()
-# la nuslist a des index de 0 à td1/2-1
-	NUSlist=[(int(list[i])) for i in range(td1/2)]
+# la nuslist a des index de 0 à td1//2-1
+	NUSlist=[(int(list[i])) for i in range(td1//2)]
 else :
-	NUSlist=range(td1/2)
+	NUSlist=range(td1//2)
 
 # Traitement de States et states tppi pour l'instant
 if MODEflag=="4" or MODEflag=="5" :
-	td1=(td1/2)*2
-	spect2D=spect2D.reshape(td1/2,2,si2)
+	td1=(td1//2)*2
+	spect2D=spect2D.reshape(td1//2,2,si2)
 	spect2D=spect2D.swapaxes(0,1)
-	NUSlist=NUSlist[0:td1/2]
-	# now spect2D[C=0 or S=1][td1/2][si2]
+	NUSlist=NUSlist[0:td1//2]
+	# now spect2D[C=0 or S=1][td1//2][si2]
 else:
 	NUSlist=NUSlist[0:td1]
 	
@@ -104,7 +104,7 @@ if NUSflag=="2":
 		NUSsortedIndex.append(NUSlist.index(i))
 	print('NUSsortedIndex 2 :')
 else :
-	NUSsortedIndex=range(td1/2)
+	NUSsortedIndex=range(td1//2)
 	print('NUSsortedIndex 1 :')
 print(NUSsortedIndex)
 
@@ -137,12 +137,12 @@ def makeRef(ref,NUSlist):
 def testREF(Zfill1=1024):
 	# test : write back the ref
 	# OK only if not using NUS
-	REF=numpy.zeros((2,Zfill1/2,si2))
-	(REF[0],REF[1])=makeRef(ref,range(Zfill1/2))
+	REF=numpy.zeros((2,Zfill1//2,si2))
+	(REF[0],REF[1])=makeRef(ref,range(Zfill1//2))
 	# correct back to States-TPPI mode
 	if MODEflag=="5" :
-		REF[0][1:Zfill1/2:2]*=-1.0
-		REF[1][1:Zfill1/2:2]*=-1.0
+		REF[0][1:Zfill1//2:2]*=-1.0
+		REF[1][1:Zfill1//2:2]*=-1.0
 	REF=REF.swapaxes(0,1)
 	# attention il faut copier la vue du tableau REF dans un nouveau tableau pour pouvoir faire resize
 	REF=REF.reshape(Zfill1,si2).copy()

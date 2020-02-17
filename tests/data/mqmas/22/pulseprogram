@@ -1,0 +1,75 @@
+# 1 "/opt/topspin-2.1/exp/stan/nmr/lists/pp/mp3qzqf.av"
+; mp3qzqf.av (TopSpin 2.0)
+
+; 3Q MAS pulse program for half integer spin nuclei
+; experiment with zero quantum filter:
+; excitation - t1(3Q) - conversion -  tau(zqf) - 90sel - acquisition
+; 90 selective pulse should be determined first using Hahn-echo,
+; determination by single pulse excitation is also possible
+; then optimise p2 and finally p1, 2 or more iterations for p1 and p2 may be necessary
+; for processing shearing transformation may be required, 
+; use AU program xfshear
+; see also mp3q, mp3qzfil, mp3qdfs, mp3qfam, mp3qdfsz, mp3qfamz
+
+;ns : 12 * n
+;d1 : recycle delay
+;p1 : excitation pulse at pl11
+;p2 : conversion pulse at pl11
+;p3 : 90 degree selective pulse at pl21
+;pl1 : =120 dB
+;pl11 : power level for excitation and conversion pulses
+;pl21 : power level for selective pulse, ca. pl11 + 30 dB
+;d4 : z-filter delay, usually =20u
+;d0 : =1u or longer
+;in0 : 1 rotation period for synchronised experiment
+;td1 : number of t1-experiments
+;FnMODE : States
+;MC2 : States
+
+;$COMMENT=3-pulse z-filter 3Q MAS
+;$CLASS=Solids
+;$DIM=2D
+;$TYPE=half integer quadrupoles
+;$SUBTYPE=MQMAS
+;$OWNER=Bruker
+"in0=inf1"
+# 1 "mc_line 35 file /opt/topspin-2.1/exp/stan/nmr/lists/pp/mp3qzqf.av expanding definition part of mc command before ze"
+define delay MCWRK
+define delay MCREST
+define loopcounter ST1CNT
+"ST1CNT = td1 / (2)"
+"MCWRK = 0.333333*d1"
+"MCREST = d1 - d1"
+    dccorr
+# 35 "/opt/topspin-2.1/exp/stan/nmr/lists/pp/mp3qzqf.av"
+  ze
+# 1 "mc_line 35 file /opt/topspin-2.1/exp/stan/nmr/lists/pp/mp3qzqf.av expanding definition of mc command after ze"
+# 36 "/opt/topspin-2.1/exp/stan/nmr/lists/pp/mp3qzqf.av"
+# 1 "mc_line 36 file /opt/topspin-2.1/exp/stan/nmr/lists/pp/mp3qzqf.av expanding start label for mc command"
+1 MCWRK 
+LBLSTS1, MCWRK 
+LBLF1, MCWRK
+  MCREST
+# 37 "/opt/topspin-2.1/exp/stan/nmr/lists/pp/mp3qzqf.av"
+  10u pl11:f1
+  (p1 ph1):f1
+  d0
+  (p2 ph2):f1
+  d4
+  (p3 pl21 ph3):f1
+  go=1 ph31
+# 1 "mc_line 44 file /opt/topspin-2.1/exp/stan/nmr/lists/pp/mp3qzqf.av expanding mc command in line"
+  MCWRK  wr #0 if #0 zd ip1
+  lo to LBLSTS1 times 2
+  MCWRK  rp1 id0
+  lo to LBLF1 times ST1CNT
+  MCWRK
+# 45 "/opt/topspin-2.1/exp/stan/nmr/lists/pp/mp3qzqf.av"
+exit
+
+ph1=(12) 0
+ph2=(6) 0 0 1 1 2 2 3 3 4 4 5 5 
+ph3=0 2
+ph0=0
+ph31=0 2 2 0
+

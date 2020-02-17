@@ -7,19 +7,20 @@
 #    CPYTHON variable that contains the CPYTHON executable path
 
 from .CpyLib import brukerPAR 
-__all__ = ['TSpy', 'brukerPAR', 'fullpath', 'CPYTHON', 'CpyBin_script']
+__all__ = ['TSpy', 'brukerPAR', 'fullpath', 'CPYTHON', 'PYTHONPATH', 'CpyBin_script']
 
+from os.path import dirname, abspath, join
+import os
 # special treatment for topspin<3
 def fullpath(dataset):
     """
     return absolute path to dataset
     dataset is an array as returned by CURDATA()
     """
-    import os
     dat = dataset[:] # make a copy because I don't want to modify the original array
     if len(dat) == 5: # for topspin 2-
-            dat[3] = os.path.join(dat[3], 'data', dat[4], 'nmr')
-    fulldata = os.path.join(dat[3], dat[0], dat[1], 'pdata', dat[2])
+            dat[3] = join(dat[3], 'data', dat[4], 'nmr')
+    fulldata = join(dat[3], dat[0], dat[1], 'pdata', dat[2])
     return fulldata
 
 def _get_cpython_path():
@@ -38,9 +39,26 @@ point to an external C PYTHON interpreter !!! """
     return CPYTHON
 
 CPYTHON = _get_cpython_path()
+_python_path = join(dirname(abspath(__file__)), "CpyLib")
+environment = os.environ.copy()
+if 'PYTHONPATH' in env:
+    environment['PYTHONPATH'] = _python_path + ':' + environment['PYTHONPATH'] 
+else:
+    environment['PYTHONPATH'] = _python_path 
 
 def CpyBin_script(script):
     """ return full path to "script" in CpyBin """
-    from os.path import  dirname, abspath, join
     return join(dirname(abspath(__file__)), "CpyBin", script)
+
+def run_CpyBin_script(script_name, args):
+    """
+    launch CpyBin/scriptname with args using external CPYTHON
+    script_name: name of external python script in CpyBin
+    args : a list of strings : list of arguments to pass to script
+    """
+    import subprocess
+    # get environment variable
+    script = CpyBin_script(script_name)
+    subprocess.call([CPYTHON]+[script]+args, env=environment)    
+    
 

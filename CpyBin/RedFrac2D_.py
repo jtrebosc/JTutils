@@ -26,8 +26,8 @@ specti = dat.readspect2d('2ii')
 print(spect.shape)
 (si1, si2) = spect.shape
 print(si2)
-spect = spect.reshape(si1/2, 2, si2)
-specti = specti.reshape(si1/2, 2, si2)
+spect = spect.reshape(si1//2, 2, si2)
+specti = specti.reshape(si1//2, 2, si2)
 if order=='0':
 	S0 = spect[:, 0, :]
 	S = spect[:, 1, :]

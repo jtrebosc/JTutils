@@ -19,13 +19,9 @@ def norm(ns=None, dataset=None):
 
     fulldataPATH = JTutils.fullpath(dataset)
 
-    opt_args = ["--ns ", str(ns)]
+    opt_args = ["--ns", str(ns)]
 
-
-    script = JTutils.CpyBin_script("norm_noise_per_scan_.py")
-    # os.system(" ".join((JTutils.CPYTHON, script, opt_args, fulldataPATH)))
-    print([JTutils.CPYTHON]+[script]+ opt_args.split() + [fulldataPATH])    
-    subprocess.call([JTutils.CPYTHON] + [script] + opt_args + [fulldataPATH])    
+    JTutils.run_CpyBin_script('norm_noise_per_scan_.py', opt_args + [fulldataPATH])
 
 if __name__ == '__main__':
     class dummy():

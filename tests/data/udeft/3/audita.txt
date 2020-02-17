@@ -1,0 +1,18 @@
+##TITLE= Audit trail, TOPSPIN		Version 2.1
+##JCAMPDX= 5.01
+##ORIGIN= Bruker BioSpin GmbH
+##OWNER= servicermn
+$$ /opt/RMN400s-data/data/UCCS-OL/nmr/400.JT-190305/3/audita.txt
+##AUDIT TRAIL=  $$ (NUMBER, WHEN, WHO, WHERE, PROCESS, VERSION, WHAT)
+(   1,<2019-03-05 17:50:25.787 +0100>,<servicermn>,<rmn400s.univ-lille1.fr>,<go>,<TOPSPIN 2.1>,
+      <created by zg
+	started at 2019-03-05 17:49:10.602 +0100,
+	POWCHK disabled, PULCHK disabled,
+       configuration hash MD5:
+       EF AB 12 08 AE 8B 29 FC 1C A2 9B 2F E2 83 B4 DC
+       data hash MD5: 778
+       44 29 EC 9D 27 6A 3B CC D7 8A 09 B9 D1 21 7A 5D>)
+##END=
+
+$$ hash MD5
+$$ 0D AC 81 77 C2 2D C7 73 EF F5 9B 9D 2C 32 F1 AD

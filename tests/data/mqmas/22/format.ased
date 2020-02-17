@@ -1,0 +1,213 @@
+EDIT_PAR COMMAND FILE
+
+DI_MODE         LONG
+ED_ENTRY        ACQU
+ORDER           FILE
+
+
+HEADER		"F2 - Acquisition Parameters"
+NAME		PULPROG
+END
+NAME		TD
+END
+NAME		NS
+END
+NAME		DS
+END
+T_NAME		SWH
+		TYPE	R32
+		CLASS	ACQU
+		SUBRANGE 0.0 1e38
+		REL	"SWH=SW*SFO1"
+		INV_REL "SW=SWH/SFO1"
+		UNIT	"Hz"
+		FORMAT	"%14.2f Hz"
+		TEXT	"sweep width in Hz"
+END
+T_NAME          AQ
+		TYPE	R32
+		CLASS	ACQU
+		SUBRANGE 0.0 1e38
+		REL	"AQ=aqcalc(SW,SFO1,TD,DIGTYP)"
+		INV_REL	"TD=tdcalc(SW,SFO1,1.0e6*AQ,DIGTYP)"
+		UNIT	"sec"
+		FORMAT	"%14.7f sec"
+                TEXT	"acquisition time"
+END
+NAME		RG
+END
+T_NAME          DW
+		TYPE	R32
+		CLASS	ACQU
+		SUBRANGE 0.0 1e38
+		REL	"DW=1/(2*SW*SFO1)"
+		INV_REL	"SW=1000000/(2*(0.005+DW)*SFO1)"
+		UNIT	"usec"
+		FORMAT	"%14.3f usec"
+		TEXT	"dwell time "
+END
+NAME		DE
+		FORMAT	"%14.2f usec"
+END
+T_NAME		D0
+		TYPE	R32
+		CLASS	ACQU
+		SUBRANGE 0.0 1e38
+		REL	"D0=D[0]"
+		INV_REL	"D[0]=D0"
+		UNIT	"sec"
+		FORMAT	"%14.8f sec"
+TEXT		"=1u or longer"
+END
+T_NAME		D1
+		TYPE	R32
+		CLASS	ACQU
+		SUBRANGE 0.0 1e38
+		REL	"D1=D[1]"
+		INV_REL	"D[1]=D1"
+		UNIT	"sec"
+		FORMAT	"%14.8f sec"
+TEXT		"recycle delay"
+END
+T_NAME		D4
+		TYPE	R32
+		CLASS	ACQU
+		SUBRANGE 0.0 1e38
+		REL	"D4=D[4]"
+		INV_REL	"D[4]=D4"
+		UNIT	"sec"
+		FORMAT	"%14.8f sec"
+TEXT		"z-filter delay, usually =20u"
+END
+T_NAME		in0
+		TYPE	R32
+		SUBRANGE 0.0 1e8
+		CLASS	ACQU
+		REL	"in0=inf1"
+		INV_REL	"D[0]=in0"
+		UNIT	"sec"
+		TEXT	"in0=inf1"
+		FORMAT	"%14.8f sec"
+		NONEDIT
+END
+T_NAME		INF1
+		TYPE	R64
+		CLASS	ACQU
+		SUBRANGE 0.0 1e38
+		REL	"INF1=INF[1]"
+		INV_REL	"INF[1]=INF1"
+		UNIT	"usec"
+		FORMAT	"%14.2f usec"
+		TEXT	"increment for F1"
+		NONEDIT
+END
+T_NAME		ST1CNT
+		TYPE	I32
+		SUBRANGE 0 2147483647
+		CLASS	ACQU
+		REL	"ST1CNT = td1 / (2)"
+		INV_REL	"D[0]=ST1CNT"
+		UNIT	"no"
+		TEXT	"ST1CNT = td1 / (2)"
+		FORMAT	"%14d"
+		NONEDIT
+END
+HEADER		"======== CHANNEL f1 ========"
+NAME		NUC1
+		NONEDIT
+		TEXT	"nucleus for channel 1"
+END
+T_NAME		P1
+		TYPE	R32
+		CLASS	ACQU
+		SUBRANGE 0.0 1.0e10
+		REL	"P1=P[1]"
+		INV_REL	"P[1]=P1"
+		UNIT	"usec"
+		FORMAT	"%14.2f usec"
+TEXT		"excitation pulse at pl11"
+END
+T_NAME		P2
+		TYPE	R32
+		CLASS	ACQU
+		SUBRANGE 0.0 1.0e10
+		REL	"P2=P[2]"
+		INV_REL	"P[2]=P2"
+		UNIT	"usec"
+		FORMAT	"%14.2f usec"
+TEXT		"conversion pulse at pl11"
+END
+T_NAME		P3
+		TYPE	R32
+		CLASS	ACQU
+		SUBRANGE 0.0 1.0e10
+		REL	"P3=P[3]"
+		INV_REL	"P[3]=P3"
+		UNIT	"usec"
+		FORMAT	"%14.2f usec"
+TEXT		"90 degree selective pulse at pl21"
+END
+T_NAME		PL1
+		TYPE	R32
+		CLASS	ACQU
+		SUBRANGE -6.0 1e38
+		REL	"PL1=PL[1]"
+		INV_REL	"PL[1]=PL1"
+		UNIT	"dB"
+		FORMAT	"%14.2f dB"
+TEXT		"=120 dB"
+END
+T_NAME		PL11
+		TYPE	R32
+		CLASS	ACQU
+		SUBRANGE -6.0 1e38
+		REL	"PL11=PL[11]"
+		INV_REL	"PL[11]=PL11"
+		UNIT	"dB"
+		FORMAT	"%14.2f dB"
+TEXT		"power level for excitation and conversion pulses"
+END
+T_NAME		PL21
+		TYPE	R32
+		CLASS	ACQU
+		SUBRANGE -6.0 1e38
+		REL	"PL21=PL[21]"
+		INV_REL	"PL[21]=PL21"
+		UNIT	"dB"
+		FORMAT	"%14.2f dB"
+TEXT		"power level for selective pulse, ca. pl11 + 30 dB"
+END
+T_NAME		PL1W
+		TYPE	R32
+		CLASS	ACQU
+		SUBRANGE -6.0 1e38
+		REL	"PL1W=1700*pow(10.0,(-6-PL[1])/10.0)"
+		INV_REL	"PL[1]=-6-4.3425*log(PL1W/1700)"
+		UNIT	"no"
+		FORMAT	"%14.8f W"
+TEXT		"=120 dB"
+END
+T_NAME		PL11W
+		TYPE	R32
+		CLASS	ACQU
+		SUBRANGE -6.0 1e38
+		REL	"PL11W=1700*pow(10.0,(-6-PL[11])/10.0)"
+		INV_REL	"PL[11]=-6-4.3425*log(PL11W/1700)"
+		UNIT	"no"
+		FORMAT	"%14.8f W"
+TEXT		"power level for excitation and conversion pulses"
+END
+T_NAME		PL21W
+		TYPE	R32
+		CLASS	ACQU
+		SUBRANGE -6.0 1e38
+		REL	"PL21W=1700*pow(10.0,(-6-PL[21])/10.0)"
+		INV_REL	"PL[21]=-6-4.3425*log(PL21W/1700)"
+		UNIT	"no"
+		FORMAT	"%14.8f W"
+TEXT		"power level for selective pulse, ca. pl11 + 30 dB"
+END
+NAME		SFO1
+		FORMAT	"%14.7f MHz"
+		TEXT	"frequency of observe channel"
+END

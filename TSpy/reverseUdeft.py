@@ -33,8 +33,6 @@ fulldataPATH = JTutils.fullpath(dataset)
 opt_args = ""
 "--tdeff %s --td %s " % (TDEFF, TD)
 
-script = JTutils.CpyBin_script("reverseUdeft_.py")
-# os.system(" ".join((JTutils.CPYTHON, script, opt_args, fulldataPATH)))
-subprocess.call([JTutils.CPYTHON] + [script] + opt_args.split() + [fulldataPATH])    
+JTutils.run_CpyBin_script('reverseUdeft_.py', opt_args.split()+[fulldataPATH])
 
 RE(dataset)

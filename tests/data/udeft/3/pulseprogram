@@ -1,0 +1,261 @@
+# 1 "/home/servicermn/Documents/TOPSPINusers/PP/JT/udeft-CpAp.jt"
+;udeft-CpstP.jt
+;avance II (30/05/2012)
+;1D sequence using
+;   flip back pulse at the end of acquisition to decrease
+;      relaxation delay d1 
+;
+;$CLASS=Solids
+;$DIM=1D
+;$TYPE=
+;$SUBTYPE=
+;$COMMENT=
+
+;pl1 : power for first pulse p1 (default)
+;pl11 : power for udeft pulses
+;p1 : 90 pulse
+;p13: f1 channel - Composite Cpx3 = 59_180 298_0 59_180
+;p26: f1 channel - tanhtan adiabatic pulse
+;sp0: adiabatic pulse power level
+;spnam0 : adiabatic Z inversion pulse : tanhtan for example
+;d1 : relaxation delay; 
+;d11: set to 5 times longest T1                      [200 s]
+;NS: 1 * n, total number of scans: NS * TD0
+;DS=0
+;d6 FID duration
+;d3 time set to d3best for rotor synchronization
+;td set to Tdtot+100
+
+# 1 "/opt/topspin2.1.6/exp/stan/nmr/lists/pp/Avancesolids.incl" 1
+;Avancesolids.incl
+;   for 1
+;
+;version 1 28.2.2001, written by HF
+;	   4.4.2006, complemented by Ste
+
+;switch between 1H or 19F output (H amplifier)
+;version 1 28.2.2001, written by HF 	   4.4.2006, 
+;complemented by Ste 
+;$COMMENT=definitions for setrtp and setnmr
+;$CLASS=Solids INCL
+
+;switch between 1H or 19F output (H amplifier) gating pulse for RX22, ADC and HPPR
+;$OWNER=Bruker
+
+
+
+;gating pulse for RX22, ADC and HPPR
+
+
+
+
+;generate dwell clock
+
+
+;blank/unblank receiver path
+
+
+
+
+
+
+
+
+
+;turn dwell clock on/off
+
+
+;
+
+
+
+;define data sampling for WAHUHA type experiments
+
+
+
+
+
+;explicit transmitter blanking
+
+
+
+
+
+
+
+;NCO switching
+
+
+
+
+
+
+
+
+
+# 28 "/home/servicermn/Documents/TOPSPINusers/PP/JT/udeft-CpAp.jt" 2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# 1 "/opt/topspin2.1.6/exp/stan/nmr/lists/pp/user/presat.incl" 1
+;$COMMENT=presaturation loops
+;$CLASS=Solids INCL
+;$DIM=
+;$TYPE=presaturation
+;$SUBTYPE=
+;$OWNER=Trebosc
+
+;Presat include file ***************************************
+;d20 : delai between Presat pulses (p20)
+;pl20 : power of Presat pulses (p20)
+;l20 : number of Presat pulses (p20)
+;p20 : Presat pulses
+;ph20 : phase of Presat pulses (p20)
+; second presat parameters
+;d19 : delai between Presat2 pulses (p21)
+;pl19 : power of Presat2 pulses (p19)
+;l19 : number of Presat2 pulses (p19)
+;p19 : Presat2 pulses
+;ph19 : phase of Presat2 pulses (p19)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+;***********************************************************
+# 53 "/home/servicermn/Documents/TOPSPINusers/PP/JT/udeft-CpAp.jt" 2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"p4=59*p1/90"
+"p5=298*p1/90"
+"p13=p4*2+p5"
+;"sp0=pl11"
+
+define loopcounter tmpD3
+define delay d3best
+define loopcounter tmpTD
+define loopcounter TDtot
+define delay rest
+
+"tmpD3=(d6+p13/2.0+p1/2.0+2*de+2u)*cnst31"
+"d3best=(1s*(tmpD3+1)/cnst31)-(d6+p13/2.0+p1/2.0+2*de+2u)"
+;calculate minimum TD to set
+"tmpTD=0.5*((2*d6+p13+2*de+2*d3+3u))/dw + 1"
+"TDtot=tmpTD*2"
+define delay showinASED
+"showinASED=d3best+TDtot"
+"rest=aq-(dw*td)"
+"d3=d3best"
+
+dwellmode auto
+
+# 1 "mc_line 90 file /home/servicermn/Documents/TOPSPINusers/PP/JT/udeft-CpAp.jt dc-measurement inserted automatically"
+    dccorr
+# 90 "/home/servicermn/Documents/TOPSPINusers/PP/JT/udeft-CpAp.jt"
+1 ze
+
+
+
+983547 d20 pl20:f1 \n (p20 ph20^):f1 \n lo to 983547 times l20
+  d11   
+;d11
+2 30m 
+  d1 pl11:f1
+  (1u adc ph31 syrec) ;1u
+  (1u ph30:r):f1 ;1u fq=cnst1:f1
+  1u setrtp1^0^1^2
+  1u 
+  1u setnmr0|0^16
+  (p1 ph1):f1
+
+  de  
+  0.5u setrtp1|7 
+  0.5u setnmr0^0|16
+  d6 setrtp1|0|1|2
+  1u setrtp1^0^1^2
+  de  ;pl11:f1 
+  d3 setnmr0|0^16
+
+  (p4 ph12):f1
+  (p5 ph2):f1
+  (p4 ph12):f1 
+  d3
+  de 
+  1u setnmr0^0|16
+  d6 setrtp1|0|1|2
+  0.5u setrtp1^0^1^2 
+  de setrtp1^7 
+  0.5u setnmr0|0^16
+  p1 ph1
+  10u
+  (p26:sp0 ph4):f1
+  1u  
+  1u 
+  rest  
+  rcyc=2
+ ; lo to 1 times l10
+  30m wr #0
+ ;10m mc #0 to 2 F1QF()
+exit
+
+
+ph1=1 3
+ph12=2 0 0 2
+ph2= 0 2 2 0
+ph4=0 2 2 0
+ph31=0 2 0 2
+ph30=0
+ph19= 0  \n ph20= 0
+

@@ -42,9 +42,7 @@ def validated(event):
         opt_args += " -o "
     if JRB_evenecho.isSelected():
         opt_args += " -e "
-    script = JTutils.CpyBin_script("qcpmgadd_.py")
-    #	os.system(" ".join((JTutils.CPYTHON, script, opt_args, fulldataPATH)))
-    subprocess.call([JTutils.CPYTHON] + [script] + opt_args.split() + [fulldataPATH])
+    JTutils.run_CpyBin_script('qcpmgadd_.py', opt_args.split()+[fulldataPATH])
     frame0.dispose()
     EXEC_PYSCRIPT("RE_PATH('%s')"%(fulldataPATH,))
 

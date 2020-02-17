@@ -1,0 +1,17 @@
+##TITLE= Parameter file, TOPSPIN		Version 2.1
+##JCAMPDX= 5.0
+##DATATYPE= Parameter Values
+##NPOINTS= 1	$$ modification sequence number
+##ORIGIN= Bruker BioSpin GmbH
+##OWNER= servicermn
+$$ 2015-11-20 12:15:18.810 +0100  servicermn@rmn400s2.univ-lille1.fr
+$$ /opt/data-400s2/data/service/nmr/400s2.MQMAS_FAM-151119/22/scon2
+$$ process /opt/topspin-2.1/prog/mod/go
+##$BLKTR= (0..15)
+3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3
+##$DE1= 4.5
+##$DEADC= 0.5
+##$DEPA= 4.5
+##$DERX= 1.5
+##$FILCOR= 0
+##END=

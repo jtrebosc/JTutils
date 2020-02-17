@@ -1,0 +1,22 @@
+##TITLE= Parameter file, TOPSPIN		Version 3.1
+##JCAMPDX= 5.0
+##DATATYPE= Parameter Values
+##NPOINTS= 22	$$ modification sequence number
+##ORIGIN= Bruker BioSpin GmbH
+##OWNER= solidnmr
+$$ 2013-09-25 09:10:02.739 +0200  solidnmr@rmn-spectro900
+$$ /opt/data/solidnmr3.0/nmr/900.FP-130924/46/acqu2s
+$$ process /opt/topspin3.1.7/prog/mod/go
+##$ACQT0= 0
+##$BF1= 900.23
+##$FnMODE= 1
+##$NUC1= <1H>
+##$NusJSP= 0
+##$NusT2= 1
+##$NusTD= 40
+##$O1= 10952.6
+##$SFO1= 900.2409526
+##$SW= 10.0073307962607
+##$SW_h= 9009.00900900901
+##$TD= 40
+##END=

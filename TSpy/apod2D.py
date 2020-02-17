@@ -35,7 +35,5 @@ else:
   echoOnly = ''
 opt_args = " -g %s -s %s -c %s %s " % (GB, s, c, echoOnly)
 
-script = JTutils.CpyBin_script("apod2D_.py")
-# os.system(" ".join((JTutils.CPYTHON,script,opt_args,fulldataPATH)))
-subprocess.call([JTutils.CPYTHON] + [script] + opt_args.split() + [fulldataPATH])
+JTutils.run_CpyBin_script('apod2D_.py', opt_args.split()+[fulldataPATH])
 RE(dataset)

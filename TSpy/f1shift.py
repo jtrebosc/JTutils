@@ -33,8 +33,6 @@ fulldataPATH = JTutils.fullpath(dataset)
 
 opt_args = ["-n", str(N)]
 
-script = JTutils.CpyBin_script("f1shift_.py")
-#os.system(" ".join((JTutils.CPYTHON,script,opt_args,fulldataPATH)))
-subprocess.call([JTutils.CPYTHON] + [script] + opt_args + [fulldataPATH])    
+JTutils.run_CpyBin_script('f1shift_.py', opt_args + [fulldataPATH])
 
 RE(dataset)

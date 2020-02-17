@@ -14,7 +14,5 @@ optns = ' '.join(sys.argv[1:])
 
 fulld2d = JTutils.fullpath(data2d)
 
-script = JTtutils.CpyBin_script("RedFrac2D_.py"
-#os.system(" ".join((JTutils.CPYTHON, script, fulld2d, optns)))
-subprocess.call([JTutils.CPYTHON] + [script] + [fulld2d] + sys.argv[1:])
+JTutils.run_CpyBin_script('RedFrac2D_.py', [fulld2d] + sys.argv[1:])
 RE(data2d)
