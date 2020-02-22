@@ -79,9 +79,7 @@ def apodize_echoes(gb=None, cycle=None, echo_position=None, noDialog=False, data
 
     opt_args = " -g %s -c %s -s %s" % (gb, cycle, echo_position)
 
-    script = JTutils.CpyBin_script("qcpmgapod_.py")
-    # os.system(" ".join((JTutils.CPYTHON, script, opt_args, fulldataPATH)))
-    subprocess.call([JTutils.CPYTHON] + [script] + opt_args.split() + [fulldataPATH])    
+    JTutils.run_CpyBin_script("qcpmgapod_.py",  opt_args.split() + [fulldataPATH])
     RE(dataset)
 
 if __name__ == '__main__':
