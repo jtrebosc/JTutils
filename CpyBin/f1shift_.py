@@ -16,7 +16,7 @@ parser.add_argument('-n',type=int,required=True, help='Number of points to shift
 parser.add_argument('infile',help='Full path of the dataset to process')
 
 args=parser.parse_args()
-#print bruker.splitprocpath(infile)
+#print(bruker.splitprocpath(infile))
 dat=bruker.dataset(bruker.splitprocpath(args.infile))
 
 # let's shift 2rr but what about the other imaginary ? shift also or HT ?
@@ -26,7 +26,7 @@ spectri=dat.readspect2d('2ri')
 spectir=dat.readspect2d('2ir')
 spectii=dat.readspect2d('2ii')
 
-print "shifting axis 0 by n point n=",args.n
+print("shifting axis 0 by n point n=",args.n)
 spectrr=numpy.roll(spectrr,args.n,axis=0)
 spectri=numpy.roll(spectri,args.n,axis=0)
 spectir=numpy.roll(spectir,args.n,axis=0)

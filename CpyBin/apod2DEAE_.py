@@ -50,7 +50,7 @@ mode2D = {'1': 'QF' , '2': 'QSEQ', '3': 'TPPI',
 # reshape data according to FnMODE
 FnMode = dat.readacqpar("FnMODE", status=True, dimension=2)
 if FnMode in "0 1 2 3":
-    print "data cannot be made in Echo/AntiEcho format: TPPI not handled"
+    print("data cannot be made in Echo/AntiEcho format: TPPI not handled")
     sys.exit()
 if FnMode == "0":  # if undefined then read MC2 processing parameter 
     # note that MC2 has different meaning : same order as FnMode but with 0 starting for QF
@@ -189,7 +189,7 @@ ProcOptions = {"WDW": ["LB", "GB", "SSB", "TM1", "TM2"],
                "STSR", "STSI", "REVERSE"],
                }
 for dim in [1, 2]:
-    for par in ProcOptions.keys():
+    for par in ProcOptions:
         dat.writeprocpar(par, "0", status=True, dimension=dim)
         for opt in ProcOptions[par]:
             dat.writeprocpar(opt, "0", status=True, dimension=dim)

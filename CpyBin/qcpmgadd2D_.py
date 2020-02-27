@@ -86,10 +86,10 @@ def cpmgadd2D(dataset, lb=0, gb=0, nEchoes=None, slope=0,
         nEchoes = (TD//2 - digFilLen) // oneEchoSize
         print("""WARNING : FID is not long enough for L22 echo + 1. 
                Actually using  %s echoes""" % (nEchoes,))
-    print serfile.dtype
-    print(TD,  2*oneEchoSize*nEchoes + 2*digFilLen)
+    #print(serfile.dtype)
+    #print(TD,  2*oneEchoSize*nEchoes + 2*digFilLen)
     serfile = serfile[:,0:2*oneEchoSize*nEchoes ]
-    print(serfile.shape,  2*oneEchoSize*nEchoes )
+    #print(serfile.shape,  2*oneEchoSize*nEchoes )
     # size of 2D array in t1
     TD1 = int(dataset.readacqpar("TD", status=True, dimension=2))
     # TD1 is rounded to multiple of HCsize
@@ -110,11 +110,11 @@ def cpmgadd2D(dataset, lb=0, gb=0, nEchoes=None, slope=0,
         summed = serfile[:, firstP:firstP+oneEchoSize*2*nEchoes].reshape(TD1//HCsize, HCsize, nEchoes, oneEchoSize, 2)
     else:
         (si1, si) = serfile.shape
-        print((si1, si), (TD1//HCsize, HCsize, si//2, 2),
-              len(serfile), len(serfile)//HCsize)
+        #print((si1, si), (TD1//HCsize, HCsize, si//2, 2),
+        #       len(serfile), len(serfile)//HCsize)
         tmp = serfile.reshape(TD1//HCsize, HCsize, si//2, 2)
         summed = numpy.zeros((TD1//HCsize, HCsize, nEchoes, oneEchoSize, 2))
-        print(summed.shape)
+        #print(summed.shape)
         for i in range(nEchoes):
             summed[:, :, i, :, :] += tmp[:, :,
                                          firstP+int(i*ppc+0.5):
@@ -194,7 +194,7 @@ def cpmgadd2D(dataset, lb=0, gb=0, nEchoes=None, slope=0,
     s2 = SUM[..., 1]
     # print(s1.max(), s2.max())
     # print(s1.min(), s2.min())
-    smax = numpy.absolute(s1+i*s2).max()
+    smax = numpy.absolute(s1+1j*s2).max()
 
 
     # fait du zero fill pour que topspin puisse processer et
@@ -231,7 +231,7 @@ def cpmgadd2D(dataset, lb=0, gb=0, nEchoes=None, slope=0,
                    "PH_mod": ["PHC0", "PHC1"], "BC_mod": ["BCFW", "COROFFS"],
                    "ME_mod": ["NCOEF", "LPBIN", "TDoff"], "FT_mod": ["FTSIZE", "FCOR"]}
     for dim in [1, 2]:
-        for par in ProcOptions.keys():
+        for par in ProcOptions:
             dataset.writeprocpar(par, "0", True, dimension=dim)
             for opt in ProcOptions[par]:
                 dataset.writeprocpar(opt, "0", True, dimension=dim)

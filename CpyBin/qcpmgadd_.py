@@ -152,7 +152,7 @@ dat.writespect1dri(r1, r2)
 ProcOptions = {"WDW": ["LB", "GB", "SSB", "TM1", "TM2"],
          "PH_mod": ["PHC0", "PHC1"], "BC_mod": ["BCFW", "COROFFS"],
          "ME_mod": ["NCOEF", "LPBIN", "TDoff"], "FT_mod": ["FTSIZE"]}
-for par in ProcOptions.keys():
+for par in ProcOptions:
     dat.writeprocpar(par, "0", True, dimension=1)
     for opt in ProcOptions[par]:
         dat.writeprocpar(opt, "0", True, dimension=1)

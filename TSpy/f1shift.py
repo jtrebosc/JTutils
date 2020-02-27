@@ -4,7 +4,7 @@ import sys
 import os
 import os.path
 import subprocess
-import Jutils
+import JTutils
 
 description = """ 
 Call an external python script that does a round shift in F1 dimension

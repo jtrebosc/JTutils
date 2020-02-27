@@ -40,7 +40,7 @@ digfilt = int(round(dat.getdigfilt()))
 
 # calculate the theoretical td from pulse sequence parameters unless td is provided as argument
 if args.td:
-    print "limit fid to " + str(args.td), digfilt
+    print("limit fid to " + str(args.td), digfilt)
     td = args.td//2 - digfilt
 else:
     "p13+3.5+d6*2+de*2+d3*2" # delays to consider
@@ -50,12 +50,12 @@ else:
     de = float(dat.readacqpar("DE"))
     dw = 1e6/float(dat.readacqpar("SW_h"))
     td = int(round((p13+3.5+2*(d3+d6+de))/dw)+2*digfilt)
-    print("else ",td)
-#print td, td_spectrum
+    #print("else ",td)
+#print(td, td_spectrum)
 # some times td is too short (final digital filter is truncated) and one must pad with 0
 if td_spectrum < td:
     spect = bruker.pad(spect,(0,td-td_spectrum),mode='constant')
-#print spect.shape, digfilt
+#print(spect.shape, digfilt)
 else : # if too long then truncate FID to optimal td
     spect = spect[0:td]
 
@@ -67,7 +67,7 @@ else :
 
 # reverse time, conjugate FID 
 spect = np.conj(spect[::-1])
-#print spect.shape
+#print(spect.shape)
 # and truncate to TDeff
 if (spect.size > tdeff) and  (tdeff > 0):
     spect = spect[0:tdeff]
@@ -79,7 +79,7 @@ if (si < tdc):
     tdc = si
     spect = spect[0:si]
 spect = np.concatenate((spect,np.zeros(si-tdc)))
-#print spect.shape
+#print(spect.shape)
 dat.writespect1dri(spect.real,spect.imag)
 
 # The FID stored will be considered as unprocessed time domain
@@ -92,7 +92,7 @@ ProcOptions = {"WDW": ["LB", "GB", "SSB", "TM1", "TM2"],
                "ME_mod": ["NCOEF", "LPBIN", "TDoff"], 
                "FT_mod": ["FTSIZE", "FCOR"]}
 for dim in [1]:
-    for par in ProcOptions.keys():
+    for par in ProcOptions:
         dat.writeprocpar(par, "0", True, dimension=dim)
         for opt in ProcOptions[par]:
             dat.writeprocpar(opt, "0", True, dimension=dim)

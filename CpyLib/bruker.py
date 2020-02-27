@@ -85,6 +85,7 @@
 # 8 : isc inverse FT of single (X) channel storing complexe
 #
 
+from __future__ import division, print_function
 import sys
 import os.path
 import os
@@ -95,11 +96,11 @@ import numpy.fft as fft
 __version__ = '1.6'
 
 pyver = sys.version
-# print "python version: " + pyver
+# print("python version: " + pyver)
 
 if pyver < "2.2":
-    print "python version: " + pyver
-    raise "Error", "current version %s. version >= 2.2 required!" % pyver
+    print("python version: " + pyver)
+    raise Exception("current version %s. version >= 2.2 required!" % (pyver,))
 
 # a workaround for pad function not available with numpy version < 1.7 : lets make it available within bruker library:
 try:
@@ -132,6 +133,7 @@ except:
 #                                       numpy.zeros(int_after)))
             
 
+# I need to rewrite this function in a cleaner way
 def splitprocpath(path):
         """
         extract [name, expno, procno, dir, user] from path to procno folder
@@ -142,25 +144,25 @@ def splitprocpath(path):
         (path, procno) = os.path.split(path)
         (path, tmp) = os.path.split(path)
         if tmp != "pdata":
-            print "wrong bruker data/procno path"
+            print("wrong bruker data/procno path")
             return []
         (path, expno) = os.path.split(path)
         (path, name) = os.path.split(path)
-        list = []
+        path_list = []
         (drive, tmp) = os.path.splitdrive(path)
         # to be tested on Windows
         while path != drive + os.sep:
             (path, tmp) = os.path.split(path)
-            list.insert(0, tmp)
-        if len(list) >= 3 and list[-1] == "nmr" and list[-3] == "data":
+            path_list.insert(0, tmp)
+        if len(path_list) >= 3 and path_list[-1] == "nmr" and path_list[-3] == "data":
             # we are in version <3
-            list.pop()  # drops the nmr folder
-            user = list.pop()
-            list.pop()  # drops the data folder
-            dir = drive + "/" + "/".join(list)
+            path_list.pop()  # drops the nmr folder
+            user = path_list.pop()
+            path_list.pop()  # drops the data folder
+            dir = drive + "/" + "/".join(path_list)
             dir = os.path.normpath(dir)
         else:  # this is version 3 without data/user/nmr format
-            dir = drive + "/" + "/".join(list)
+            dir = drive + "/" + "/".join(path_list)
             dir = os.path.normpath(dir)
         if user == '':
             for i in [name, expno, procno, dir]:
@@ -246,7 +248,7 @@ def getlistfilefullname(filename, type='PP'):
     try:
         f = open(userparamfile, 'r')
     except:
-        print "cannot open " + userparamfile
+        print("cannot open " + userparamfile)
         raise
     for i in f.readlines():
         m = re.match(type + "_DIRS=(.*)", i)
@@ -318,7 +320,7 @@ States Mode into hypercomplex representation array of shape (2xTD1/2xTD2/2) """
     (td1, td2) = ser.shape
     td1 = td1//2*2
     ser = ser[0:td1]
-    tmp = ser.reshape(td1//2, 2, td2/2, 2)
+    tmp = ser.reshape(td1//2, 2, td2//2, 2)
     tmp = tmp[..., 0] + 1j*tmp[..., 1]
     tmp = tmp.swapaxes(1, 0)
     return tmp
@@ -509,8 +511,8 @@ class dataset:
             BrukDTYPA = 0
 
         self.dtypeA = np.dtype(brukBYTORD[brukBYTORDA] + brukDTYP[BrukDTYPA])
-        # print "acq data stored as %s of size %d" % (self.dtypeA,
-        #                                             self.dtypeA.itemsize)
+        # print("acq data stored as %s of size %d" % (self.dtypeA,
+        #                                             self.dtypeA.itemsize))
         if brukBYTORDA == 0:
             self.bytencA = 'little'
         else:
@@ -547,7 +549,7 @@ class dataset:
             BrukDTYPP = 0
 
         self.dtypeP = np.dtype(brukBYTORD[brukBYTORDP] + brukDTYP[BrukDTYPP])
-#        print "proc data stored as %s" % (self.dtypeP, )
+#        print("proc data stored as %s" % (self.dtypeP, ))
         if brukBYTORDP == 0:
             self.bytencP = 'little'
         else:
@@ -608,7 +610,7 @@ class dataset:
         elif dimension == 3:
             name = 'acqu3'
         else:
-            print "Warning dimension must be 1, 2 or 3: using dimension 1"
+            print("Warning dimension must be 1, 2 or 3: using dimension 1")
             name = 'acqu'
         if status is True:
             name += 's'
@@ -616,7 +618,7 @@ class dataset:
         path = self.returnacqpath() + name
 
         if not os.path.exists(path):
-            print path + " does not exist!!"
+            print(path + " does not exist!!")
             return None
         return self._writepar(path, param, value)
 
@@ -645,7 +647,7 @@ class dataset:
         path = self.returnprocpath() + name
 
         if not os.path.exists(path):
-            print path + " does not exist!!"
+            print(path + " does not exist!!")
             return None
         return self._writepar(path, param, value)
 
@@ -670,7 +672,7 @@ class dataset:
         elif dimension == 3:
             name = 'acqu3'
         else:
-            print "Warning dimension must be 1 2 or 3: using dimension 1"
+            print("Warning dimension must be 1 2 or 3: using dimension 1")
             name = 'acqu'
         if status is True:
             name += 's'
@@ -678,7 +680,7 @@ class dataset:
         path = self.returnacqpath() + name
 
         if not os.path.exists(path):
-            print path + " does not exist!!"
+            print(path + " does not exist!!")
             return None
         return self._readpar(path, param)
 
@@ -707,7 +709,7 @@ class dataset:
         path = self.returnprocpath() + name
 
         if not os.path.exists(path):
-            print path + " does not exist!!"
+            print(path + " does not exist!!")
             return None
         return self._readpar(path, param)
 
@@ -730,13 +732,13 @@ class dataset:
         try:
             f = open(path, "r")
         except:
-            print "cannot open " + path
+            print("cannot open " + path)
             raise
 
         try:
             ls = f.readlines()
         except:
-            print "error reading " + path
+            print("error reading " + path)
             raise
         f.close()
         found = 0
@@ -744,7 +746,7 @@ class dataset:
             line = ls[index].strip()
             if line.find("##$" + searchString + "=") > -1:
                 # case of non array
-                if pindex == -1:
+                if int(pindex) == -1:
                     [tmp, value] = line.split('=', 1)
                     value = value.strip(" <>")
                     found = 1
@@ -755,7 +757,7 @@ class dataset:
                     matchres = re.search(r"\(0\.\.([0-9]+)\)", line)
                     if matchres:
                         maxindex = int(matchres.group(1))
-                        # print "maxindex="+str(maxindex)
+                        # print("maxindex="+str(maxindex))
                     else:
                         print("sorry, " + searchString +
                               " doesn't appear to be an array")
@@ -771,16 +773,16 @@ class dataset:
                         i = i+1
                         line = ls[index + i].strip()
                     break
-        if pindex > -1:
+        if int(pindex) > -1:
             if int(pindex) <= int(maxindex):
                 value = arraylist[int(pindex)]
                 found = 1
             else:
-                print "sorry array list goes only up to " + str(maxindex)
+                print("sorry array list goes only up to " + str(maxindex))
                 return None
 
         if not found:
-            print "sorry couldn't find param '" + searchString + "'"
+            print("sorry couldn't find param '" + searchString + "'")
             return None
         return value
 
@@ -811,7 +813,7 @@ class dataset:
         try:
             f = open(path, "r")
         except:
-            print "cannot open " + path
+            print("cannot open " + path)
             raise
 
         ls = f.readlines()
@@ -835,7 +837,7 @@ class dataset:
                     matchres = re.search(r"\(0\.\.([0-9]+)\)", line)
                     if matchres:
                         maxindex = int(matchres.group(1))
-                        # print "maxindex="+str(maxindex)
+                        # print("maxindex="+str(maxindex))
                     else:
                         print("sorry, " + searchString +
                               " doesn't appear to be an array")
@@ -870,19 +872,19 @@ class dataset:
                         for j in range(i):
                             ls.insert(index+1+j, arrayst[j])
                     else:
-                        print "sorry array list goes only up to "+str(maxindex)
+                        print("sorry array list goes only up to "+str(maxindex))
                         return False
                     break
 
         if not found:
-            print "sorry couldn't find param '"+searchString+"'"
+            print("sorry couldn't find param '"+searchString+"'")
             return False
 
         # write the file back
         try:
             f = open(path, "w")
         except:
-            print "cannot open " + path
+            print("cannot open " + path)
             raise
         f.write(''.join(ls))
         f.close()
@@ -1008,7 +1010,7 @@ class dataset:
         """
         filename = self.returnacqpath() + "fid"
         if not os.path.exists(filename):
-            print filename + " does not exist!!"
+            print(filename + " does not exist!!")
             return None
         scale = int(self.readacqpar("NC", True))
         td = int(self.readacqpar("TD", True))
@@ -1040,7 +1042,7 @@ class dataset:
         ptpblk = 1024./self.dtypeA.itemsize
         # rounds TD to the next block size
         tdblock = int(ceil(TD/ptpblk)*ptpblk)
-#        print TD, tdblock, tdblock-TD
+#        print(TD, tdblock, tdblock-TD)
         spect = spect/2**NC
         res = np.concatenate((spect, np.zeros(tdblock-len(spect))))
 
@@ -1058,14 +1060,14 @@ class dataset:
         """
         filename = self.returnacqpath() + "fid"
         if not os.path.exists(filename):
-            print filename + " does not exist!!"
+            print(filename + " does not exist!!")
             return None
         td = int(self.readacqpar("TD", True))
         res = np.fromfile(filename, dtype=self.dtypeA, count=td).astype(float)
-        res = res.reshape((td/2, 2))
+        res = res.reshape((td//2, 2))
         R = res[:, 0]+1j*res[:, 1]
         phcfilt = self.getdigfilt()
-#        print "phcfilt", phcfilt
+#        print("phcfilt", phcfilt)
         npts = int(phcfilt)
         if applyNC:
             scale = int(self.readacqpar("NC", True))
@@ -1081,12 +1083,12 @@ class dataset:
             #       with n the index of spectrum point
             # Apply reverse processing: roll -1 then reverse order then
             #       ifftshift then ifft
-            fftsize = int(td/4)*2
+            fftsize = td//2
             PH = np.exp(-1j*np.pi*2*phcfilt*np.arange(fftsize)/float(fftsize))
             FT = np.roll(fft.fftshift(fft.fft(R, fftsize))[::-1], 1)
             R = fft.ifft(fft.ifftshift(np.roll(FT*PH, -1)[::-1]))
             # discard the digital filter points at the end of FID
-            R = R[0:td/2-npts]
+            R = R[0:td//2-npts]
         return R
 
     def writefidc(self, spect):
@@ -1110,12 +1112,12 @@ class dataset:
         ptpblk = 1024.0/self.dtypeA.itemsize
         # rounds TD to the next block size
         tdblock = int(ceil(TD/ptpblk)*ptpblk)
-#        print TD, tdblock, tdblock-TD
+#        print(TD, tdblock, tdblock-TD)
         spect = spect/2**NC
         S = np.zeros(tdblock)
         S[0:TD:2] = spect.real
         S[1:TD:2] = spect.imag
-#        print NC
+#        print(NC)
         self.writeacqpar("NC", str(NC), True)
         self.writeacqpar("TD", str(TD), True)
         S.astype(self.dtypeA).tofile(filename)
@@ -1128,7 +1130,7 @@ class dataset:
         from math import ceil
         filename = self.returnacqpath() + "ser"
         if not os.path.exists(filename):
-            print filename + " does not exist!!"
+            print(filename + " does not exist!!")
             return None
         # PARMODE contains 0 for 1D, 1 for 2D, 2 for 3D, n-1 for nD
         dim = int(self.readacqpar("PARMODE", True))
@@ -1184,7 +1186,7 @@ class dataset:
         # get the location of ser file and check for existence
         filename = self.returnacqpath() + "ser"
         if not os.path.exists(filename):
-            print filename + " does not exist!!"
+            print(filename + " does not exist!!")
             return None
         # determine dimensionality
         # PARMODE contains 0 for 1D, 1 for 2D, 2 for 3D, n-1 for nD
@@ -1215,7 +1217,7 @@ class dataset:
         ptpblk = 1024.0/self.dtypeA.itemsize
         # rounds TD to the next block size
         tdblock = int(ceil(TD/ptpblk)*ptpblk)
-        tdnd.append(tdblock/2)
+        tdnd.append(tdblock//2)
         tdnd.append(2)
 
         # read file
@@ -1244,14 +1246,14 @@ class dataset:
             #       ifftshift then ifft
             phcfilt = self.getdigfilt()
             npts = int(phcfilt)
-            fftsize = int(TD/4)*2
+            fftsize = TD//2
             PH = np.exp(-1j*np.pi*2*phcfilt*np.arange(fftsize)/float(fftsize))
             FT = np.roll(fft.fftshift(fft.fft(R, fftsize),
                                      axes=-1)[..., ::-1], 1, axis=-1)
             R = fft.ifft(fft.ifftshift(np.roll(FT*PH, -1,
                                        axis=-1)[..., ::-1], axes=-1))
             # discard the digital filter points at the end of FID
-            R = R[..., 0:TD/2-npts]
+            R = R[..., 0:TD//2-npts]
         return R
 
     def writeser(self, serArray, raw=True):
@@ -1271,7 +1273,7 @@ class dataset:
 
         filename = self.returnacqpath() + "ser"
         if not os.path.exists(filename):
-            print filename + " does not exist!!"
+            print(filename + " does not exist!!")
             return None
 
         arrayShape = serArray.shape
@@ -1354,7 +1356,7 @@ class dataset:
         """
         filename = self.returnprocpath() + name
         if not os.path.exists(filename):
-            print filename+" do not exist!!"
+            print(filename+" do not exist!!")
             return None
         scale = int(self.readprocpar("NC_proc", True))
         si = int(self.readprocpar("SI", True))
@@ -1383,15 +1385,15 @@ class dataset:
         # calculates NC_proc to use maximum dynamics on signed 32 bits int
         MAX = np.max(np.absolute(s1+1j*s2))
         NC = int(ceil(ln(MAX)/ln(2)))-29
-#        print "NC=%d max=%f" % (NC, MAX)
+#        print("NC=%d max=%f" % (NC, MAX))
         (si, ) = s1.shape
-#        print s1
-#        print 2**NC
-#        print s1/(2**NC)
+#        print(s1)
+#        print(2**NC)
+#        print(s1/(2**NC))
         s1 *= 1./(2**NC)
         s2 *= 1./(2**NC)
 
-#        print s1
+#        print(s1)
         s1.astype(self.dtypeP).tofile(f1)
         s2.astype(self.dtypeP).tofile(f2)
         # write some parameters related to spect arrays used by topspin
@@ -1417,15 +1419,15 @@ class dataset:
         """
         filename = self.returnprocpath() + name
         if not os.path.exists(filename):
-            print filename + " do not exist!!"
+            print(filename + " do not exist!!")
             return None
         scale = int(self.readprocpar("NC_proc", True))
         si = int(self.readprocpar("SI", True))
         si1 = int(self.readprocpar("SI", True, 2))
         xdim2 = int(self.readprocpar("XDIM", True))
         xdim1 = int(self.readprocpar("XDIM", True, 2))
-        rest1 = si1/xdim1
-        rest2 = si/xdim2
+        rest1 = si1//xdim1
+        rest2 = si//xdim2
 
         spect = np.fromfile(filename, dtype=self.dtypeP,
                            count=si*si1).astype(float)
@@ -1501,7 +1503,7 @@ class dataset:
         smin = int(spect_array_list[0].ravel().min()/2**NC)
         smax = int(spect_array_list[0].ravel().max()/2**NC)
         if smax > 2**31 or smin < -2**31:
-            print "whoowww Pb but I will continue: max=" + smax
+            print("whoowww Pb but I will continue: max=" + smax)
         self.writeprocpar("YMAX_p", str(smax), True, 2)
         self.writeprocpar("YMIN_p", str(smin), True, 2)
         self.writeprocpar("YMAX_p", str(smax), True)
@@ -1550,8 +1552,8 @@ class dataset:
             sfo1 = float(self.readacqpar("SFO1", status=True, dimension=2))
             self.writeprocpar("SW_p", str(sw1/sfo1), status=True, dimension=2)
             self.writeprocpar("AXRIGHT", str(si1*dw1/2.0), status=True, dimension=2)
-        rest1 = si1/xdim1
-        rest2 = si/xdim2
+        rest1 = si1//xdim1
+        rest2 = si//xdim2
         for i, name in enumerate(names):
             filename = self.returnprocpath() + name
             spect_array_list[i] /= 2**(NC)
@@ -1583,7 +1585,7 @@ class dataset:
             sizeA = spectArray.size
             if MAX is None:
                 MAX = np.max(np.fabs(spectArray.reshape(sizeA)))
-#            print MAX
+#            print(MAX)
 #            NC should be calculated on magnitude spectrum (2rr, 2ri, 2ir or 2ii)
 #            not only on 2rr..
             NC = int(ceil(ln(MAX)/ln(2)))-29
@@ -1602,7 +1604,7 @@ class dataset:
             smin = int(spectArray.reshape(sizeA).min()/2**NC)
             smax = int(spectArray.reshape(sizeA).max()/2**NC)
             if smax > 2**31 or smin < -2**31:
-                print "whoowww Pb: max=" + smax
+                print("whoowww Pb: max=" + smax)
             self.writeprocpar("YMAX_p", str(smax), True, 2)
             self.writeprocpar("YMIN_p", str(smin), True, 2)
             self.writeprocpar("YMAX_p", str(smax), True)
@@ -1612,8 +1614,8 @@ class dataset:
             xdim2 = int(self.readprocpar("XDIM", True))
             xdim1 = int(self.readprocpar("XDIM", True, 2))
 
-        rest1 = si1/xdim1
-        rest2 = si/xdim2
+        rest1 = si1//xdim1
+        rest2 = si//xdim2
         spectArray /= 2**(NC)
         spectArray = spectArray.reshape(rest1, xdim1, rest2, xdim2)
         spectArray = spectArray.swapaxes(1, 2)
@@ -1657,7 +1659,7 @@ class dataset:
                 self.writeprocpar("SW_p", str(sw1/sfo1), status=True, dimension=2)
                 self.writeprocpar("AXRIGHT", str(si1*dw1/2.0), status=True, dimension=2)
                 
-            # print dType[0]
+            # print(dType[0])
         return
 
     def writespectnd(self, spectArray, name="2rr"):
@@ -1676,7 +1678,7 @@ class dataset:
         REST = []
         for i in range(DIM):
             XDIM.insert(0, int(self.readprocpar("XDIM", True, i+1)))
-        REST = [i/j for i, j in zip(SI, XDIM)]
+        REST = [i//j for i, j in zip(SI, XDIM)]
 
         NC = int(self.readprocpar("NC_proc", True))
         spectArray /= 2**(NC)
@@ -1700,7 +1702,7 @@ class dataset:
         """
         filename = self.returnprocpath() + name
         if not os.path.exists(filename):
-            print filename+" do not exist!!"
+            print(filename+" do not exist!!")
             return None
         scale = int(self.readprocpar("NC_proc", True))
         dim = int(self.readprocpar("PPARMOD", True))+1
@@ -1712,7 +1714,7 @@ class dataset:
             si.insert(0, int(self.readprocpar("STSI", True, i+1)))
             size *= si[0]
             xdim.insert(0, int(self.readprocpar("XDIM", True, i+1)))
-            rest.insert(0, si[0]/xdim[0])
+            rest.insert(0, si[0]//xdim[0])
         spect = np.fromfile(filename, dtype=self.dtypeP,
                            count=size).astype(float)
         spect = spect*2**scale

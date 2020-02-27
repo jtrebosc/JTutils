@@ -142,7 +142,7 @@ ProcOptions = {"WDW": ["LB", "GB", "SSB", "TM1", "TM2"],
                "STSR", "STSI", "REVERSE"],
               }
 for dim in [1, 2]:
-    for par in ProcOptions.keys():
+    for par in ProcOptions:
         dat.writeprocpar(par, "0", status=True, dimension=dim)
         for opt in ProcOptions[par]:
             dat.writeprocpar(opt, "0", status=True, dimension=dim)
