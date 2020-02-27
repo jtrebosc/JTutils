@@ -93,8 +93,6 @@ import re
 import numpy.core as np
 import numpy.fft as fft
 
-__version__ = '1.6'
-
 pyver = sys.version
 # print("python version: " + pyver)
 
