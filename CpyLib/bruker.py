@@ -1763,7 +1763,7 @@ class dataset:
         Returns a numpy array containing the direct dimension ruler in ppm
         """
         sw = float(self.readprocpar("SW_p", True))
-        stsi = float(self.readprocpar("STSI", True))
+        stsi = int(self.readprocpar("STSI", True))
         sf = float(self.readprocpar("SF", True))
         swp = sw/sf
         offset = float(self.readprocpar("OFFSET", True))
@@ -1776,7 +1776,7 @@ class dataset:
         Returns a numpy array containing the direct dimension ruler in ppm
         """
         sw = float(self.readprocpar("SW_p", True))
-        stsi = float(self.readprocpar("STSI", True))
+        stsi = int(self.readprocpar("STSI", True))
         sf = float(self.readprocpar("SF", True))
         swp = sw/sf
         offset = float(self.readprocpar("OFFSET", True))
@@ -1789,7 +1789,7 @@ class dataset:
         Returns a numpy array containing the direct dimension ruler in ppm
         """
         sw = float(self.readprocpar("SW_p", True, 2))
-        stsi = float(self.readprocpar("STSI", True, 2))
+        stsi = int(self.readprocpar("STSI", True, 2))
         sf = float(self.readprocpar("SF", True, 2))
         swp = sw/sf
         offset = float(self.readprocpar("OFFSET", True, 2))
@@ -1802,13 +1802,13 @@ class dataset:
         Returns a numpy array containing the direct dimension ruler in ppm
         """
         sw = float(self.readprocpar("SW_p", True, 2))
-        stsi = float(self.readprocpar("STSI", True, 2))
+        stsi = int(self.readprocpar("STSI", True, 2))
         sf = float(self.readprocpar("SF", True, 2))
         swp = sw/sf
         offset = float(self.readprocpar("OFFSET", True, 2))
         ppmppt = swp/stsi
-        ppm = (-(np.arange(stsi)+0.5)*ppmppt+offset)*sf
-        return ppm
+        return (-(np.arange(stsi)+0.5)*ppmppt+offset)*sf
+        
 
 # the following procedures recalculate the scales from acquisition parameters
     def getxhz(self):
@@ -1816,9 +1816,9 @@ class dataset:
         Returns a numpy array containing the direct dimension ruler in Hz
         """
         sw = float(self.readacqpar("SW_h", True))
-        si = float(self.readprocpar("SI", True))
-        stsi = float(self.readprocpar("STSI", True))
-        stsr = float(self.readprocpar("STSR", True))
+        si = int(self.readprocpar("SI", True))
+        stsi = int(self.readprocpar("STSI", True))
+        stsr = int(self.readprocpar("STSR", True))
         sf = float(self.readprocpar("SF", True))
         sfo1 = float(self.readacqpar("SFO1", True))
         hz = -sw/si*np.arange(-si/2, si/2)-(sfo1-sf)*1e6
@@ -1830,9 +1830,9 @@ class dataset:
         (for 2D only)
         """
         sw = float(self.readacqpar("SW_h", True, 2))
-        si = float(self.readprocpar("SI", True, 2))
-        stsi = float(self.readprocpar("STSI", True, 2))
-        stsr = float(self.readprocpar("STSR", True, 2))
+        si = int(self.readprocpar("SI", True, 2))
+        stsi = int(self.readprocpar("STSI", True, 2))
+        stsr = int(self.readprocpar("STSR", True, 2))
         sf = float(self.readprocpar("SF", True, 2))
         sfo1 = float(self.readacqpar("SFO1", True, 2))
         hz = -sw/si*np.arange(-si/2, si/2)-(sfo1-sf)*1e6
@@ -1843,9 +1843,9 @@ class dataset:
         Returns a numpy array containing the direct dimension ruler in ppm
         """
         sw = float(self.readacqpar("SW_h", True))
-        si = float(self.readprocpar("SI", True))
-        stsi = float(self.readprocpar("STSI", True))
-        stsr = float(self.readprocpar("STSR", True))
+        si = int(self.readprocpar("SI", True))
+        stsi = int(self.readprocpar("STSI", True))
+        stsr = int(self.readprocpar("STSR", True))
         sf = float(self.readprocpar("SF", True))
         sfo1 = float(self.readacqpar("SFO1", True))
         ppm = -(sw/si*np.arange(-si/2, si/2)-(sfo1-sf)*1e6)/sf
@@ -1857,9 +1857,9 @@ class dataset:
         (for 2D only)
         """
         sw = float(self.readacqpar("SW_h", True, 2))
-        si = float(self.readprocpar("SI", True, 2))
-        stsi = float(self.readprocpar("STSI", True, 2))
-        stsr = float(self.readprocpar("STSR", True, 2))
+        si = int(self.readprocpar("SI", True, 2))
+        stsi = int(self.readprocpar("STSI", True, 2))
+        stsr = int(self.readprocpar("STSR", True, 2))
         sf = float(self.readprocpar("SF", True, 2))
         sfo1 = float(self.readacqpar("SFO1", True, 2))
         ppm = -(sw/si*np.arange(-si/2, si/2)-(sfo1-sf)*1e6)/sf
