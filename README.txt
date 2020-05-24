@@ -45,10 +45,14 @@ INSTALLATION
 1)install folder JTutils to a destination directory DESTDIR
 
 3) Install a working python + numpy environment (tested with 
-   anaconda/miniconda on MacOSX and windows
+   anaconda/miniconda on MacOSX and windows)
+    3.1) download miniconda at https://docs.conda.io/en/latest/miniconda.html
+    3.2) run the installer
+    3.3) launch anaconda prompt from the windows menu
+    3.4) execute command "conda create -n JTutils_env numpy"
+
 2) In Topspin preferences, set [DESTDIR]/JTutils/TSpy as scanned directory
    for python script
-
 
 4) run setup_JTutils in topspin
 
