@@ -102,11 +102,12 @@ if pyver < "2.2":
 
 # a workaround for pad function not available with numpy version < 1.7 : lets make it available within bruker library:
 try:
+    # for now I only use my pad version
     raise
     from numpy import pad
 except:
     from numpy import concatenate
-    def pad(array2pad, pad_shape, dummy):
+    def pad(array2pad, pad_shape, *args, **kwargs):
         """
         pad the spectra in selected dimensions. Same as numpy pad.
         array2pad : the array that is zero filled
