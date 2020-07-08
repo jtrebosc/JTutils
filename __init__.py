@@ -58,6 +58,7 @@ def _write_config(config):
 
 def _get_cpython_path():
     """
+    Obsolete function: not used anymore
     Return absolute path to external C python interpreter 
     as read from CPYTHON environment variable
     """
