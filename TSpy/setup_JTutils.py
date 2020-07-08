@@ -236,15 +236,65 @@ def select_external_python():
 2a) If other the user selects the exe in filechooser and says if it's conda distribution
 3) If nothing found or returned issue a message to install miniconda and exit program
 4) return the tuple 
+
+Search for conda python in standard locations:
+On windows: looks for python executable in 
+%USERPROFILE%/Miniconda[23]/envs/JTutils_env
+%USERPROFILE%/Miniconda[23]/
+%USERPROFILE%/AppData/Local/Continuum/Anaconda[23]
 """
 
+    # search default system path as returned by which function
+    OS = get_os_version()
+    if 'win' in OS:
+        searched_python_exe = "python.exe"
+    else:
+        searched_python_exe = "python"
+    found_default = which(searched_python_exe)
+    if found_default != "":
+        found_python_exe = [found_default]
+    else:
+        found_python_exe = []
+    # search conda distribution
+    # on windows
+    if 'win' in OS:
+        activate_script = join_path("Scripts", "activate.bat")
+        userpath = os.environ["USERPROFILE"]
+        path_list = [
+            [ userpath, "Miniconda3", "envs", "JTutils","python.exe"],
+            [ userpath, "Miniconda2", "envs", "JTutils","python.exe"],
+            [ userpath, "Miniconda2","python.exe"],
+            [ userpath, "Miniconda3","python.exe"],
+            [ userpath, "APPDATA", "Local", "Continuum", "Anaconda2", "envs", "JTutils","python.exe"],
+            [ userpath, "APPDATA", "Local", "Continuum", "Anaconda3","python.exe"],
+            [ userpath, "APPDATA", "Local", "Continuum", "Anaconda2","python.exe"],
+            [ userpath, "APPDATA", "Local", "Continuum", "Anaconda3","python.exe"],
+        ]
+    elif ('linux' in OS) or ('mac' in OS):
+        activate_script = join_path("bin", "activate")
+        userpath = os.environ["HOME"]
+        path_list = [
+            [ userpath, "miniconda2", "envs", "JTutils", "bin", "python"],
+            [ userpath, "miniconda3", "envs", "JTutils", "bin", "python"],
+            [ userpath, "miniconda2", "bin", "python"],
+            [ userpath, "miniconda3", "bin", "python"],
+            [ userpath, "anaconda2", "envs", "JTutils", "bin", "python"],
+            [ userpath, "anaconda3", "envs", "JTutils", "bin", "python"],
+            [ userpath, "anaconda2", "bin", "python"],
+            [ userpath, "anaconda3", "bin", "python"],
+        ]
+
+    for cur_path_test in path_list:
+        if os.path.exists(cur_path_test):
+            found_python_exe.append( join_path(cur_path_test))
+
+    found_python_exe.append( "Other"))
+    found_indexes = [i for i,j in enumerate(found_python_exe)]
+    selected_python = SELECT("Select the python you want to use", buttons)
+    return found_python_exe
 
 def search_conda_python():
-    """ Search for conda python in standard locations:
-    On windows: looks for python executable in 
-        %USERPROFILE%/Miniconda[23]/envs/JTutils_env
-        %USERPROFILE%/Miniconda[23]/
-        %USERPROFILE%/AppData/Local/Continuum/Anaconda[23]
+    """
     Then gets the path like how conda activate defines path
     If not found : MSG about downloading and installing miniconda
         if installed still ask for manual file chooser
@@ -255,53 +305,6 @@ def search_conda_python():
         conda command to create JTutils environment:
         conda create -n JTutils numpy
     """
-    OS = get_os_version()
-    def search_path():
-        # on windows
-        if 'win' in OS:
-            activate_script = join_path("Scripts", "activate.bat")
-            userpath = os.environ["USERPROFILE"]
-            path_list = [
-                [ userpath, "Miniconda3", "envs", "JTutils","python.exe"],
-                [ userpath, "Miniconda2", "envs", "JTutils","python.exe"],
-                [ userpath, "Miniconda2","python.exe"],
-                [ userpath, "Miniconda3","python.exe"],
-                [ userpath, "APPDATA", "Local", "Continuum", "Anaconda2", "envs", "JTutils","python.exe"],
-                [ userpath, "APPDATA", "Local", "Continuum", "Anaconda3","python.exe"],
-                [ userpath, "APPDATA", "Local", "Continuum", "Anaconda2","python.exe"],
-                [ userpath, "APPDATA", "Local", "Continuum", "Anaconda3","python.exe"],
-            ]
-        elif ('linux' in OS) or ('mac' in OS):
-            activate_script = join_path("bin", "activate")
-            userpath = os.environ["HOME"]
-            path_list = [
-                [ userpath, "miniconda2", "envs", "JTutils", "bin", "python"],
-                [ userpath, "miniconda3", "envs", "JTutils", "bin", "python"],
-                [ userpath, "miniconda2", "bin", "python"],
-                [ userpath, "miniconda3", "bin", "python"],
-                [ userpath, "anaconda2", "envs", "JTutils", "bin", "python"],
-                [ userpath, "anaconda3", "envs", "JTutils", "bin", "python"],
-                [ userpath, "anaconda2", "bin", "python"],
-                [ userpath, "anaconda3", "bin", "python"],
-            ]
-
-        found_path = None
-        base_path = None
-        python_exe = None
-        for cur_path_test in path_list:
-            to_test = join_path(*cur_path_test[:-1])
-            python_exe = cur_path_test[-1]
-            base_path = join_path(*cur_path_test[:2])
-            if os.path.exists(to_test):
-                found_path = to_test
-                break
-        if found_path is None:
-            MSG("Miniconda/Anaconda not found in searched path")
-            return (None, None, None)
-        else: 
-            return cur_path_test
-#    MSG(found_path)
-    found_path, python_exe, base_path = search_path()
 
     import subprocess
     if 'JTutils' in cur_path_test:
