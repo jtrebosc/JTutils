@@ -10,18 +10,22 @@ WARNING : use of these script WILL CORRUPT your Bruker data (in sense of GPL:
 The script will modify in place fid, ser, acqu(123)(s), 1r, 2rr etc... files
 
 
-JTutils sets of script comprises:
+JTutils sets of scripts comprise:
     JTutils/TSpy : contains the python scripts run under Topspin environment
     JTutils/CpyBin : contains C python scritps usually called from TSpy
                     scripts (but then can be run as standalone scripts)
     JTutils/CpyLib : contains python library to read/write Bruker data
 
 Developped with python 2.7 (ubuntu, macosx/topspin 4)
+Updated for python 3 (ubuntu, topspin 4)
 
 Requirements for running python program: 
+Scripts are designed to run with the lowest version number possible. 
+But with time tests were run with more recent versions. So minimum version 
+can depend upon script
  - in CpyLib: bruker.py or brukerPAR.py package will needs at least
     * python 2.5
-    * numpy 1.0.1 (1.7 required to use numpy.pad)
+    * numpy 1.0.1 
 - in CpyBin : same requirement as CpyLib + processing module for covariance
   script
 - in TSpy : all scripts should work with topspin provided jython version except
@@ -44,17 +48,16 @@ subprocess
 INSTALLATION
 1)install folder JTutils to a destination directory DESTDIR
 
-3) Install a working python + numpy environment (tested with 
+2) Install a working python + numpy environment (tested with 
    anaconda/miniconda on MacOSX and windows)
-    3.1) download miniconda at https://docs.conda.io/en/latest/miniconda.html
-    3.2) run the installer
-    3.3) launch anaconda prompt from the windows menu
-    3.4) execute command "conda create -n JTutils_env numpy"
+    3.1) download miniconda (python 2 or 3) at https://docs.conda.io/en/latest/miniconda.html
+    3.2) run the minicobda installer (100-200Mb)
 
-2) In Topspin preferences, set [DESTDIR]/JTutils/TSpy as scanned directory
+3) In Topspin preferences, set [DESTDIR]/JTutils/TSpy as scanned directory
    for python script
 
-4) run setup_JTutils in topspin
+4) run setup_JTutils in topspin : if report does not point out problem, 
+everything should work
 
 Old versions of topspin :
 Old versions of topspin are using too old version of jython. This version can 
