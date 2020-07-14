@@ -308,6 +308,23 @@ On windows: looks for python executable in
         if is_exe(CPYTHON):
             return CPYTHON
 
+    # no executable python found
+    # message to inform failing to find an adequate python exe
+    # propose to install miniconda
+    quit_message =""" CPYTHON=%s is not an executable file:
+Try another proposition or click Exit to install Miniconda following 
+the instructions in Miniconda_Installation.odt found in JTutils 
+main folder. Once done relaunch setup_JTutils
+"Choose a New python executable or Quit ?"
+""" % (CPYTHON,)
+    select_val = SELECT(title="Exit?", 
+                            message=quit_message,
+                            buttons=["New", "Quit"],
+                            mnemonics=["N", "Q"] )
+    if select_val == 0:
+        return select_external_python(*preselected)
+    else:
+        EXIT()
 def guess_config(python_exe_full_path):
     """
     Then gets the path like how conda activate defines path
@@ -348,7 +365,7 @@ def guess_config(python_exe_full_path):
             conda_base = os.sep+join_path(*splited_path_to_python[:-neg_index_base])
             break
     if conda_exe == False:
-        MSG("This doesn't seem to be a conda (miniconda/anaconda) distribution.")
+        MSG("This doesn't seem to be a conda (miniconda/anaconda) distribution. Can be fine: check the report.")
         return { 'CPYTHON': python_exe_full_path}
         
     # now I have the base and conda_exe and we are in conda distribution
