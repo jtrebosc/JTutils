@@ -159,7 +159,7 @@ def test_module_link():
         elif '<SYMLINKD>' in line:
             # it should be a JUNCTION but if SYMLINKD was created manually 
             # and points to correct location then it's OK
-            link = line[line.index('[')+1, line.index(']')]
+            link = line[line.index('[')+1 : line.index(']')]
             if normpath(link) == link_target:
                 return (True, "link is valid")
             else:
@@ -408,17 +408,17 @@ Please CLICK on one button (enter on keyboard does not work)""" % (conda_env, ne
                 pass
             else: # run install script
                 if 'win' in OS:
-                    cmd = " ".join(conda_exe, "activate &",
+                    cmd = " ".join([conda_exe, "activate &",
                                    conda_exe, "create -y -n JTutils numpy&",
-                                   conda_exe, "env list")
+                                   conda_exe, "env list"])
                 else: # unix
                     # default jython shell is /bin/sh : source command is "."
                     # first source the conda initialisation script
                     # once done conda is available as a shell internal command
                     shell_init_file = join_path(conda_base,'etc', 'profile.d', 'conda.sh')
-                    cmd = " ".join(".", shell_init_file, ";",
+                    cmd = " ".join([".", shell_init_file, ";",
                                   "conda create -y -n JTutils numpy ;", 
-                                  "conda env list")
+                                  "conda env list"])
                 MSG(subprocess.check_output(cmd, shell=True))
                 MSG("JTutils environment created")
             CPYTHON = new_python_exe
