@@ -28,7 +28,7 @@ def get_os_version():
     return ver
 
 _OS = get_os_version()
-_WINE_OS = ['linux', 'mac']
+# _OS should be in [ 'win', 'linux', 'mac os x']
 
 default_wine_path = which('wine')
 prop_dir = os.getenv('USERHOME_DOT_TOPSPIN', "not defined")
@@ -214,7 +214,7 @@ class ConfigPanel(JFrame):
         if dmfitpath is None:
             return
         new_version['DMFITPATH'] = dmfitpath
-        if _OS in _WINE_OS:
+        if  'win' not in _OS : # then one must use WINE
             winepath = select_winepath()
             if winepath is None:
                 return
@@ -267,7 +267,7 @@ class ConfigPanel(JFrame):
         if path is None:
             return
         button.setText(path)
-        if _OS in _WINE_OS: # let's guess wineprefix
+        if 'win' not in _OS : # let's guess wineprefix
             wineprefix = self.guess_wineprefix()
             key = self.hash4keys[button]
             self.config_item_dict[key]['WINEPREFIX']['JB'].setText(wineprefix)
