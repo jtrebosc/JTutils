@@ -15,14 +15,7 @@ options:
 import os
 import sys
 
-DIRINST = os.path.dirname(sys.argv[0]) + "/../"
-#PYTHONPATH = os.getenv("PYTHONPATH")
-LIBPATH = DIRINST+"CpyLib"
-#sys.path.append(PYTHONPATH)
-if LIBPATH not in sys.path:
-    sys.path.append(LIBPATH)
-import brukerPAR
-
+from JTutils import brukerPAR
 
 try: 
     args = sys.argv[1:]
