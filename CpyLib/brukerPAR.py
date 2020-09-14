@@ -28,34 +28,45 @@ if pyver < "2.2" :
 	raise "Error", "current version %s. version >= 2.2 required!" % pyver
 
 def splitprocpath(path):
-		"""
-		extract [name,expno,procno,dir,user] from path to procno folder
-		"""
-		# make path absolute and normalised
-		path=os.path.abspath(path)
-		(path,procno)=os.path.split(path)
-		(path,tmp)=os.path.split(path)
-		if tmp!="pdata" : 
-			print "wrong bruker data/procno path"
-			return ""
-		(path,expno)=os.path.split(path)
-		(path,name)=os.path.split(path)
-		list=[]
-		# to be tested on Windows
-		while path!='/':
-			(path,tmp)=os.path.split(path)
-			list.insert(0,tmp)
-		if list[-1]=="nmr" and  list[-3]=="data" : 
-			# we are in version <3
-			list.pop()
-			user=list.pop()
-			list.pop()
-			dir="/"+"/".join(list)
-			dir=os.path.normpath(dir)
-			return [name,expno,procno,dir,user]
-		else : # this is version 3 without data/user/nmr format
-			dir="/"+"/".join(list)
-			return [name,expno,procno,dir]
+        """
+        extract [name, expno, procno, dir, user] from path to procno folder
+        """
+        (dir, user, name, expno, procno) = ('', '', '', '', '')
+        # make path absolute and normalised
+        path = os.path.abspath(path)
+        (path, procno) = os.path.split(path)
+        (path, tmp) = os.path.split(path)
+        if tmp != "pdata":
+            print("wrong bruker data/procno path")
+            return []
+        (path, expno) = os.path.split(path)
+        (path, name) = os.path.split(path)
+        path_list = []
+        (drive, tmp) = os.path.splitdrive(path)
+        # to be tested on Windows
+        while path != drive + os.sep:
+            (path, tmp) = os.path.split(path)
+            path_list.insert(0, tmp)
+        if len(path_list) >= 3 and path_list[-1] == "nmr" and path_list[-3] == "data":
+            # we are in version <3
+            path_list.pop()  # drops the nmr folder
+            user = path_list.pop()
+            path_list.pop()  # drops the data folder
+            dir = drive + "/" + "/".join(path_list)
+            dir = os.path.normpath(dir)
+        else:  # this is version 3 without data/user/nmr format
+            dir = drive + "/" + "/".join(path_list)
+            dir = os.path.normpath(dir)
+        if user == '':
+            for i in [name, expno, procno, dir]:
+                if i == '':
+                    return []
+            return [name, expno, procno, dir]
+        else:
+            for i in [name, expno, procno, dir, user]:
+                if i == '':
+                    return []
+            return [name, expno, procno, dir, user]
 
 
 class dataset:
