@@ -1,11 +1,12 @@
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python 
+# coding: utf8 
 # get information on current setup
 # print information in MSG box, in console and it should propose to save
 # the report in a file
 # this Script will serve as setup to detect/define CPYTHON in a config file
 # There should be different tests functions, a report function and a setup
 
-
+from __future__ import unicode_literals
 import sys
 import os
 from os.path import abspath, dirname, normpath, realpath, isdir, isfile, islink
@@ -14,8 +15,8 @@ from os.path import split as split_path
 
 
 # This script should be called from within topspin so these should be defined
-XWINNMRHOME = os.getenv('XWINNMRHOME', "undefined")
-USERHOME_DOT_TOPSPIN = os.getenv('USERHOME_DOT_TOPSPIN', "undefined")
+XWINNMRHOME = normpath(os.getenv('XWINNMRHOME', "undefined"))
+USERHOME_DOT_TOPSPIN = normpath(os.getenv('USERHOME_DOT_TOPSPIN', "undefined"))
 
 # these env variables will become obsolete
 # one should get the values from JTutils module
@@ -93,6 +94,8 @@ def test_cmodule_import(module_name):
     """
     import JTutils
     CMD = """
+# coding: utf8
+from __future__ import unicode_literals
 import %s
 if hasattr(%s, '__version__'):
     print(%s.__version__)
@@ -114,7 +117,10 @@ def test_CPYTHON(CPYTHON):
     """
     import JTutils
     import subprocess
-    CMD = """import sys
+    CMD = """
+# coding: utf8
+from __future__ import unicode_literals
+import sys
 print(sys.version) """
     try:
         version = JTutils._run_string_ext_script(CMD)
@@ -220,7 +226,7 @@ def test_config_file():
         return (False, "DIR_NOT_FOUND: JTutils configuration folder not found in " + conf_path_dir)
     conf_path_file = join_path(conf_path_dir, "config.json")
     if not isfile(conf_path_file):
-        MSG(conf_path_file + "config.json")
+#        MSG(conf_path_file + " not found")
         return (False, "FILE_NOT_FOUND: JTutils configuration file not found at " + conf_path_file)
     try:
         config = JTutils._read_config()
@@ -325,16 +331,18 @@ main folder. Once done relaunch setup_JTutils
         return select_external_python(*preselected)
     else:
         EXIT()
+
 def guess_config(python_exe_full_path):
     """
     Then gets the path like how conda activate defines path
     If not found : MSG about downloading and installing miniconda
         if installed still ask for manual file chooser
     if found return CPYTHON and EXTRA_PATH fields
-
-    to open a new window with cmd prompt with activated miniconda environment:
-        start %windir%\System32\cmd.exe "/K"  %USERPROFILE%\Miniconda2\Scripts\activate.bat  JTutils
     """
+
+#    to open a new window with cmd prompt with activated miniconda environment:
+#        start %windir%\System32\cmd.exe "/K"  %USERPROFILE%\Miniconda2\Scripts\activate.bat  JTutils
+
     CPYTHON = python_exe_full_path
     import subprocess
 
@@ -353,16 +361,17 @@ def guess_config(python_exe_full_path):
         head, tail = split_path(head)
         if tail != "":
             splited_path_to_python.append(tail)
+    splited_path_to_python.append(head)
     splited_path_to_python.reverse()
     
     # test if provided file is from conda distribution and initialize conda_base and conda_exe
     conda_exe = False
     for neg_index_base in range(1,len(splited_path_to_python)):
         tmp = splited_path_to_python[:-neg_index_base]+CONDA_EXE
-        tested_file = os.sep+join_path(*tmp)
+        tested_file = join_path(*tmp)
         if is_exe(tested_file):
             conda_exe = tested_file
-            conda_base = os.sep+join_path(*splited_path_to_python[:-neg_index_base])
+            conda_base = join_path(*splited_path_to_python[:-neg_index_base])
             break
     if conda_exe == False:
         MSG("This doesn't seem to be a conda (miniconda/anaconda) distribution. Can be fine: check the report.")
@@ -427,9 +436,11 @@ Please CLICK on one button (enter on keyboard does not work)""" % (conda_env, ne
     if 'win' in OS:
 #        batfile = join_path(dirname(abspath(sys.argv[0])), "..", "condat_env_setup.bat")
 #        cmd = ["start", "%windir%\system32\cmd.exe", "/k",  batfile + " " + found_path + " JTutils"]
-        cmd = " ".join([conda_exe, 'activate', conda_env, 
-                        '& set CONDA'
-                        '& echo PATH=%PATH%' ])
+        cmd = " ".join([
+                      join_path(conda_base,'condabin', 'activate.bat'), conda_env,
+                        '& set CONDA',
+                        '& set PATH'])
+                        
     elif ('linux' in OS) or ('mac' in OS):
         # default shell is /bin/sh : source command is "."
         # first source the conda initialisation script
@@ -440,14 +451,18 @@ Please CLICK on one button (enter on keyboard does not work)""" % (conda_env, ne
                         "conda activate", conda_env, ";"
                         "env |grep -i CONDA ; echo PATH=$PATH" ])
     try:
+#        MSG(cmd)
         res = subprocess.check_output(cmd, shell=True)
+        if 'win' in OS:
+            res = res.decode('cp850')
     except subprocess.CalledProcessError as grepexc:
+        if 'win' in OS:
+            grepexc = grepexc.decode('cp850')
         print("error code", grepexc.returncode, grepexc.output)
         MSG("Error during retrieval of conda environment.")
         raise
 
     # now Parse the returned string to extract conda env vars 
-#    MSG("res is\n" + res)
     conf_dict = dict()
     for line in res.split('\n'):
         line = line.strip()
@@ -456,12 +471,18 @@ Please CLICK on one button (enter on keyboard does not work)""" % (conda_env, ne
             if 'PATH' == key.upper():
                 path_list = val.split(';')
                 extra_path = []
+                # windows is not case sensitive : required for valid string comparison
+                if 'win' in OS : cb = conda_base.lower() 
+                else : cb = conda_base
                 for one_path in path_list:
-                    if conda_base in one_path:
+                    if 'win' in OS : op = one_path.lower() 
+                    else: op = one_path
+                    if cb in op:
                         extra_path.append(one_path)
                 conf_dict['EXTRA_PATH'] = extra_path
             else:
-                conf_dict[key] = val
+                if 'CONDA' in key.upper():
+                    conf_dict[key] = val
     conf_dict['CPYTHON'] = CPYTHON
         
     return conf_dict
@@ -639,17 +660,8 @@ def update_config():
         foundCPYTHON = config['CPYTHON']
         cpython = select_external_python(foundCPYTHON)
     config = guess_config(cpython)
-    """
-
-    if isconda_python(CPYTHON):
-        config['PATH_EXTRA'] = [dirname(CPYTHON), 
-                                join_path(dirname(CPYTHON), "Scripts"),
-                                join_path(dirname(CPYTHON), "Library"),
-                                join_path(dirname(CPYTHON), "Library", 'bin'),
-                                join_path(dirname(CPYTHON), "DLLs"),
-                                ]
-"""
     JTutils._write_config(config)
+#    MSG(str(config))
     create_report()
     
         
