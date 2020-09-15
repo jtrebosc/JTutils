@@ -12,7 +12,6 @@ from .CpyLib import brukerPAR
 from os.path import dirname, abspath, join, normpath
 import os
 
-#_config = {'CPYTHON': "/usr/bin/python", 'PATH_EXTRA': []} 
 
 def _get_os_version():
     """ returns the underlying OS as lowercase string: 
@@ -95,10 +94,9 @@ def _set_external_environment(config):
     else:
         _environment['PYTHONPATH'] = _python_path 
 
-    if 'PATH_EXTRA' in config:
-        _environment['PATH'] = os.pathsep.join(config['PATH_EXTRA'] + 
+    if 'EXTRA_PATH' in config:
+        _environment['PATH'] = os.pathsep.join(config['EXTRA_PATH'] + 
                                       [_environment['PATH']])
-    print( _environment['PATH'] )
     return _environment
 
 def _run_string_ext_script(script):
