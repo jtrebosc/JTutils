@@ -93,6 +93,7 @@ def test_cmodule_import(module_name):
             message :  exception message if test fail, module version if test is successful
     """
     import JTutils
+    reload(JTutils) # in case an old JTutils was already installed and loaded
     CMD = """
 # coding: utf8
 from __future__ import unicode_literals
@@ -116,6 +117,7 @@ def test_CPYTHON(CPYTHON):
         False: CPYTHON triggered an exception, message contains Exception message
     """
     import JTutils
+    reload(JTutils) # in case an old JTutils was already installed and loaded
     import subprocess
     CMD = """
 # coding: utf8
@@ -221,6 +223,7 @@ def test_config_file():
                         not point to a valid cpython interpreter
     """ 
     import JTutils
+    reload(JTutils) # in case an old JTutils was already installed and loaded
     conf_path_dir = join_path(USERHOME_DOT_TOPSPIN, "JTutils")
     if not isdir(conf_path_dir):
         return (False, "DIR_NOT_FOUND: JTutils configuration folder not found in " + conf_path_dir)
@@ -645,6 +648,7 @@ def update_config():
 
     # Now one should be able to load JTtutils 
     import JTutils
+    reload(JTutils) # in case an old JTutils was already installed and loaded
     # but some functions that require 
     # external cpython through run_CpyBin_script may still fail if setup is not correct
     # check configuration file
