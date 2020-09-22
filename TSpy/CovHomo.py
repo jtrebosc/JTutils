@@ -16,7 +16,7 @@ if len(sys.argv)>1 :
 data2d = CURDATA()
 fulld2d = JTutils.fullpath(data2d)
 
-dta = JTutils.brukerPAR.dataset(data2d)
+dta = brukerPAR.dataset(data2d)
 fulld2d = dta.returnprocpath()
 fntype = dta.readacqpar("FnTYPE")
 if fntype == "2" : 
