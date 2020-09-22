@@ -24,15 +24,12 @@ def scalef1sheared(F2toF1=False, exptype='3QMAS', dataset=None):
            if None ask user for exptype
     dataset: the dataset as returned by CURDATA()
     """ 
-    # if this function is called from imported module then one needs to import TOPSPIN functions
+    # if this function is called from imported module then 
+    # one needs to import TOPSPIN functions
     # so that they are available in the current namespace
     from TopCmds import CURDATA, RE, MSG, SELECT
 
-    DIRINST = os.path.dirname(sys.argv[0]) 
-    LIBPATH = DIRINST+ "/../CpyLib"
-    if LIBPATH not in sys.path:
-        sys.path.append(LIBPATH)
-    import brukerPAR
+    from JTutils.CpyLib import brukerPAR
     if dataset == None: 
         dataset = CURDATA()
     dtst = brukerPAR.dataset(dataset)
