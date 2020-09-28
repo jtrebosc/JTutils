@@ -19,24 +19,32 @@ args=parser.parse_args()
 #print(bruker.splitprocpath(infile))
 dat=bruker.dataset(bruker.splitprocpath(args.infile))
 
+# 0 undef, 1 QF, 2 QSEQ, 3 TPPI, 4 states, 5 states-tppi, 6 echo=antiecho
+mode2D = int(dat.readacqpar("FnMODE", dimension=2, status=True))
+
+if mode2D == 0:
+    mode2D = int(dat.readprocpar("MC2", dimension=1))+1
+if mode2D == 1:  # QF
+    HCsize = 1
+elif mode2D in [4, 5, 6]: # States, States-TPPI, Echo/Antiecho
+    HCsize = 2
+else:
+    print("Problem: only QF, States, States-TPPI, Echo-AntiEcho acquisition supported.")
+    sys.exit()
+
+if mode2D in [1, ] : # QF only
+    files = ['2rr', '2ii']
+elif mode2D in [2, 3, 4, 5, 6,]: # states, states-TPPI, Echo-AntiEcho
+    files = ['2rr', '2ri', '2ir', '2ii']
+
 # let's shift 2rr but what about the other imaginary ? shift also or HT ?
 # lire la fid et eliminer le filter digital (par defaut)
-spectrr=dat.readspect2d('2rr')
-spectri=dat.readspect2d('2ri')
-spectir=dat.readspect2d('2ir')
-spectii=dat.readspect2d('2ii')
+for quadrant in files:
+    spect = dat.readspect2d(quadrant)
+    spect = numpy.roll(spect,args.n,axis=0)
+    dat.writespect2d(spect,quadrant)
 
-print("shifting axis 0 by n point n=",args.n)
-spectrr=numpy.roll(spectrr,args.n,axis=0)
-spectri=numpy.roll(spectri,args.n,axis=0)
-spectir=numpy.roll(spectir,args.n,axis=0)
-spectii=numpy.roll(spectii,args.n,axis=0)
-
-dat.writespect2d(spectrr,'2rr')
-dat.writespect2d(spectri,'2ri')
-dat.writespect2d(spectir,'2ir')
-dat.writespect2d(spectii,'2ii')
-# not we need to shift the ppm scale
+# now we need to shift the ppm scale
 # get the Hz per point in F1
 sw_p=float(dat.readprocpar("SW_p",dimension=2,status=True))
 stsi=float(dat.readprocpar("STSI",dimension=2,status=True))
