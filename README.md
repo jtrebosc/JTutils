@@ -1,16 +1,17 @@
 JTutils is a set of python scripts that enhance processing capabilites of 
 Topspin.
 
-It is mostly useful to process data acquired with pulse sequences developped
-in Lille, France by Julien TREBOSC
+Some scripts are specific to process data acquired with pulse sequences developped
+in Lille, France by Julien TREBOSC. 
 
 WARNING : use of these script WILL CORRUPT your Bruker data (in sense of GPL:
- good Laboratory Practice):
+ Good Laboratory Practice):
 * no MD5 signature of files is done
 * no auditing is done
 
 The script will modify in place fid, ser, acqu(123)(s), 1r, 2rr etc... files
 
+The author decline any responsability for program or data loss that would result from the installation and use of these scripts.
 
 JTutils sets of scripts comprise:
 * JTutils/TSpy : contains the python scripts run under Topspin environment
@@ -71,7 +72,7 @@ depend on java version. For example, only jython version up to 2.5 can be
 installed on topspin 2.1 since higher versions of jython (2.7) require java 7 
 while topspin 2.1 only provides java 6.
 
-### jython version \< 2.7
+### Jython version \< 2.7
 For jython versions \<2.7, argparse module is not provided as standard module. 
 Scripts can run without but adding argparse is easy :
 - simply copy argparse.py file found at https://github.com/ThomasWaldmann/argparse/ in 
