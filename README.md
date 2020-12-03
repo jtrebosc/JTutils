@@ -35,11 +35,8 @@ can depend upon script
     for those using argparse and subprocess.check_call which exist only in 
     jython 2.7 which is provided within topspin >=3.5.
 
-Scripts can run without but adding argparse is easy :
-copy argparse.py file found at https://github.com/ThomasWaldmann/argparse/ in 
-\<TOPSPIN\_DIR\>/jython/Lib/ directory
 
-other used standard modules :
+Other used standard modules :
 * sys
 * os
 * math
@@ -49,28 +46,33 @@ other used standard modules :
 * subprocess
 
 ## INSTALLATION
-1) Install folder JTutils to a destination directory DESTDIR
+1) Install folder JTutils to a destination directory DESTDIR.
 
 2) Install a working python + numpy environment (tested with 
-   anaconda/miniconda on Linux, MacOSX and windows)
+   anaconda/miniconda on Linux, MacOSX and windows).
 
-   - for miniconda installation: 
-    1) download miniconda (python 2 or 3) at https://docs.conda.io/en/latest/miniconda.html
-    2) run the miniconda installer (100-200Mb). No need to ask for numpy. The setup script below will 
+   For miniconda installation: 
+      1) download miniconda (python 2 or 3) at https://docs.conda.io/en/latest/miniconda.html
+      2) run the miniconda installer (100-200Mb). No need to ask for numpy: during the setup script (see step 4)
+         you will be asked to create a specific conda environment named JTutils which will have numpy.
 
 3) In Topspin preferences, set [DESTDIR]/JTutils/TSpy as scanned directory
-   for python script then restart topspin
+   for python script then restart topspin.
 
 4) run setup\_JTutils in topspin : if report does not point out problem, 
-everything should work
+everything should work!
 
 ## Remarks
-Old versions of topspin :
+### Old versions of topspin :
 Old versions of topspin are using too old version of jython. This version can 
 be updated by changing jython.jar file found in TOPSPIN\_INSTALL\_DIR/classes/lib/
 with one more recent. Be aware that jython.jar files on jython website also 
 depend on java version. For example, only jython version up to 2.5 can be 
 installed on topspin 2.1 since higher versions of jython (2.7) require java 7 
 while topspin 2.1 only provides java 6.
-For jython versions <2.7, argparse module can be installed in 
-TOPSPIN\_INSTALL\_DIR/jython/Lib
+
+### jython version \< 2.7
+For jython versions \<2.7, argparse module is not provided as standard module. 
+Scripts can run without but adding argparse is easy :
+- simply copy argparse.py file found at https://github.com/ThomasWaldmann/argparse/ in 
+\<TOPSPIN\_DIR\>/jython/Lib/ directory.
