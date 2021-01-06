@@ -123,12 +123,12 @@ class Procno:
                 varmode = var[0]    
                 if var[4] == "in" : # parameter is not array (e.g. RG) in one word
                     varname = var[3]
-                    valsteps = var[5]
+                    valsteps = int(var[5])
                     optmode = var[8]
                     optgroup = var[-1]
                 else : # parameter is array (e.g. P 10) in two words
                     varname = " ".join(var[3:5])
-                    valsteps = var[6]
+                    valsteps = int(var[6])
                     optmode = var[9]
                     optgroup = var[-1]
                 valstart = float(lines[i+1].split()[2])
