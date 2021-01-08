@@ -3,6 +3,8 @@
 # copyright Julien TREBOSC 2012-2013
 # check that variable PYTHONPATH points to the right folder for bruker.py library
 
+#TODO : check if shift works when STSR/STSI is applied
+
 import numpy
 import sys
 import bruker
@@ -12,18 +14,18 @@ import math
 # gestion des arguments
 import argparse
 parser = argparse.ArgumentParser(description='circular shift in F1 by NSP points')
-parser.add_argument('-n',type=int,required=True, help='Number of points to shift')
-parser.add_argument('infile',help='Full path of the dataset to process')
+parser.add_argument('-n', type=int, required=True, help='Number of points to shift')
+parser.add_argument('infile', help='Full path of the dataset to process')
 
-args=parser.parse_args()
+args = parser.parse_args()
 #print(bruker.splitprocpath(infile))
-dat=bruker.dataset(bruker.splitprocpath(args.infile))
+dat = bruker.dataset(bruker.splitprocpath(args.infile))
 
 # 0 undef, 1 QF, 2 QSEQ, 3 TPPI, 4 states, 5 states-tppi, 6 echo=antiecho
-mode2D = int(dat.readacqpar("FnMODE", dimension=2, status=True))
+mode2D = dat.readacqpar("FnMODE", dimension=2, status=True)
 
 if mode2D == 0:
-    mode2D = int(dat.readprocpar("MC2", dimension=1))+1
+    mode2D = dat.readprocpar("MC2", dimension=1) + 1
 if mode2D == 1:  # QF
     HCsize = 1
 elif mode2D in [4, 5, 6]: # States, States-TPPI, Echo/Antiecho
@@ -41,19 +43,19 @@ elif mode2D in [2, 3, 4, 5, 6,]: # states, states-TPPI, Echo-AntiEcho
 # lire la fid et eliminer le filter digital (par defaut)
 for quadrant in files:
     spect = dat.readspect2d(quadrant)
-    spect = numpy.roll(spect,args.n,axis=0)
-    dat.writespect2d(spect,quadrant)
+    spect = numpy.roll(spect, args.n, axis=0)
+    dat.writespect2d(spect, quadrant)
 
 # now we need to shift the ppm scale
 # get the Hz per point in F1
-sw_p=float(dat.readprocpar("SW_p",dimension=2,status=True))
-stsi=float(dat.readprocpar("STSI",dimension=2,status=True))
-hzppt=sw_p/stsi
+sw_p = dat.readprocpar("SW_p", dimension=2, status=True)
+stsi = dat.readprocpar("STSI", dimension=2, status=True)
+hzppt = sw_p/stsi
 # get the ppm value of spectrum start (first point high frequency side)
-offset=float(dat.readprocpar("OFFSET",dimension=2,status=True))
+offset = dat.readprocpar("OFFSET", dimension=2, status=True)
 # get the SF in F1 to convert Hz to ppm
-sf=float(dat.readprocpar("SF",dimension=2,status=True))
+sf = dat.readprocpar("SF", dimension=2, status=True)
 # store the new  ppm value of spectrum start
-newoffset=offset+args.n*hzppt/sf
-dat.writeprocpar("OFFSET",str(newoffset),dimension=2,status=True)
+newoffset = offset+args.n*hzppt/sf
+dat.writeprocpar("OFFSET", (newoffset), dimension=2, status=True)
 

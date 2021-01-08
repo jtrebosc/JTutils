@@ -41,10 +41,10 @@ serfile = dat.readserc(rmGRPDLY=False)
 # calculates useful boudaries from TDeff and SI
 (td1, td2c) = serfile.shape
 print("td1=%d, td2c=%d" % (td1, td2c))
-tdeff2 = int(dat.readprocpar("TDeff", status=False, dimension=1))
-tdeff1 = int(dat.readprocpar("TDeff", status=False, dimension=2))
-SI2 = int(dat.readprocpar("SI", False, 1))
-SI1 = int(dat.readprocpar("SI", False, 2))
+tdeff2 = dat.readprocpar("TDeff", status=False, dimension=1)
+tdeff1 = dat.readprocpar("TDeff", status=False, dimension=2)
+SI2 = dat.readprocpar("SI", False, 1)
+SI1 = dat.readprocpar("SI", False, 2)
 if 0 < tdeff1 and tdeff1 < td1:
     td1 = tdeff1
 if SI1 < td1//2:
@@ -63,16 +63,16 @@ mode2D = {'1': 'QF' , '2': 'QSEQ', '3': 'TPPI',
 
 # reshape data according to FnMODE
 FnMode = dat.readacqpar("FnMODE", status=True, dimension=2)
-if FnMode == "0":  # if undefined then read MC2 processing parameter 
+if FnMode == 0:  # if undefined then read MC2 processing parameter 
     # note that MC2 has different meaning : same order as FnMode but with 0 starting for QF
     # hence need to add 1 to MC2 to have same correspondance as for FnMode
-    FnMode == str(int(dat.readprocpar("MC2", status=False, dimension=2)) + 1) 
+    FnMode == dat.readprocpar("MC2", status=False, dimension=2) + 1
 
-if FnMode in "4 5 6":  # State, States-TPPI, Echo-AntiEcho
+if FnMode in [4, 5, 6]:  # State, States-TPPI, Echo-AntiEcho
     HCsize = 2
     td1 = 2*(td1//2)  # one only keeps an even number of rows
     serfile=serfile[0:td1, :]
-elif FnMode in "0 1 2 3":  # undefined, QF, QSEQ, TPPI
+elif FnMode in [0, 1, 2, 3]:  # undefined, QF, QSEQ, TPPI
     HCsize = 1
 else:
     print("FnMODE is outside acceptable range (0..6)!!! Problem with acqu2s or proc2 file")
@@ -80,12 +80,12 @@ else:
 serfile = serfile.reshape((td1//HCsize, HCsize, td2c))
 serfile = numpy.swapaxes(serfile, 0, 1)  # serfile shape is HCsize, td1//2, td2c)
 
-sw2=float(dat.readacqpar("SW_h", status=True, dimension=1))
-sw1=float(dat.readacqpar("SW_h", status=True, dimension=2))
+sw2 = dat.readacqpar("SW_h", status=True, dimension=1)
+sw1 = dat.readacqpar("SW_h", status=True, dimension=2)
 dw2 = 1.0/sw2
 dw1 = 1.0/sw1
 # special case of TPPI on dwell with respect to SW
-if FnMode == "3":
+if FnMode == 3:
     dw1 /= 2  # if TPPI dw = 0.5 / swh
 
 # create a gaussian apodization function in time domain
@@ -136,22 +136,22 @@ rr = bruker.pad(SUM, ((0, SI1-td1), (0, SI2-td2c)), 'constant')
 print("rr shape is ", rr.shape)
 
 # set all optionnal processing parameters to 0
-ProcOptions = {"WDW": ["LB", "GB", "SSB", "TM1", "TM2"],
-               "PH_mod": ["PHC0", "PHC1"], "BC_mod": ["BCFW", "COROFFS"],
-               "ME_mod": ["NCOEF", "LPBIN", "TDoff"], "FT_mod": ["FTSIZE", "FCOR",
-               "STSR", "STSI", "REVERSE"],
+ProcOptions = {"WDW": [["LB", 0], ["GB", 0], ["SSB", 0], ["TM1", 0], ["TM2", 0]],
+               "PH_mod": [["PHC0", 0], ["PHC1", 0]], "BC_mod": [["BCFW", 0], ["COROFFS", 0]],
+               "ME_mod": [["NCOEF", 0], ["LPBIN", 0], ["TDoff", 0]], "FT_mod": [["FTSIZE", 0], ["FCOR", 0],
+               ["STSR", 0], ["STSI", 0], ["REVERSE", False]],
               }
 for dim in [1, 2]:
     for par in ProcOptions:
-        dat.writeprocpar(par, "0", status=True, dimension=dim)
+        dat.writeprocpar(par, 0, status=True, dimension=dim)
         for opt in ProcOptions[par]:
-            dat.writeprocpar(opt, "0", status=True, dimension=dim)
+            dat.writeprocpar(opt[0], opt[1], status=True, dimension=dim)
 
 # write 2rr and 2ir files in time/time mode : SI, STSI and some other parameters are set automatically
 
-if FnMode in "1 ":  # QF
+if FnMode in [1]:  # QF
     imag_file = '2ii'
-elif FnMode in "2 3 4 5 6":  # QSEQ, TPPI, State, States-TPPI, Echo-AntiEcho
+elif FnMode in [2, 3, 4, 5, 6]:  # QSEQ, TPPI, State, States-TPPI, Echo-AntiEcho
     imag_file = '2ir'
 
 dat.writespect2d(rr.real, "2rr", "tt")
@@ -160,9 +160,9 @@ dat.writespect2d(rr.imag, imag_file, "tt")
 
 # digital filter is not removed: PKNL must be set to False
 dat.writeprocpar("PKNL", "no", status=True)
-dat.writeprocpar("WDW", "2", status=True)
-dat.writeprocpar("LB", str(-args.gb), status=True)
-dat.writeprocpar("GB", "0", status=True)
+dat.writeprocpar("WDW", 2, status=True)
+dat.writeprocpar("LB", (-args.gb), status=True)
+dat.writeprocpar("GB", 0, status=True)
 # unselect apodization for further processing
-dat.writeprocpar("WDW", "0", status=False)
+dat.writeprocpar("WDW", 0, status=False)
 

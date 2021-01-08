@@ -143,8 +143,7 @@ def splitprocpath(path):
         (path, procno) = os.path.split(path)
         (path, tmp) = os.path.split(path)
         if tmp != "pdata":
-            print("wrong bruker data/procno path")
-            return []
+            raise ValueError("path %s does not seem a valid procno path" % (path,))
         (path, expno) = os.path.split(path)
         (path, name) = os.path.split(path)
         path_list = []
@@ -166,12 +165,12 @@ def splitprocpath(path):
         if user == '':
             for i in [name, expno, procno, dir]:
                 if i == '':
-                    return []
+                    raise ValueError("path %s does not seem a valid procno path" % (path,))
             return [name, expno, procno, dir]
         else:
             for i in [name, expno, procno, dir, user]:
                 if i == '':
-                    return []
+                    raise ValueError("path %s does not seem a valid procno path" % (path,))
             return [name, expno, procno, dir, user]
 
 
@@ -399,9 +398,9 @@ class dataset:
     * =returnacqpath()                        returns "string"
     * =returnprocpath()                       returns "string"
     * =readacqpar("param", status=True(|False), dimension=1(|2|3))
-                                              returns "string"
+                                              returns converted value (str, bool, float, int)
     * =readprocpar("param", status=True(|False), dimension=1(|2|3))
-                                              returns "string"
+                                              returns converted value (str, bool, float, int)
     * =writeacqpar("param", value="0", status=True(|False), dimension=1(|2|3))
                                               returns nothing
     * =writeprocpar("param", value="0", status=True(|False), dimension=1(|2|3))
@@ -445,8 +444,11 @@ class dataset:
         # else it's topspin version 3
         if len(dset) == 5:
             self.version = 2
-        if len(dset) == 4:
+        elif len(dset) == 4:
             self.version = 3
+        else:
+            raise ValueError('dataset %s has length %d' % 
+                              (','.join(dset), len(dset)))
         self.MC2_list = ["QF", "QSEQ", "TPPI", "States", "States-TPPI", "echo-antiecho", "QF(no-frequency)"]
         if not os.path.exists(self.returnacqpath()):
             print("Wrong dataset:\n" + self.returnacqpath() +
@@ -464,16 +466,16 @@ class dataset:
             raise IOError("Wrong dataset:\n" + self.returnprocpath() + 'proc' +
                           " does not exist!!")
         try:
-            self.dimA = int(self.readacqpar("PARMODE", False)) + 1
-            self.dimA = int(self.readacqpar("PARMODE", False)) + 1
+            self.dimA = self.readacqpar("PARMODE", False) + 1
+            self.dimA = self.readacqpar("PARMODE", False) + 1
         except TypeError:
             print("Wrong dataset:\n" + self.returnacqpath() + 'acqu' +
                   " is not readable")
             raise IOError("Wrong dataset:\n" + self.returnacqpath() + 'acqu' +
                           " is not readable")
         try:
-            self.dimP = int(self.readprocpar("PPARMOD", False)) + 1
-            self.dimP = int(self.readprocpar("PPARMOD", False)) + 1
+            self.dimP = self.readprocpar("PPARMOD", False) + 1
+            self.dimP = self.readprocpar("PPARMOD", False) + 1
         except TypeError:
             print("Wrong dataset:\n" + self.returnprocpath() + 'proc' +
                   " is not readable")
@@ -501,11 +503,11 @@ class dataset:
         brukDTYP = ['i4', 'f4', 'f8']
         brukBYTORD = ['<', '>']  # bytord 0=little 1=big
         try:
-            brukBYTORDA = int(self.readacqpar("BYTORDA", self.haveRawData))
+            brukBYTORDA = self.readacqpar("BYTORDA", self.haveRawData)
         except:
             brukBYTORDA = 0
         try:
-            BrukDTYPA = int(self.readacqpar("DTYPA", self.haveRawData))
+            BrukDTYPA = self.readacqpar("DTYPA", self.haveRawData)
         except:
             BrukDTYPA = 0
 
@@ -539,11 +541,11 @@ class dataset:
             self.haveProcData = False
 
         try:
-            brukBYTORDP = int(self.readprocpar("BYTORDP", self.haveRawData))
+            brukBYTORDP = self.readprocpar("BYTORDP", self.haveRawData)
         except:
             brukBYTORDP = 0
         try:
-            BrukDTYPP = int(self.readprocpar("DTYPP", self.haveRawData))
+            BrukDTYPP = self.readprocpar("DTYPP", self.haveRawData)
         except:
             BrukDTYPP = 0
 
@@ -594,7 +596,7 @@ class dataset:
         If status=True writes "status" parameter (default)
         Writes in file corresponding to dimension (default 1)
              acqu or acqus if dimension=1
-             acqu2 or acqu2s if dimension=2
+             acqu'n' or acqu'n's if dimension='n'
         Returns True if success or False if parameter is not found.
         User must convert the parameter to string
         Can write arrayed parameter with parameter array name and index
@@ -604,22 +606,16 @@ class dataset:
 
         if dimension == 1:
             name = 'acqu'
-        elif dimension == 2:
-            name = 'acqu2'
-        elif dimension == 3:
-            name = 'acqu3'
         else:
-            print("Warning dimension must be 1, 2 or 3: using dimension 1")
-            name = 'acqu'
+            name = 'acqu'+str(dimension)
         if status is True:
             name += 's'
 
         path = self.returnacqpath() + name
 
         if not os.path.exists(path):
-            print(path + " does not exist!!")
-            return None
-        return self._writepar(path, param, value)
+            raise FileNotFoundError("Parameter file %s not found: is dimension %d correct ?" % (name, dimension))
+        return self._writepar2(path, param, value)
 
     def writeprocpar(self, param, value, status=True, dimension=1):
         """
@@ -634,21 +630,16 @@ class dataset:
 
         if dimension == 1:
             name = 'proc'
-        elif dimension == 2:
-            name = 'proc2'
-        elif dimension == 3:
-            name = 'proc3'
         else:
-            name = 'proc'
+            name = 'proc' + str(dimension)
         if status is True:
             name += 's'
 
         path = self.returnprocpath() + name
 
         if not os.path.exists(path):
-            print(path + " does not exist!!")
-            return None
-        return self._writepar(path, param, value)
+            raise FileNotFoundError("Parameter file %s not found: is dimension %d correct ?" % (name, dimension))
+        return self._writepar2(path, param, value)
 
     def readacqpar(self, param, status=True, dimension=1):
         """
@@ -666,22 +657,16 @@ class dataset:
 
         if dimension == 1:
             name = 'acqu'
-        elif dimension == 2:
-            name = 'acqu2'
-        elif dimension == 3:
-            name = 'acqu3'
         else:
-            print("Warning dimension must be 1 2 or 3: using dimension 1")
-            name = 'acqu'
+            name = 'acqu' + str(dimension)
         if status is True:
             name += 's'
 
         path = self.returnacqpath() + name
 
         if not os.path.exists(path):
-            print(path + " does not exist!!")
-            return None
-        return self._readpar(path, param)
+            raise FileNotFoundError("Parameter file %s not found: is dimension %d correct ?" % (name, dimension))
+        return self._readpar2(path, param)
 
     def readprocpar(self, param, status=True, dimension=1):
         """
@@ -696,10 +681,6 @@ class dataset:
 
         if dimension == 1:
             name = 'proc'
-        elif dimension == 2:
-            name = 'proc2'
-        elif dimension == 3:
-            name = 'proc3'
         else:
             name = 'proc' + str(dimension)
         if status is True:
@@ -708,9 +689,8 @@ class dataset:
         path = self.returnprocpath() + name
 
         if not os.path.exists(path):
-            print(path + " does not exist!!")
-            return None
-        return self._readpar(path, param)
+            raise FileNotFoundError("Parameter file %s not found: is dimension %d correct ?" % (name, dimension))
+        return self._readpar2(path, param)
 
     def _readpar(self, path, param):
         """
@@ -840,7 +820,7 @@ class dataset:
                     else:
                         print("sorry, " + searchString +
                               " doesn't appear to be an array")
-                        return False
+                        raise ValueError("Search string %s is not an array" % (searchString,))
 
                     # read all array values
                     i = 1
@@ -871,14 +851,243 @@ class dataset:
                         for j in range(i):
                             ls.insert(index+1+j, arrayst[j])
                     else:
-                        print("sorry array list goes only up to "+str(maxindex))
-                        return False
+                        raise ValueError("Array parameter index of %s invalid. Max index is %d" % (searchString, maxindex))
                     break
 
         if not found:
-            print("sorry couldn't find param '"+searchString+"'")
-            return False
+            raise ValueError("Parameter %s not found in %s" % (searchString, path))
 
+        # write the file back
+        try:
+            f = open(path, "w")
+        except:
+            print("cannot open " + path)
+            raise
+        f.write(''.join(ls))
+        f.close()
+        return True
+
+    def _readpar2(self, path, param):
+        """
+        Reads parameter "param" from JCAMPDX file specified in path
+        Parameter conversion is done between numeric (int or float), string or boolean
+        Can extract arrayed parameter with parameter array name and index
+                                  in the array separated by a space
+        e.g.: "P 1", "D 0"
+        """
+        [searchString, pindex] = [-1, -1]
+        t = param.split(' ')
+        searchString = t[0]
+        if len(t) > 1:
+            pindex = int(t[1])
+        try:
+            f = open(path, "r")
+        except:
+            print("cannot open " + path)
+            raise IOError("Cannot open file %s" % (path,))
+        try:
+            ls = f.readlines()
+        except:
+            print("error reading " + path)
+            raise IOError("Cannot read file %s lines" % (path,))
+        f.close()
+
+        for index in range(0, len(ls)-1):
+            line = ls[index].strip()
+            # if line contains a parameter (starts with ##$)
+            if line.startswith("##$" + searchString + "="): # parameter found
+                _, value_field = line.split('=', 1)
+                value_field = value_field.strip()
+                if value_field.startswith("("): # array:
+                    if pindex == -1:
+                        raise IndexError("Parameter %s is an array. An index is required"%(searchString,))
+                    # get number of array elements
+                    tmp = value_field.split('..')
+                    array_start = int(tmp[0][1:]) # first element removing starting (
+                    array_end = int(tmp[1][:-1]) # second element removing trailing )
+                    array_size = array_end - array_start + 1
+
+                    array_lines = []
+                    array_i = 1
+                    line =  ls[index+array_i].strip()
+                    while not line.startswith('#'): # join all subsequent array lines
+                        array_lines.append(line)
+                        array_i += 1
+                        line =  ls[index+array_i]
+                    if len(array_lines) == 0: 
+                        raise ValueError("%s is inconsistent JCAMPDX file. Could not parse %d array value for parameter %s" % 
+                                            (path, array_size, searchString) )
+                    value_line = ' '.join(array_lines)
+
+                    # what is array ? numeric, boolean or string ?
+                    if value_line.startswith('<'): #string list
+                        value_line = value_line[1:-1]  # strip leading and trailing < >
+                        value_array = value_line.split('> <') # assumes only one space between 2 strings > <
+                    elif ('yes' in value_line) or ('no' in value_line): # boolean list
+                        value_array = [val == 'yes' for val in value_line.split()]
+                    else: # hopefully numeric value which is returned as float or int
+                        if 'e' in value_line or '.' in value_line or 'inf' in value_line:
+                            value_array = [float(val) for val in value_line.split()]
+                        else:
+                            value_array = [int(val)   for val in value_line.split()]
+                    try :
+                        return value_array[pindex]
+                    except IndexError:
+                        raise IndexError("Parameter %s has no index %d (max=%d) in %s" % (searchString, pindex, array_end, path))
+                elif 'yes' in value_field or 'no' in value_field:
+                    return value_field == 'yes'
+                elif value_field.startswith('<'):
+                    return value_field[1:-1] # strips < >
+                elif 'e' in value_field or '.' in value_field or 'inf' in value_field:
+                    return float(value_field)
+                else:
+                    return int(value_field)
+        # reach end of file
+        raise ValueError("Parameter %s not found in %s" % (searchString, path))
+
+    def _writepar2(self, path=None, param=None, value=""):
+        """
+        changes parameter "param" to value in JCAMPDX file specified in path
+        returns parameter as string or None if parameter is not found.
+        User must convert the parameter type himself if needed
+        Can extract arrayed parameter with parameter array name and index in
+                the array separated by a space
+        e.g.: "P 1", "D 0"
+        syntax:
+        #$STRING= <string>
+        #$NUMBER= number
+        #$ARRAY= (0..MAXINDEX)
+        0 0 0 0 0 0 0 0 0 0 0 0 (max character 71 column, but can extend beyond
+                if last value start on column 71)
+        """
+        # split the param. If more than one split then it's an array with
+        # an index else it's a scalar
+        [searchString, pindex] = [-1, -1]
+        t = param.split(' ')
+        searchString = t[0]
+        if len(t) > 1:
+            pindex = int(t[1])
+        try:
+            f = open(path, "r")
+        except:
+            print("cannot open " + path)
+            raise
+
+        ls = f.readlines()
+        f.close()
+
+        found = False
+        for index in range(0, len(ls)-1):
+            line = ls[index].strip()
+            # if line contains a parameter (starts with ##$)
+            if line.startswith("##$" + searchString + "="): # parameter found
+                found = True
+                par_key, value_field = line.split('=', 1)
+                value_field = value_field.strip()
+                if value_field.startswith("("): # array:
+                    if pindex == -1:
+                        raise IndexError("Parameter %s is an array. An index is required"%(searchString,))
+                    # get number of array elements
+                    tmp = value_field.split('..')
+                    array_start = int(tmp[0][1:]) # first element removing starting (
+                    array_end = int(tmp[1][:-1]) # second element removing trailing )
+                    array_size = array_end - array_start + 1
+
+                    array_lines = []
+                    array_i = 1
+                    line =  ls[index+array_i].strip()
+                    while not line.startswith('#'): # join all subsequent array lines
+                        array_lines.append(line)
+                        array_i += 1
+                        line =  ls[index+array_i].strip()
+                    if len(array_lines) == 0: 
+                        raise ValueError("%s is inconsistent JCAMPDX file. Could not parse %d array value for parameter %s" % 
+                                            (path, array_size, searchString) )
+                    value_line = ' '.join(array_lines)
+
+                    # what is array ? numeric, boolean or string ?
+                    if value_line.startswith('<'): #string list
+                        value_type = str
+                        if value_type != type(value):
+                            raise TypeError("Type of provided value (%s) does not match parameter type (%s)" 
+                                            % (str(type(value)), str(value_type)))
+                        value_line = value_line[1:-1]  # strip leading and trailing < >
+                        value_array = value_line.split('> <') # assumes only one space between 2 strings > <
+                        value_array = ['<' + val + '>' for val in value_array] # reconstruct the array with <strings>
+                        value = '<' + value + '>'
+                    elif ('yes' in value_line) or ('no' in value_line): # boolean list
+                        value_type = bool
+                        if value_type != type(value):
+                            if value != 'yes' and value != 'no':
+                                raise TypeError("Type of provided value (%s) does not match parameter type (%s)" 
+                                                % (str(type(value)), str(value_type)))
+                        value_array = value_line.split()
+                        if value is True : value = 'yes'
+                        if value is False : value = 'no'
+                    else: # hopefully numeric value which is returned as float or int : 
+                        # ambiguity when float represented as int e.g 3 instead of 3.0
+                        # you need to know if int or float
+                        if 'e' in value_line or '.' in value_line or 'inf' in value_line:
+                            value_type = float
+                            if ('float' not in str(type(value)) ) and ('int' not in str(type(value))):
+                                raise TypeError("Type of provided value (%s) does not match parameter type (float, int)" 
+                                                % (str(type(value)), ))
+                        else:
+                            value_type = int
+                            if ('float' not in str(type(value)) ) and ('int' not in str(type(value))):
+                                raise TypeError("Type of provided value (%s) does not match parameter type (float or int)" 
+                                                % (str(type(value)), ))
+                        value_array = value_line.split()
+                        value = str(value)
+                    try:
+                        value_array[pindex] = value
+                    except IndexError:
+                        raise IndexError("Parameter %s has no index %d (max=%d) in %s" % (searchString, pindex, array_end, path))
+                    
+                    # pack array in lines of maximum length 80 characters
+                    value_lines = []
+                    tmp_line = ""
+                    for val in value_array:
+                        if len(val) + 1 + len(tmp_line) < 71:
+                            tmp_line += ' ' + val
+                        else : 
+                            value_lines.append(tmp_line + '\n')
+                            tmp_line = val
+                    value_lines.append(tmp_line + '\n')
+
+                    # delete existing entry and insert new lines
+                    del ls[index + 1:index + array_i]
+                    for j in range(len(value_lines)):
+                        ls.insert(index+1+j, value_lines[j])
+                elif 'yes' in value_field or 'no' in value_field:
+                    if type(value) is not bool and value != 'yes' and value != 'no':
+                            raise TypeError("Type of provided value (%s) does not match parameter type (bool, 'yes', 'no')" 
+                                            % (str(type(value)), ))
+                    if value is True: value = 'yes'    
+                    if value is False: value = 'no'    
+                    value_field = value
+                    ls[index] = par_key  + '= ' + value_field + "\n"
+                elif value_field.startswith('<'):
+                    if type(value) is not str:
+                        raise TypeError("Type of provided value (%s) does not match parameter type (str)" 
+                                        % (str(type(value)), ))
+                    value_field = '<' + value + '>'
+                    ls[index] = par_key  + '= ' + value_field + "\n"
+                elif 'e' in value_field or '.' in value_field or 'inf' in value_field:
+                    if ('float' not in str(type(value)) ) and ('int' not in str(type(value))):
+                        raise TypeError("Type of provided value (%s) does not match parameter type (float, int)" 
+                                        % (str(type(value)), ))
+                    value_field = str(value)
+                    ls[index] = par_key  + '= ' + value_field + "\n"
+                else:
+                    if ('float' not in str(type(value)) ) and ('int' not in str(type(value))):
+                        raise TypeError("Type of provided value (%s) does not match parameter type (float, int)" 
+                                        % (str(type(value)), ))
+                    value_field = str(value)
+                    ls[index] = par_key  + '= ' + value_field + "\n"
+        # reach end of file of parameter is found
+        if not found:
+            raise ValueError("Parameter %s not found in %s" % (searchString, path))
         # write the file back
         try:
             f = open(path, "w")
@@ -980,17 +1189,17 @@ class dataset:
                 }
             }
 
-        dspfirm = int(self.readacqpar("DSPFIRM", True))
-        digtyp = int(self.readacqpar("DIGTYP", True))
+        dspfirm = self.readacqpar("DSPFIRM", True)
+        digtyp = self.readacqpar("DIGTYP", True)
 
-        decim = int(float(self.readacqpar("DECIM", True)))
-        dspfvs = int(self.readacqpar("DSPFVS", True))
-        digmod = int(self.readacqpar("DIGMOD", True))
+        decim = int(self.readacqpar("DECIM", True)) # decim can be float ?
+        dspfvs = self.readacqpar("DSPFVS", True)
+        digmod = self.readacqpar("DIGMOD", True)
 
         if digmod == 0:
             return 0
         if dspfvs >= 20:
-            return float(self.readacqpar("GRPDLY", True))
+            return self.readacqpar("GRPDLY", True)
         if ((dspfvs == 10) | (dspfvs == 11) |
                              (dspfvs == 12) | (dspfvs == 13)):
             return tabgrpdly[dspfvs][decim]
@@ -1009,10 +1218,9 @@ class dataset:
         """
         filename = self.returnacqpath() + "fid"
         if not os.path.exists(filename):
-            print(filename + " does not exist!!")
-            return None
-        scale = int(self.readacqpar("NC", True))
-        td = int(self.readacqpar("TD", True))
+            raise FileNotFoundError("Fid file %s not found." % (filename, ))
+        scale = self.readacqpar("NC", True)
+        td = self.readacqpar("TD", True)
         res = np.fromfile(filename, dtype=self.dtypeA, count=td).astype(float)
         npts = 2*int(round(self.getdigfilt()))
         if raw:
@@ -1045,8 +1253,8 @@ class dataset:
         spect = spect/2**NC
         res = np.concatenate((spect, np.zeros(tdblock-len(spect))))
 
-        self.writeacqpar("NC", str(NC), True)
-        self.writeacqpar("TD", str(TD), True)
+        self.writeacqpar("NC", NC, True)
+        self.writeacqpar("TD", TD, True)
         res.astype(self.dtypeA).tofile(filename)
 
     def readfidc(self, rmGRPDLY=True, applyNC=True):
@@ -1059,9 +1267,8 @@ class dataset:
         """
         filename = self.returnacqpath() + "fid"
         if not os.path.exists(filename):
-            print(filename + " does not exist!!")
-            return None
-        td = int(self.readacqpar("TD", True))
+            raise FileNotFoundError("Fid file %s not found." % (filename, ))
+        td = self.readacqpar("TD", True)
         res = np.fromfile(filename, dtype=self.dtypeA, count=td).astype(float)
         res = res.reshape((td//2, 2))
         R = res[:, 0]+1j*res[:, 1]
@@ -1069,7 +1276,7 @@ class dataset:
 #        print("phcfilt", phcfilt)
         npts = int(phcfilt)
         if applyNC:
-            scale = int(self.readacqpar("NC", True))
+            scale = self.readacqpar("NC", True)
             R *= 2**scale
         if rmGRPDLY:
             # Steps to remove digfilt according to Bruker pprocessing:
@@ -1117,8 +1324,8 @@ class dataset:
         S[0:TD:2] = spect.real
         S[1:TD:2] = spect.imag
 #        print(NC)
-        self.writeacqpar("NC", str(NC), True)
-        self.writeacqpar("TD", str(TD), True)
+        self.writeacqpar("NC", NC, True)
+        self.writeacqpar("TD", TD, True)
         S.astype(self.dtypeA).tofile(filename)
 
     def readser(self, raw=False):
@@ -1129,24 +1336,23 @@ class dataset:
         from math import ceil
         filename = self.returnacqpath() + "ser"
         if not os.path.exists(filename):
-            print(filename + " does not exist!!")
-            return None
+            raise FileNotFoundError("Ser file %s not found." % (filename, ))
         # PARMODE contains 0 for 1D, 1 for 2D, 2 for 3D, n-1 for nD
-        dim = int(self.readacqpar("PARMODE", True))
+        dim = self.readacqpar("PARMODE", True) + 1
         # ordre de stockage des dim 2 et 3
         # aqseq=0 acqus puis acqu2s puis acqu3s
         # aqseq=1 acqus puis acqu3s puis acqu2s
         # aqseq initialised to -1 when not used
 
         aqseq = -1
-        if dim > 1:
-            aqseq = int(self.readacqpar("AQSEQ", True))
-        scale = int(self.readacqpar("NC", True))
-        TD = int(self.readacqpar("TD", True))
+        if dim > 2:
+            aqseq = self.readacqpar("AQSEQ", True)
+        scale = self.readacqpar("NC", True)
+        TD = self.readacqpar("TD", True)
         tdnd = []
         tdn = 1
-        for i in range(2, dim+2):
-            tmptd = int(self.readacqpar("TD", True, dimension=i))
+        for i in range(2, dim+1):
+            tmptd = self.readacqpar("TD", True, dimension=i)
             tdnd.insert(0, tmptd)
             tdn *= tmptd
         if aqseq == 1:
@@ -1173,45 +1379,44 @@ class dataset:
 
     def readserc(self, rmGRPDLY=True, applyNC=True):
         """
-        Read a ser (2D and 3D only) file and return it as numpy 2D
-            complex array
+        Read a ser file and return it as numpy nD complex array
         If rmGRPDLY=True then the digital filter is removed from the
             beginning of the FIDs
         If applyNC=True then the array is multiplied by 2**NC
-        Removes digital filter and trailing data unless raw is True
         """
         from math import ceil
 
         # get the location of ser file and check for existence
         filename = self.returnacqpath() + "ser"
         if not os.path.exists(filename):
-            print(filename + " does not exist!!")
-            return None
-        # determine dimensionality
+            raise FileNotFoundError("Ser file %s not found." % (filename, ))
+        # determine rank
         # PARMODE contains 0 for 1D, 1 for 2D, 2 for 3D, n-1 for nD
-        dim = int(self.readacqpar("PARMODE", True))
+        dim = self.readacqpar("PARMODE", True) + 1
         # determine dimension ordering for dim 2 and 3 in 3D datasets
         # aqseq=0 acqus then acqu2s then acqu3s
         # aqseq=1 acqus then acqu3s then acqu2s
         # aqseq initialised to -1 when not used
         aqseq = -1
-        if dim > 1:
-            aqseq = int(self.readacqpar("AQSEQ", True))
+        if dim > 2: # if 3D or more dataset
+            aqseq = self.readacqpar("AQSEQ", True)
+        # AQSEQ 3D: {'0': '321', '1', '312'}
+        # AQSEQ 4D: {'0': '4321', '1', '4312', ...?}
         # tdnd list size of dims based on status TD
         tdnd = []
         # tdn full size of array except first dim
         tdn = 1
-        for i in range(2, dim+2):
-            tmptd = int(self.readacqpar("TD", True, dimension=i))
+        for i in range(2, dim+1):
+            tmptd = self.readacqpar("TD", True, dimension=i)
             tdnd.insert(0, tmptd)
             tdn *= tmptd
         if aqseq == 1:
             (tdnd[-2], tdnd[-1]) = (tdnd[-1], tdnd[-2])
-        # ser file contains FID of blocks of 256 points
+
+        # ser file contains FID of blocks of 256 points (1024 bytes, 256xint32)
         # thus one needs to calculate the length of 1 FID
         # make sure of the 256 block boundary for direct dimension
-
-        TD = int(self.readacqpar("TD", True))
+        TD = self.readacqpar("TD", status=True, dimension=1)
         # calculates the number of points per block
         ptpblk = 1024.0/self.dtypeA.itemsize
         # rounds TD to the next block size
@@ -1230,7 +1435,7 @@ class dataset:
         # rescaling values according to NC_acqu and
         # removing digital filter if asked
         if applyNC:
-            scale = int(self.readacqpar("NC", True))
+            scale = self.readacqpar("NC", True)
             R *= 2**scale
         if rmGRPDLY:
             # Steps to remove digfilt according to Bruker pprocessing:
@@ -1272,12 +1477,11 @@ class dataset:
 
         filename = self.returnacqpath() + "ser"
         if not os.path.exists(filename):
-            print(filename + " does not exist!!")
-            return None
+            raise FileNotFoundError("Ser file %s not found." % (filename, ))
 
         arrayShape = serArray.shape
         # dim =0 pour 1D, 1 pour 2D etc...
-        dim = int(self.readacqpar("PARMODE", True))
+        dim = self.readacqpar("PARMODE", True) + 1
         # ordre de stockage des dimensions 2 et 3 pour les 3D
         # aqseq=0 acqus puis acqu2s puis acqu3s
         # aqseq=1 acqus puis acqu3s puis acqu2s
@@ -1300,10 +1504,10 @@ class dataset:
         If AQSEQ is not set (-1 ???) then AQORDER is used
         """
         aqseq = -1
-        if dim > 1:
-            aqseq = int(self.readacqpar("AQSEQ", True))
+        if dim > 2:
+            aqseq = self.readacqpar("AQSEQ", True)
 
-        if len(arrayShape) != dim+1:
+        if len(arrayShape) != dim:
             print("dataset is %sD while array is %sD: giving up" % (
                   str(dim), str(len(arrayShape))))
             return None
@@ -1321,7 +1525,7 @@ class dataset:
             serArray = np.concatenate((serArray, np.zeros(newShape)),
                                       axis=len(newShape)-1)
 
-        # scale = int(self.readacqpar("NC", True))
+        # scale = self.readacqpar("NC", True)
 
 # calculates NC_proc to use maximum dynamics on signed 32 bits int
 # actually NC such that max lies between 2^28 and 2^29 (to avoid overflow when rephasing)
@@ -1336,15 +1540,15 @@ class dataset:
         else:
             NC = 0
 
-        self.writeacqpar("NC", str(NC), True)
+        self.writeacqpar("NC", NC, True)
         serArray.astype(self.dtypeA).tofile(filename)
-        self.writeacqpar("TD", str(TD), True, 1)
+        self.writeacqpar("TD", TD, True, 1)
 
         if aqseq == 1:
             (arrayShape[-3], arrayShape[-2]) = (arrayShape[-2],
                                                 arrayShape[-3])
-        for i in range(dim):
-            self.writeacqpar("TD", str(arrayShape[-2-i]), True, dimension=i+2)
+        for i, td in enumerate(arrayShape[::-1]):
+            self.writeacqpar("TD", td, True, dimension=i+1)
         return
 
     def readspect1d(self, name="1r"):
@@ -1355,10 +1559,9 @@ class dataset:
         """
         filename = self.returnprocpath() + name
         if not os.path.exists(filename):
-            print(filename+" do not exist!!")
-            return None
-        scale = int(self.readprocpar("NC_proc", True))
-        si = int(self.readprocpar("SI", True))
+            raise FileNotFoundError("Spectrum file %s not found." % (name, ))
+        scale = self.readprocpar("NC_proc", True)
+        si = self.readprocpar("SI", True)
         res = np.fromfile(filename, dtype=self.dtypeP, count=si).astype(float)
         return res*2**scale
 
@@ -1396,17 +1599,17 @@ class dataset:
         s1.astype(self.dtypeP).tofile(f1)
         s2.astype(self.dtypeP).tofile(f2)
         # write some parameters related to spect arrays used by topspin
-        self.writeprocpar("NC_proc", str(NC), True)
+        self.writeprocpar("NC_proc", NC, True)
         # not sure whether to change si and of not
-        self.writeprocpar("STSI", str(si), True)
-        self.writeprocpar("SI", str(si), True)
+        self.writeprocpar("STSI", si, True)
+        self.writeprocpar("SI", si, True)
         # topspin uses this parameter to scale display to full amplitude:
         # note it is using the int value not the absolute (int*2^NC_proc)
         # this may not be true for topspin 3.0...
         maxSpect = s1.max()
         minSpect = s1.min()
-        self.writeprocpar("YMAX_p", str(maxSpect), True)
-        self.writeprocpar("YMIN_p", str(minSpect), True)
+        self.writeprocpar("YMAX_p", maxSpect, True)
+        self.writeprocpar("YMIN_p", minSpect, True)
         return
 
     def readspect2d(self, name="2rr"):
@@ -1418,13 +1621,12 @@ class dataset:
         """
         filename = self.returnprocpath() + name
         if not os.path.exists(filename):
-            print(filename + " do not exist!!")
-            return None
-        scale = int(self.readprocpar("NC_proc", True))
-        si = int(self.readprocpar("SI", True))
-        si1 = int(self.readprocpar("SI", True, 2))
-        xdim2 = int(self.readprocpar("XDIM", True))
-        xdim1 = int(self.readprocpar("XDIM", True, 2))
+            raise FileNotFoundError("Spectrum file %s not found." % (filename, ))
+        scale = self.readprocpar("NC_proc", True)
+        si = self.readprocpar("SI", True)
+        si1 = self.readprocpar("SI", True, 2)
+        xdim2 = self.readprocpar("XDIM", True)
+        xdim1 = self.readprocpar("XDIM", True, 2)
         rest1 = si1//xdim1
         rest2 = si//xdim2
 
@@ -1448,7 +1650,7 @@ class dataset:
         from math import log as ln
         dir_proc_path = self.returnprocpath()
         if MC2 is None:
-            MC2 = int(self.readprocpar("MC2", dimension=2, status=False))
+            MC2 = self.readprocpar("MC2", dimension=2, status=False)
         """
         # managing dType  "f2/f1" "tt", "ft", "ff", "te", "fe", "tf"
         t means time domain : if F1 is in time domain we consider hypercomplex is not treated yet (ft_mode(F1) not is ift)
@@ -1489,28 +1691,29 @@ class dataset:
         xdim1 = si1
 
         NC = int(ceil(ln(MAX)/ln(2)))-29
-        self.writeprocpar("NC_proc", str(NC), True)
-        self.writeprocpar("NC_proc", str(NC), True, 2)
-        self.writeprocpar("XDIM", str(xdim2), True)
-        self.writeprocpar("XDIM", str(xdim1), True, 2)
-        self.writeprocpar("STSI", str(si1), True, 2)
-        self.writeprocpar("SI", str(si1), True, 2)
-        self.writeprocpar("STSI", str(si), True)
-        self.writeprocpar("SI", str(si), True)
+        self.writeprocpar("NC_proc", NC, True)
+        self.writeprocpar("NC_proc", NC, True, 2)
+        self.writeprocpar("XDIM", xdim2, True)
+        self.writeprocpar("XDIM", xdim1, True, 2)
+        self.writeprocpar("STSI", si1, True, 2)
+        self.writeprocpar("SI", si1, True, 2)
+        self.writeprocpar("STSI", si, True)
+        self.writeprocpar("SI", si, True)
         # topspin YMAX/YMIN to scale display to full amplitude:
         # note it is using the int value not the absolute (int*2^NC_proc)
         smin = int(spect_array_list[0].ravel().min()/2**NC)
         smax = int(spect_array_list[0].ravel().max()/2**NC)
         if smax > 2**31 or smin < -2**31:
-            print("whoowww Pb but I will continue: max=" + smax)
-        self.writeprocpar("YMAX_p", str(smax), True, 2)
-        self.writeprocpar("YMIN_p", str(smin), True, 2)
-        self.writeprocpar("YMAX_p", str(smax), True)
-        self.writeprocpar("YMIN_p", str(smin), True)
+            print("whoowww Pb max=" + smax)
+            raise ValueError("Stored int32 spectrum exceeds 2**31 magnitude. Wrong NC ? How could this happen ?")
+        self.writeprocpar("YMAX_p", smax, True, 2)
+        self.writeprocpar("YMIN_p", smin, True, 2)
+        self.writeprocpar("YMAX_p", smax, True)
+        self.writeprocpar("YMIN_p", smin, True)
 
-        self.writeprocpar("MC2", str(MC2), True, 2)
+        self.writeprocpar("MC2", MC2, True, 2)
         if dType[0] == 'f':  # assume fqc FT applied in direct dimension
-            self.writeprocpar("FT_mod", "6", True, 1)
+            self.writeprocpar("FT_mod", 6, True, 1)
             self.writeprocpar("FTSIZE", si, True, 1)
         if dType[1] == 'f':  
             self.writeprocpar("FTSIZE", si1, True, 2)
@@ -1518,39 +1721,39 @@ class dataset:
                 # fqc(6) used after xfb with MC2=0 QF
                 # fqc(6) used after xfb with MC2=3 States
                 # fqc(6) used after xfb with MC2=5 echo-antiecho
-                self.writeprocpar("FT_mod", "6", True, 2)
+                self.writeprocpar("FT_mod", 6, True, 2)
             elif MC2 == 4:
                 # fsc(4) used after xfb with MC2=4 States-TPPI
-                self.writeprocpar("FT_mod", "4", True, 2)
+                self.writeprocpar("FT_mod", 4, True, 2)
             elif MC2 == 2:
                 # fsc(5) used after xfb with MC2=2 TPPI
-                self.writeprocpar("FT_mod", "5", True, 2)
+                self.writeprocpar("FT_mod", 5, True, 2)
         if dType[0] == 't':
-            self.writeprocpar("FT_mod", "0", True, 1)
-            self.writeprocpar("FTSIZE", "0", True, 1)
+            self.writeprocpar("FT_mod", 0, True, 1)
+            self.writeprocpar("FTSIZE", 0, True, 1)
             self.writeprocpar("AXUNIT", "s", True, 1)
             # even though we are in time domain we need to set a SW_p in ppm
             # with respect to irradiation frequency SFO1
             # otherwise the OFFSET is not properly calculated in further 
             # topspin calculations especially in indirect dimension...
-            sw2 = float(self.readacqpar("SW_h", status=True, dimension=1))
+            sw2 = self.readacqpar("SW_h", status=True, dimension=1)
             dw2 = 1/sw2
-            sfo2 = float(self.readacqpar("SFO1", status=True, dimension=1))
-            self.writeprocpar("SW_p", str(sw2/sfo2), status=True, dimension=1)
-            self.writeprocpar("AXRIGHT", str(si*dw2), status=True)
+            sfo2 = self.readacqpar("SFO1", status=True, dimension=1)
+            self.writeprocpar("SW_p", (sw2/sfo2), status=True, dimension=1)
+            self.writeprocpar("AXRIGHT", (si*dw2), status=True)
         if dType[1] == 't':
-            self.writeprocpar("FT_mod", "0", True, 2)
-            self.writeprocpar("FTSIZE", "0", True, 2)
+            self.writeprocpar("FT_mod", 0, True, 2)
+            self.writeprocpar("FTSIZE", 0, True, 2)
             self.writeprocpar("AXUNIT", "s", True, 2)
             # even though we are in time domain we need to set a SW_p in ppm
             # with respect to irradiation frequency SFO1
             # otherwise the OFFSET is not properly calculated in further 
             # topspin calculations especially in indirect dimension...
-            sw1 = float(self.readacqpar("SW_h", status=True, dimension=2))
+            sw1 = self.readacqpar("SW_h", status=True, dimension=2)
             dw1 = 1/sw1
-            sfo1 = float(self.readacqpar("SFO1", status=True, dimension=2))
-            self.writeprocpar("SW_p", str(sw1/sfo1), status=True, dimension=2)
-            self.writeprocpar("AXRIGHT", str(si1*dw1/2.0), status=True, dimension=2)
+            sfo1 = self.readacqpar("SFO1", status=True, dimension=2)
+            self.writeprocpar("SW_p", (sw1/sfo1), status=True, dimension=2)
+            self.writeprocpar("AXRIGHT", (si1*dw1/2.0), status=True, dimension=2)
         rest1 = si1//xdim1
         rest2 = si//xdim2
         for i, name in enumerate(names):
@@ -1561,6 +1764,48 @@ class dataset:
             print(filename, si, si1)
             spect_array_list[i].astype(self.dtypeP).tofile(filename)
             
+    def xdim_unfold(self, spect):
+        """ Unfold the XDIM storing order to regular array 
+            spect shape is supposed to reflect SI
+            XDIM parameters are read from procxs
+        """
+        
+        SI = spect.shape
+        rank = len(spect.shape)
+        XDIMs = []
+        RESTs = []
+        for i, si_i in enumerate(si):
+            XDIMs.insert(0, self.readprocpar("XDIM", status=True, dimension=rank-i))
+            RESTs.insert(0, si[i]//xdim[0])
+        tmpshape = rest[:]
+        tmpshape.extend(xdim)
+        spect = spect.reshape(tmpshape)
+        for i in range(rank-1):
+            spect = np.rollaxis(spect, rank+i, 1+2*i)
+        return spect.reshape(SI)
+
+    def xdim_fold(self, spect, XDIMs):
+        """ Fold spect ndArray according to XDIM storing order 
+            spect shape is supposed to reflect SI
+            XDIMs is a array of same rank as spect 
+        """
+        SIs = spect.shape
+        rank_spect = len(SIs)
+        rank_XDIMs = len(XDIMs)
+        if rank_spect != rank_XDIMs:
+            raise ValueError("spect (%dD) and XDIMs (%dD) do not have same rank." % (rank_spect, rank_XDIMs))
+        REST = []
+#        for i in range(DIM):
+#            XDIM.insert(0, self.readprocpar("XDIM", True, i+1))
+        REST = [i//j for i, j in zip(SIs, XDIMs)]
+        tmpshape = []
+        for i in range(rank_spect):
+            tmpshape.append(REST[i])
+            tmpshape.append(XDIMs[i])
+        spect = spect.reshape(tmpshape)
+        for i in range(rank_spect-1):
+            spect = np.rollaxis(spect, 2*(i+1), 1+i)
+        return spect
 
     def writespect2d(self, spectArray, name="2rr", dType=None, MAX=None):
         """
@@ -1590,28 +1835,29 @@ class dataset:
             NC = int(ceil(ln(MAX)/ln(2)))-29
             xdim2 = si
             xdim1 = si1
-            self.writeprocpar("NC_proc", str(NC), True)
-            self.writeprocpar("NC_proc", str(NC), True, 2)
-            self.writeprocpar("XDIM", str(xdim2), True)
-            self.writeprocpar("XDIM", str(xdim1), True, 2)
-            self.writeprocpar("STSI", str(si1), True, 2)
-            self.writeprocpar("SI", str(si1), True, 2)
-            self.writeprocpar("STSI", str(si), True)
-            self.writeprocpar("SI", str(si), True)
+            self.writeprocpar("NC_proc", (NC), True)
+            self.writeprocpar("NC_proc", (NC), True, 2)
+            self.writeprocpar("XDIM", (xdim2), True)
+            self.writeprocpar("XDIM", (xdim1), True, 2)
+            self.writeprocpar("STSI", (si1), True, 2)
+            self.writeprocpar("SI", (si1), True, 2)
+            self.writeprocpar("STSI", (si), True)
+            self.writeprocpar("SI", (si), True)
             # topspin uses this parameter to scale display to full amplitude:
             # note it is using the int value not the absolute (int*2^NC_proc)
             smin = int(spectArray.reshape(sizeA).min()/2**NC)
             smax = int(spectArray.reshape(sizeA).max()/2**NC)
             if smax > 2**31 or smin < -2**31:
                 print("whoowww Pb: max=" + smax)
-            self.writeprocpar("YMAX_p", str(smax), True, 2)
-            self.writeprocpar("YMIN_p", str(smin), True, 2)
-            self.writeprocpar("YMAX_p", str(smax), True)
-            self.writeprocpar("YMIN_p", str(smin), True)
+                raise ValueError("Stored int32 spectrum exceeds 2**31 magnitude. Wrong NC ? How could this happen ?")
+            self.writeprocpar("YMAX_p", (smax), True, 2)
+            self.writeprocpar("YMIN_p", (smin), True, 2)
+            self.writeprocpar("YMAX_p", (smax), True)
+            self.writeprocpar("YMIN_p", (smin), True)
         else:
-            NC = int(self.readprocpar("NC_proc", True))
-            xdim2 = int(self.readprocpar("XDIM", True))
-            xdim1 = int(self.readprocpar("XDIM", True, 2))
+            NC = self.readprocpar("NC_proc", True)
+            xdim2 = self.readprocpar("XDIM", True)
+            xdim1 = self.readprocpar("XDIM", True, 2)
 
         rest1 = si1//xdim1
         rest2 = si//xdim2
@@ -1621,7 +1867,7 @@ class dataset:
         spectArray.astype(self.dtypeP).tofile(filename)
         if dType:
             if dType[0] == 'f':  # assume fqc FT applied
-                self.writeprocpar("FT_mod", "6", True, 1)
+                self.writeprocpar("FT_mod", 6, True, 1)
                 self.writeprocpar("FTSIZE", si, True, 1)
             if dType[1] == 'f':  # assume fqc FT applied
                 # fqc(6) used after xfb with MC2=0 QF
@@ -1629,69 +1875,105 @@ class dataset:
                 # fqc(6) used after xfb with MC2=3 States
                 # fsc(4) used after xfb with MC2=4 States-TPPI
                 # fqc(6) used after xfb with MC2=5 echo-antiecho
-                self.writeprocpar("FT_mod", "6", True, 2)
+                self.writeprocpar("FT_mod", 6, True, 2)
                 self.writeprocpar("FTSIZE", si1, True, 2)
             if dType[0] == 't':
-                self.writeprocpar("FT_mod", "0", True, 1)
-                self.writeprocpar("FTSIZE", "0", True, 1)
+                self.writeprocpar("FT_mod", 0, True, 1)
+                self.writeprocpar("FTSIZE", 0, True, 1)
                 self.writeprocpar("AXUNIT", "s", True, 1)
                 # even though we are in time domain we need to set a SW_p in ppm
                 # with respect to irradiation frequency SFO1
                 # otherwise the OFFSET is not properly calculated in further 
                 # topspin calculations especially in indirect dimension...
-                sw2 = float(self.readacqpar("SW_h", status=True, dimension=1))
+                sw2 = self.readacqpar("SW_h", status=True, dimension=1)
                 dw2 = 1/sw2
-                sfo2 = float(self.readacqpar("SFO1", status=True, dimension=1))
-                self.writeprocpar("SW_p", str(sw2/sfo2), status=True, dimension=1)
-                self.writeprocpar("AXRIGHT", str(si*dw2), status=True)
+                sfo2 = self.readacqpar("SFO1", status=True, dimension=1)
+                self.writeprocpar("SW_p", (sw2/sfo2), status=True, dimension=1)
+                self.writeprocpar("AXRIGHT", (si*dw2), status=True)
             if dType[1] == 't':
-                self.writeprocpar("FT_mod", "0", True, 2)
-                self.writeprocpar("FTSIZE", "0", True, 2)
+                self.writeprocpar("FT_mod", 0, True, 2)
+                self.writeprocpar("FTSIZE", 0, True, 2)
                 self.writeprocpar("AXUNIT", "s", True, 2)
                 # even though we are in time domain we need to set a SW_p in ppm
                 # with respect to irradiation frequency SFO1
                 # otherwise the OFFSET is not properly calculated in further 
                 # topspin calculations especially in indirect dimension...
-                sw1 = float(self.readacqpar("SW_h", status=True, dimension=2))
+                sw1 = self.readacqpar("SW_h", status=True, dimension=2)
                 dw1 = 1/sw1
-                sfo1 = float(self.readacqpar("SFO1", status=True, dimension=2))
-                self.writeprocpar("SW_p", str(sw1/sfo1), status=True, dimension=2)
-                self.writeprocpar("AXRIGHT", str(si1*dw1/2.0), status=True, dimension=2)
+                sfo1 = self.readacqpar("SFO1", status=True, dimension=2)
+                self.writeprocpar("SW_p", (sw1/sfo1), status=True, dimension=2)
+                self.writeprocpar("AXRIGHT", (si1*dw1/2.0), status=True, dimension=2)
                 
             # print(dType[0])
         return
 
-    def writespectnd(self, spectArray, name="2rr"):
+    def writespectnd(self, spectArray, name=None):
         """
         Write a nD processed datafile
-        File is 2rr (default), 2ri, 2ii, 3rrr, 4iii etc...
-        Use the original NC_proc and XDIM stored in procs
+        name is file name where to store data: 2rr, 2ri, 2ii, 3rrr, 4iiii etc...
+        default to None, in which case automatic name is generated to X(r)X where X is rank and (r)X repeats r X times
         TODO : calculate the NC
         """
         from math import ceil
         from math import log as ln
-        filename = self.returnprocpath() + name
-        SI = spectArray.shape
-        DIM = len(SI)
-        XDIM = []
-        REST = []
-        for i in range(DIM):
-            XDIM.insert(0, int(self.readprocpar("XDIM", True, i+1)))
-        REST = [i//j for i, j in zip(SI, XDIM)]
+        SIs = spectArray.shape
 
-        NC = int(self.readprocpar("NC_proc", True))
+#        SIinit = spectArray.shape
+#        SI = [SInext(si_i) for si_i in SIinit]
+        spect_rank = len(SIs)
+
+        # first check that processing rank matches spectArray rank
+        
+        proc_dim = self.readprocpar("PPARMOD", status=True, dimension=1)+1
+        if proc_dim != spect_rank:
+            raise ValueError("processing rank %dD does not match spectrum rank %dD." % (proc_dim, spect_rank))
+
+        MAX = np.abs(spectArray).max()
+        NC = int(ceil(np.log2(MAX/2)))-29
+        #NC = self.readprocpar("NC_proc", True)
         spectArray /= 2**(NC)
-        tmpshape = []
-        for i in range(DIM):
-            tmpshape.append(REST[i])
-            tmpshape.append(XDIM[i])
-        spectArray = spectArray.reshape(tmpshape)
-        for i in range(DIM-1):
-            spectArray = np.rollaxis(spectArray, 2*(i+1), 1+i)
-
+        XDIMs = spectArray.shape                 # set XDIMs to SIs (no shuffling)
+        spectArray = self.xdim_fold(spectArray, XDIMs)
+        if name is None:
+            name = str(spect_rank)
+            for i in range(spect_rank):
+                name += 'r'
+        filename = self.returnprocpath() + name
         spectArray.astype(self.dtypeP).tofile(filename)
-        return
+        self.writeprocpar("NC_proc", (NC), True, dimension=1)
 
+        # topspin YMAX/YMIN to scale display to full amplitude:
+        # note it is using the int value not the absolute (int*2^NC_proc)
+        smin = int(spectArray.ravel().min())
+        smax = int(spectArray.ravel().max())
+        if smax > 2**31 or smin < -2**31:
+            print("whoowww Pb max=" + smax)
+            raise ValueError("Stored int32 spectrum exceeds 2**31 magnitude. Wrong NC ? How could this happen ?")
+
+
+        # assume only time domain for now without any processing (FT_mod='no')
+        # set all optionnal processing parameters to 0
+        ProcOptions = {"WDW"   : [["LB", 0], ["GB", 0], ["SSB", 0], ["TM1", 0], ["TM2", 0]],
+                       "PH_mod": [["PHC0", 0], ["PHC1", 0]], "BC_mod": [["BCFW", 0], ["COROFFS", 0]],
+                       "ME_mod": [["NCOEF", 0], ["LPBIN", 0], ["TDoff", 0]], 
+                       "FT_mod": [["FTSIZE", 0], ["FCOR", 0], ["STSR", 0], ["STSI", 0], ["REVERSE", False]],
+                      }
+        for dim in range(1,spect_rank+1):
+            self.writeprocpar("YMAX_p", (smax), status=True, dimension=dim)
+            self.writeprocpar("YMIN_p", (smin), status=True, dimension=dim)
+            for par in ProcOptions:
+                self.writeprocpar(par, 0, status=True, dimension=dim)
+                for opt in ProcOptions[par]:
+                    self.writeprocpar(opt[0], opt[1], status=True, dimension=dim)
+
+        # adjust required parameters : XDIM, SI, STSI
+        for i in range(spect_rank):
+            si = SIs[spect_rank-1-i]
+            xdim = XDIMs[spect_rank-1-i]
+            self.writeprocpar("XDIM", (xdim), status=True, dimension=i+1)
+            self.writeprocpar("SI", (si), status=True, dimension=i+1)
+            self.writeprocpar("STSI", (si), status=True, dimension=i+1)
+ 
     def readspectnd(self, name="2rr"):
         """
         Read a nD processed datafile
@@ -1701,18 +1983,17 @@ class dataset:
         """
         filename = self.returnprocpath() + name
         if not os.path.exists(filename):
-            print(filename+" do not exist!!")
-            return None
-        scale = int(self.readprocpar("NC_proc", True))
-        dim = int(self.readprocpar("PPARMOD", True))+1
+            raise FileNotFoundError("Spectrum file %s not found." % (name, ))
+        scale = self.readprocpar("NC_proc", True)
+        dim = self.readprocpar("PPARMOD", True)+1
         si = []
         xdim = []
         rest = []
         size = 1
         for i in range(dim):
-            si.insert(0, int(self.readprocpar("STSI", True, i+1)))
+            si.insert(0, self.readprocpar("STSI", True, i+1))
             size *= si[0]
-            xdim.insert(0, int(self.readprocpar("XDIM", True, i+1)))
+            xdim.insert(0, self.readprocpar("XDIM", True, i+1))
             rest.insert(0, si[0]//xdim[0])
         spect = np.fromfile(filename, dtype=self.dtypeP,
                            count=size).astype(float)
@@ -1729,8 +2010,8 @@ class dataset:
         """
         Returns a numpy array containing the direct dimension ruler in s
         """
-        dw = 1/float(self.readacqpar("SW_h", True))
-        td = int(self.readacqpar("TD", True))
+        dw = 1/self.readacqpar("SW_h", True)
+        td = self.readacqpar("TD", True)
         return np.arange(0, td)*dw/2.
 
     def getytime(self):
@@ -1740,7 +2021,7 @@ class dataset:
         If TPPI States States-TPPI or echo/antiecho then it accounts for
            interleaved hyper complex rows
         """
-        FnMode = int(self.readacqpar("FnMODE", True, 1))
+        FnMode = self.readacqpar("FnMODE", True, 1)
         # FnMODE = 0 undefined
         #          1 QF
         #          2 QSEQ
@@ -1752,20 +2033,20 @@ class dataset:
             f = 2.
         else:
             f = 1.0
-        dw = 1/float(self.readacqpar("SW_h", True, 2))
-        td = int(self.readacqpar("TD", True, 2))
-        d0 = float(self.readacqpar("D 0", True, 1))
+        dw = 1/self.readacqpar("SW_h", True, 2)
+        td = self.readacqpar("TD", True, 2)
+        d0 = self.readacqpar("D 0", True, 1)
         return np.arange(0, td)*dw/f+d0
 
     def getprocxppm(self):
         """
         Returns a numpy array containing the direct dimension ruler in ppm
         """
-        sw = float(self.readprocpar("SW_p", True))
-        stsi = int(self.readprocpar("STSI", True))
-        sf = float(self.readprocpar("SF", True))
+        sw = self.readprocpar("SW_p", True)
+        stsi = self.readprocpar("STSI", True)
+        sf = self.readprocpar("SF", True)
         swp = sw/sf
-        offset = float(self.readprocpar("OFFSET", True))
+        offset = self.readprocpar("OFFSET", True)
         ppmppt = swp/stsi
         ppm = -(np.arange(stsi)+0.5)*ppmppt+offset
         return ppm
@@ -1774,11 +2055,11 @@ class dataset:
         """
         Returns a numpy array containing the direct dimension ruler in ppm
         """
-        sw = float(self.readprocpar("SW_p", True))
-        stsi = int(self.readprocpar("STSI", True))
-        sf = float(self.readprocpar("SF", True))
+        sw = self.readprocpar("SW_p", True)
+        stsi = self.readprocpar("STSI", True)
+        sf = self.readprocpar("SF", True)
         swp = sw/sf
-        offset = float(self.readprocpar("OFFSET", True))
+        offset = self.readprocpar("OFFSET", True)
         ppmppt = swp/stsi
         ppm = (-(np.arange(stsi)+0.5)*ppmppt+offset)*sf
         return ppm
@@ -1787,11 +2068,11 @@ class dataset:
         """
         Returns a numpy array containing the direct dimension ruler in ppm
         """
-        sw = float(self.readprocpar("SW_p", True, 2))
-        stsi = int(self.readprocpar("STSI", True, 2))
-        sf = float(self.readprocpar("SF", True, 2))
+        sw = self.readprocpar("SW_p", True, 2)
+        stsi = self.readprocpar("STSI", True, 2)
+        sf = self.readprocpar("SF", True, 2)
         swp = sw/sf
-        offset = float(self.readprocpar("OFFSET", True, 2))
+        offset = self.readprocpar("OFFSET", True, 2)
         ppmppt = swp/stsi
         ppm = -(np.arange(stsi)+0.5)*ppmppt+offset
         return ppm
@@ -1800,11 +2081,11 @@ class dataset:
         """
         Returns a numpy array containing the direct dimension ruler in ppm
         """
-        sw = float(self.readprocpar("SW_p", True, 2))
-        stsi = int(self.readprocpar("STSI", True, 2))
-        sf = float(self.readprocpar("SF", True, 2))
+        sw = self.readprocpar("SW_p", True, 2)
+        stsi = self.readprocpar("STSI", True, 2)
+        sf = self.readprocpar("SF", True, 2)
         swp = sw/sf
-        offset = float(self.readprocpar("OFFSET", True, 2))
+        offset = self.readprocpar("OFFSET", True, 2)
         ppmppt = swp/stsi
         return (-(np.arange(stsi)+0.5)*ppmppt+offset)*sf
         
@@ -1814,12 +2095,12 @@ class dataset:
         """
         Returns a numpy array containing the direct dimension ruler in Hz
         """
-        sw = float(self.readacqpar("SW_h", True))
-        si = int(self.readprocpar("SI", True))
-        stsi = int(self.readprocpar("STSI", True))
-        stsr = int(self.readprocpar("STSR", True))
-        sf = float(self.readprocpar("SF", True))
-        sfo1 = float(self.readacqpar("SFO1", True))
+        sw = self.readacqpar("SW_h", True)
+        si = self.readprocpar("SI", True)
+        stsi = self.readprocpar("STSI", True)
+        stsr = self.readprocpar("STSR", True)
+        sf = self.readprocpar("SF", True)
+        sfo1 = self.readacqpar("SFO1", True)
         hz = -sw/si*np.arange(-si/2, si/2)-(sfo1-sf)*1e6
         return hz[stsr:stsr+stsi]
 
@@ -1828,12 +2109,12 @@ class dataset:
         Returns a numpy array containing the indirect dimension ruler in Hz
         (for 2D only)
         """
-        sw = float(self.readacqpar("SW_h", True, 2))
-        si = int(self.readprocpar("SI", True, 2))
-        stsi = int(self.readprocpar("STSI", True, 2))
-        stsr = int(self.readprocpar("STSR", True, 2))
-        sf = float(self.readprocpar("SF", True, 2))
-        sfo1 = float(self.readacqpar("SFO1", True, 2))
+        sw = self.readacqpar("SW_h", True, 2)
+        si = self.readprocpar("SI", True, 2)
+        stsi = self.readprocpar("STSI", True, 2)
+        stsr = self.readprocpar("STSR", True, 2)
+        sf = self.readprocpar("SF", True, 2)
+        sfo1 = self.readacqpar("SFO1", True, 2)
         hz = -sw/si*np.arange(-si/2, si/2)-(sfo1-sf)*1e6
         return hz[stsr:stsr+stsi]
 
@@ -1841,12 +2122,12 @@ class dataset:
         """
         Returns a numpy array containing the direct dimension ruler in ppm
         """
-        sw = float(self.readacqpar("SW_h", True))
-        si = int(self.readprocpar("SI", True))
-        stsi = int(self.readprocpar("STSI", True))
-        stsr = int(self.readprocpar("STSR", True))
-        sf = float(self.readprocpar("SF", True))
-        sfo1 = float(self.readacqpar("SFO1", True))
+        sw = self.readacqpar("SW_h", True)
+        si = self.readprocpar("SI", True)
+        stsi = self.readprocpar("STSI", True)
+        stsr = self.readprocpar("STSR", True)
+        sf = self.readprocpar("SF", True)
+        sfo1 = self.readacqpar("SFO1", True)
         ppm = -(sw/si*np.arange(-si/2, si/2)-(sfo1-sf)*1e6)/sf
         return ppm[stsr:stsr+stsi]
 
@@ -1855,12 +2136,40 @@ class dataset:
         Returns a numpy array containing the indirect dimension ruler in ppm
         (for 2D only)
         """
-        sw = float(self.readacqpar("SW_h", True, 2))
-        si = int(self.readprocpar("SI", True, 2))
-        stsi = int(self.readprocpar("STSI", True, 2))
-        stsr = int(self.readprocpar("STSR", True, 2))
-        sf = float(self.readprocpar("SF", True, 2))
-        sfo1 = float(self.readacqpar("SFO1", True, 2))
+        sw = self.readacqpar("SW_h", True, 2)
+        si = self.readprocpar("SI", True, 2)
+        stsi = self.readprocpar("STSI", True, 2)
+        stsr = self.readprocpar("STSR", True, 2)
+        sf = self.readprocpar("SF", True, 2)
+        sfo1 = self.readacqpar("SFO1", True, 2)
         ppm = -(sw/si*np.arange(-si/2, si/2)-(sfo1-sf)*1e6)/sf
         return ppm[stsr:stsr+stsi]
 
+def SInext(TD):
+    """ Calculates the closest SI value (power of 2) directly larger than TD """
+    import numpy as np
+    return [int(i) for i in 2**(np.ceil(np.log2(TD)))]
+
+def zeroFill(spect, SI): 
+    """ Zero fill a nDarray according to SI shape tuple.
+        check for rank consistency between spect and SI
+        for each dimension spect is zero padded on the right up to SI
+        if SI size is lower than spect for a given dimension, than truncation occurs
+    """
+    import numpy as np
+    if len(spect.shape) != len(SI):
+        raise ValueError("spect (%dD) and SI (%dD) do not have the same number of dimensions:" % (len(spect.shape), len(SI.shape)))
+    pad_size = []
+    slice_required = False
+    for dim_spect, dim_si in zip(spect.shape, SI):
+        if dim_si< dim_spect:
+            dim_si = dim_spect
+            slice_required = True
+        pad_size.append((0,dim_si-dim_spect))
+    spect = np.pad(spect, pad_size, mode='constant')
+    # now slice if required
+    if slice_required:
+        slicers = [slice(i) for i in SI]
+        return spect[slicers]
+    else:
+        return spect

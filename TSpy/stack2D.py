@@ -21,7 +21,7 @@ data1d[2] = destproc
 fulld2d = JTutils.fullpath(data2d)
 fulld1d = JTutils.fullpath(data1d)
 
-RSR("1",procno=destproc,show="n")
+RSR("1", procno=destproc, show="n")
 
 JTutils.run_CpyBin_script('stack2D_.py', [fulld2d, fulld1d])
 

@@ -44,11 +44,11 @@ if args.td:
     td = args.td//2 - digfilt
 else:
     "p13+3.5+d6*2+de*2+d3*2" # delays to consider
-    p13 = float(dat.readacqpar("P 13"))
-    d3 = float(dat.readacqpar("D 3"))*1e6
-    d6 = float(dat.readacqpar("D 6"))*1e6
-    de = float(dat.readacqpar("DE"))
-    dw = 1e6/float(dat.readacqpar("SW_h"))
+    p13 = dat.readacqpar("P 13")
+    d3 = dat.readacqpar("D 3")*1e6
+    d6 = dat.readacqpar("D 6")*1e6
+    de = dat.readacqpar("DE")
+    dw = 1e6/dat.readacqpar("SW_h")
     td = int(round((p13+3.5+2*(d3+d6+de))/dw)+2*digfilt)
     #print("else ",td)
 #print(td, td_spectrum)
@@ -63,7 +63,7 @@ else : # if too long then truncate FID to optimal td
 if args.tdeff:
     tdeff = args.tdeff//2 
 else :
-    tdeff = int(dat.readprocpar("TDeff", status=False))//2
+    tdeff = dat.readprocpar("TDeff", status=False)//2
 
 # reverse time, conjugate FID 
 spect = np.conj(spect[::-1])
@@ -74,7 +74,7 @@ if (spect.size > tdeff) and  (tdeff > 0):
 
 # extend array to SI size (from proc file, this is zero filling)
 (tdc,) = spect.shape
-si = int(dat.readprocpar("SI", status=False, dimension=1))
+si = dat.readprocpar("SI", status=False, dimension=1)
 if (si < tdc):
     tdc = si
     spect = spect[0:si]
@@ -87,22 +87,25 @@ dat.writespect1dri(spect.real,spect.imag)
 dat.writeprocpar("PKNL", "yes", False)
 
 # set all optionnal status processing parameters to 0 (default)
-ProcOptions = {"WDW": ["LB", "GB", "SSB", "TM1", "TM2"],
-               "PH_mod": ["PHC0", "PHC1"], "BC_mod": ["BCFW", "COROFFS"],
-               "ME_mod": ["NCOEF", "LPBIN", "TDoff"], 
-               "FT_mod": ["FTSIZE", "FCOR"]}
+ProcOptions = {"WDW"   : [["LB", 0], ["GB", 0], ["SSB", 0], ["TM1", 0], ["TM2", 0]],
+               "PH_mod": [["PHC0", 0], ["PHC1", 0]], 
+               "BC_mod": [["BCFW", 0], ["COROFFS", 0]],
+               "ME_mod": [["NCOEF", 0], ["LPBIN", 0], ["TDoff", 0]], 
+               "FT_mod": [["FTSIZE", 0], ["FCOR", 0], ["STSR", 0], 
+                          ["STSI", 0], ["REVERSE", False]],
+              }
 for dim in [1]:
     for par in ProcOptions:
-        dat.writeprocpar(par, "0", True, dimension=dim)
+        dat.writeprocpar(par, 0, True, dimension=dim)
         for opt in ProcOptions[par]:
-            dat.writeprocpar(opt, "0", True, dimension=dim)
+            dat.writeprocpar(opt[0], opt[1], True, dimension=dim)
 
 # adjust FT parameters
-dat.writeprocpar("FT_mod", "0", True, dimension=1)  # FT_mod set to ift
-dat.writeprocpar("FTSIZE", str(si), True, dimension=1)
-dat.writeprocpar("FCOR", "0", True, dimension=1)
+dat.writeprocpar("FT_mod", 0, True, dimension=1)  # FT_mod set to ift
+dat.writeprocpar("FTSIZE", (si), True, dimension=1)
+dat.writeprocpar("FCOR", 0, True, dimension=1)
 
 # adjust processing spectral window
-swh = float(dat.readacqpar("SW_h", status=True, dimension=1))
-dat.writeprocpar("SW_p", str(swh), True, dimension=1)
+swh = dat.readacqpar("SW_h", status=True, dimension=1)
+dat.writeprocpar("SW_p", (swh), True, dimension=1)
 

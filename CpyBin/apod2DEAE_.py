@@ -49,28 +49,28 @@ mode2D = {'1': 'QF' , '2': 'QSEQ', '3': 'TPPI',
 
 # reshape data according to FnMODE
 FnMode = dat.readacqpar("FnMODE", status=True, dimension=2)
-if FnMode in "0 1 2 3":
+if FnMode in [0, 1, 2, 3]:
     print("data cannot be made in Echo/AntiEcho format: TPPI not handled")
     sys.exit()
-if FnMode == "0":  # if undefined then read MC2 processing parameter 
+if FnMode == 0:  # if undefined then read MC2 processing parameter 
     # note that MC2 has different meaning : same order as FnMode but with 0 starting for QF
     # hence need to add 1 to MC2 to have same correspondance as for FnMode
-    FnMode == str(int(dat.readprocpar("MC2", status=False, dimension=2)) + 1) 
+    FnMode == dat.readprocpar("MC2", status=False, dimension=2) + 1
 
-if FnMode in "4 5 6":  # State, States-TPPI, Echo-AntiEcho
+if FnMode in [4, 5, 6]:  # State, States-TPPI, Echo-AntiEcho
     HCsize = 2
     td1 = 2*(td1//2)  # one only keeps an even number of rows
     serfile = serfile[0:td1, :]
-elif FnMode in "0 1 2 3":  # undefined, QF, QSEQ, TPPI
+elif FnMode in [0, 1, 2, 3]:  # undefined, QF, QSEQ, TPPI
     HCsize = 1
 else:
     print("FnMODE is outside acceptable range (0..6)!!! Problem with acqu2s or proc2 file")
 
 # trunc to TDeff
-tdeff2 = int(dat.readprocpar("TDeff", status=False, dimension=1))
-tdeff1 = int(dat.readprocpar("TDeff", status=False, dimension=2))
-SI2 = int(dat.readprocpar("SI", False, 1))
-SI1 = int(dat.readprocpar("SI", False, 2))
+tdeff2 = dat.readprocpar("TDeff", status=False, dimension=1)
+tdeff1 = dat.readprocpar("TDeff", status=False, dimension=2)
+SI2 = dat.readprocpar("SI", False, 1)
+SI1 = dat.readprocpar("SI", False, 2)
 if 0 < tdeff1 and tdeff1 < td1:
     td1 = tdeff1
 if SI1 < td1//HCsize:
@@ -87,12 +87,12 @@ serfile = serfile[0:td1, 0:td2c]
 serfile = serfile.reshape((td1//HCsize, HCsize, td2c))
 serfile = numpy.swapaxes(serfile, 0, 1)  # serfile shape is HCsize, td1//2, td2c)
 
-if FnMode == "5" : #State-tppi
+if FnMode == 5 : #State-tppi
     serfile[:, 1::2, :] *= -1 # multiply every other td1 by -1
-if FnMode in "4 5" : # States or State-tppi make E/AE
+if FnMode in [4, 5] : # States or State-tppi make E/AE
     E  = serfile[0] - 1j*serfile[1]
     AE = serfile[0] + 1j*serfile[1]
-elif FnMode == '6':
+elif FnMode == 6:
      E  = serfile[0]
      AE = serfile[1]
 
@@ -100,12 +100,12 @@ exchangeEAE = False
 if exchangeEAE:
     E, AE = AE, E
 
-sw2 = float(dat.readacqpar("SW_h", status=True, dimension=1))
-sw1 = float(dat.readacqpar("SW_h", status=True, dimension=2))
+sw2 = dat.readacqpar("SW_h", status=True, dimension=1)
+sw1 = dat.readacqpar("SW_h", status=True, dimension=2)
 dw2 = 1.0/sw2
 dw1 = 1.0/sw1
 # special case of TPPI on dwell with respect to SW
-#if FnMode == "3":
+#if FnMode == 3:
 #    dw1 /= 2  # if TPPI dw = 0.5 / swh
 
 # create a gaussian apodization function in time domain
@@ -151,20 +151,20 @@ AE *= gauss(args.gb, Tg, T0gm)
 #apply apodization (use auto expansion of ApodArray for summed(:, ...) first dimension)
 #SUM = summed*ApodArray
 # apply the FCOR parameter correction in F1 (multiply first t1 by FCOR)
-#fcorF1 = float(dat.readprocpar("FCOR", status=False, dimension=2))
+#fcorF1 = dat.readprocpar("FCOR", status=False, dimension=2)
 #SUM[:, 0, ...] = SUM[:, 0, ...]*fcorF1
 
 # revert to orginal FnMode
 if exchangeEAE:
     E, AE = AE, E
 
-if FnMode in "4 5" : # States or State-tppi from E/AE
+if FnMode in [4, 5] : # States or State-tppi from E/AE
     serfile[0] = 0.5*(E+AE)
     serfile[1] = 0.5*1j*(E-AE)
-elif FnMode == '6':
+elif FnMode == 6:
      serfile[0] = E
      serfile[1] = AE
-if FnMode == "5" : #State-tppi
+if FnMode == 5 : #State-tppi
     serfile[:, 1::2, :] *= -1 # multiply every other td1 by -1
 
 serfile = numpy.swapaxes(serfile, 0, 1).reshape((td1, td2c))
@@ -177,22 +177,23 @@ print(rr.shape)
 #print(s1.min(), s2.min())
 
 # Apply zero filling according to final size SI1, SI2 from topspin processing parameters
-#SI2 = int(dat.readprocpar("SI", False, 1))
-#SI1 = int(dat.readprocpar("SI", False, 2))
+#SI2 = dat.readprocpar("SI", False, 1)
+#SI1 = dat.readprocpar("SI", False, 2)
 # note that pad is only available from numpy 1.7.0 : implemented in bruker library
 rr = bruker.pad(rr, ((0, SI1-td1), (0, SI2-td2c)), 'constant')
 ri = bruker.pad(ri, ((0, SI1-td1), (0, SI2-td2c)), 'constant')
 # set all optionnal processing parameters to 0
-ProcOptions = {"WDW": ["LB", "GB", "SSB", "TM1", "TM2"],
-               "PH_mod": ["PHC0", "PHC1"], "BC_mod": ["BCFW", "COROFFS"],
-               "ME_mod": ["NCOEF", "LPBIN", "TDoff"], "FT_mod": ["FTSIZE", "FCOR",
-               "STSR", "STSI", "REVERSE"],
-               }
+ProcOptions = {"WDW"   : [["LB", 0], ["GB", 0], ["SSB", 0], ["TM1", 0], ["TM2", 0]],
+               "PH_mod": [["PHC0", 0], ["PHC1", 0]], "BC_mod": [["BCFW", 0], ["COROFFS", 0]],
+               "ME_mod": [["NCOEF", 0], ["LPBIN", 0], ["TDoff", 0]], 
+               "FT_mod": [["FTSIZE", 0], ["FCOR", 0], ["STSR", 0], ["STSI", 0], ["REVERSE", False]],
+              }
+
 for dim in [1, 2]:
     for par in ProcOptions:
-        dat.writeprocpar(par, "0", status=True, dimension=dim)
+        dat.writeprocpar(par, 0, status=True, dimension=dim)
         for opt in ProcOptions[par]:
-            dat.writeprocpar(opt, "0", status=True, dimension=dim)
+            dat.writeprocpar(opt[0], opt[1], status=True, dimension=dim)
 
 # write 2rr and 2ir files in time/time mode (no ft/ift): 
 # SI, STSI and some other parameters are set automatically
@@ -202,9 +203,9 @@ dat.writespect2d(ri, "2ir", "tt")
 # write some status processed parameters in procs file so topspin can display 
 # and process the data properly
 # digital filter is not removed: PKNL must be set to False
-dat.writeprocpar("PKNL", "no", status=True)
-dat.writeprocpar("WDW", "2", status=True)
-dat.writeprocpar("LB", str(-args.gb), status=True)
-dat.writeprocpar("GB", "0", status=True)
+dat.writeprocpar("PKNL", False, status=True)
+dat.writeprocpar("WDW", 2, status=True)
+dat.writeprocpar("LB", (-args.gb), status=True)
+dat.writeprocpar("GB", 0, status=True)
 # unselect apodization for further processing
-dat.writeprocpar("WDW", "0", status=False)
+dat.writeprocpar("WDW", 0, status=False)

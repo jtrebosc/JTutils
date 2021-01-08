@@ -21,15 +21,15 @@ def cpmgadd2D(dataset, lb=0, gb=0, nEchoes=None, slope=0,
         F1, HCF1(re/im), NEchoes, F2, HCF2(re/im)
     """
     # check dataset is 2D:
-    if int(dataset.readacqpar("PARMODE")) != 1:
+    if dataset.readacqpar("PARMODE") != 1:
         print("dataset is not 2D : exiting...")
         sys.exit()
 
     # 0 undef, 1 QF, 2 QSEQ, 3 TPPI, 4 states, 5 states-tppi, 6 echo=antiecho
-    mode2D = int(dataset.readacqpar("FnMODE", dimension=2, status=True))
+    mode2D = dataset.readacqpar("FnMODE", dimension=2, status=True)
 
     if mode2D == 0:
-        mode2D = int(dataset.readprocpar("MC2", dimension=1))+1
+        mode2D = dataset.readprocpar("MC2", dimension=1)+1
     if mode2D == 1:  # QF
         HCsize = 1
     elif mode2D in [4, 5, 6]: # States, States-TPPI, Echo/Antiecho
@@ -41,28 +41,28 @@ def cpmgadd2D(dataset, lb=0, gb=0, nEchoes=None, slope=0,
     # lire la fid et eliminer le filter digital (par defaut)
     serfile = dataset.readser()
     print(serfile.shape)
-    # fcor = float(dataset.readprocpar("FCOR"))
-    # fcor1 = float(dataset.readprocpar("FCOR", dimension=2))
+    # fcor = dataset.readprocpar("FCOR")
+    # fcor1 = dataset.readprocpar("FCOR", dimension=2)
     # serfile[0, :] *= fcor1
     # serfile[1, :] *= fcor1
     # serfile[:, 0] *= fcor1
     # serfile[:, 1] *= fcor1
 
     # calcule la duree d'un echo en points (a modifier selon le PP utilise)
-    dw = 1e6/float(dataset.readacqpar("SW_h"))
-    dw1 = 1e6/float(dataset.readacqpar("SW_h", dimension=2))
+    dw = 1e6/dataset.readacqpar("SW_h")
+    dw1 = 1e6/dataset.readacqpar("SW_h", dimension=2)
 
     # nombre de points par cycle
     if not cycle:
-        cycle = float(dataset.readacqpar("P 60"))  # for pp where cycle is stored in P_60
+        cycle = dataset.readacqpar("P 60")  # for pp where cycle is stored in P_60
         if cycle < 0.1:  # for old
-            D3 = float(dataset.readacqpar("D 3"))*1e6
-            D6 = float(dataset.readacqpar("D 6"))*1e6
-            P180 = float(dataset.readacqpar("P 2"))
+            D3 = dataset.readacqpar("D 3")*1e6
+            D6 = dataset.readacqpar("D 6")*1e6
+            P180 = dataset.readacqpar("P 2")
             cycle = 2*(D3+D6)+P180
 
     # how many echoes to add ?
-    L22 = int(dataset.readacqpar("L 22"))+1
+    L22 = dataset.readacqpar("L 22")+1
     if nEchoes is None or nEchoes > L22:
         nEchoes = L22
 
@@ -81,7 +81,7 @@ def cpmgadd2D(dataset, lb=0, gb=0, nEchoes=None, slope=0,
 
     # Check that TD can accomodate L22+1 echoes
     digFilLen = int(round(dataset.getdigfilt()))
-    TD = int(dataset.readacqpar("TD"))
+    TD = dataset.readacqpar("TD")
     if TD < 2*oneEchoSize*nEchoes + 2*digFilLen:
         nEchoes = (TD//2 - digFilLen) // oneEchoSize
         print("""WARNING : FID is not long enough for L22 echo + 1. 
@@ -91,7 +91,7 @@ def cpmgadd2D(dataset, lb=0, gb=0, nEchoes=None, slope=0,
     serfile = serfile[:,0:2*oneEchoSize*nEchoes ]
     #print(serfile.shape,  2*oneEchoSize*nEchoes )
     # size of 2D array in t1
-    TD1 = int(dataset.readacqpar("TD", status=True, dimension=2))
+    TD1 = dataset.readacqpar("TD", status=True, dimension=2)
     # TD1 is rounded to multiple of HCsize
     TD1 = TD1//HCsize*HCsize
     serfile = serfile[0:TD1]
@@ -120,8 +120,7 @@ def cpmgadd2D(dataset, lb=0, gb=0, nEchoes=None, slope=0,
                                          firstP+int(i*ppc+0.5):
                                          firstP+int(ppc*i+0.5)+oneEchoSize, :]
     # trunc SER file according to TDeff :
-    TDeff1 = (int(dataset.readprocpar("TDeff", status=False, dimension=2)
-                  )//HCsize)*HCsize
+    TDeff1 = (dataset.readprocpar("TDeff", status=False, dimension=2)//HCsize)*HCsize
     if TDeff1 > 0 and TDeff1 < TD1:
         TD1 = TDeff1
         summed = summed[:TD1//HCsize]
@@ -199,8 +198,8 @@ def cpmgadd2D(dataset, lb=0, gb=0, nEchoes=None, slope=0,
 
     # fait du zero fill pour que topspin puisse processer et
     # remet les points correspondant au filtre digital
-    SI = int(dataset.readprocpar("SI", False))
-    SI1 = int(dataset.readprocpar("SI", status=False, dimension=2))
+    SI = dataset.readprocpar("SI", False)
+    SI1 = dataset.readprocpar("SI", status=False, dimension=2)
     # RAJOUTER ZEROFILL t1
     # digFilLen=0
     #print(digFilLen)
@@ -227,37 +226,41 @@ def cpmgadd2D(dataset, lb=0, gb=0, nEchoes=None, slope=0,
     # dataset.writeprocpar("PKNL", "no", status = False)
 
     # set all optionnal processing parameters to 0
-    ProcOptions = {"WDW": ["LB", "GB", "SSB", "TM1", "TM2"],
-                   "PH_mod": ["PHC0", "PHC1"], "BC_mod": ["BCFW", "COROFFS"],
-                   "ME_mod": ["NCOEF", "LPBIN", "TDoff"], "FT_mod": ["FTSIZE", "FCOR"]}
+    ProcOptions = {"WDW"   : [["LB", 0], ["GB", 0], ["SSB", 0], ["TM1", 0], ["TM2", 0]],
+                   "PH_mod": [["PHC0", 0], ["PHC1", 0]], 
+                   "BC_mod": [["BCFW", 0], ["COROFFS", 0]],
+                   "ME_mod": [["NCOEF", 0], ["LPBIN", 0], ["TDoff", 0]], 
+                   "FT_mod": [["FTSIZE", 0], ["FCOR", 0], ["STSR", 0], 
+                              ["STSI", 0], ["REVERSE", False]],
+                  }
     for dim in [1, 2]:
         for par in ProcOptions:
-            dataset.writeprocpar(par, "0", True, dimension=dim)
+            dataset.writeprocpar(par, 0, True, dimension=dim)
             for opt in ProcOptions[par]:
-                dataset.writeprocpar(opt, "0", True, dimension=dim)
+                dataset.writeprocpar(opt[0], opt[1], True, dimension=dim)
     # need to deal with TDoff. Although not used in time domain  for indirect dimension it must be copied for further processing
     TDoff = dataset.readprocpar("TDoff", status=False, dimension=2)
-    dataset.writeprocpar("TDoff", TDoff, status=True, dimension=2)
+    dataset.writeprocpar("TDoff", (TDoff), status=True, dimension=2)
 
     # even though we are in time domain we need to set a SW_p in ppm
     # with respect to irradiation frequency SFO1
     # otherwise the OFFSET is not properly calculated in further 
     # topspin calculations especially in indirect dimension...
-    sw1 = float(dataset.readacqpar("SW_h", status=True, dimension=2))
-    sfo1 = float(dataset.readacqpar("SFO1", status=True, dimension=2))
-    sw2 = float(dataset.readacqpar("SW_h", status=True, dimension=1))
-    sfo2 = float(dataset.readacqpar("SFO1", status=True, dimension=1))
-    dataset.writeprocpar("SW_p", str(sw2/sfo2), status=True,dimension=1)
-    dataset.writeprocpar("SW_p", str(sw1/sfo1), status=True,dimension=2)
+    sw1 = dataset.readacqpar("SW_h", status=True, dimension=2)
+    sfo1 = dataset.readacqpar("SFO1", status=True, dimension=2)
+    sw2 = dataset.readacqpar("SW_h", status=True, dimension=1)
+    sfo2 = dataset.readacqpar("SFO1", status=True, dimension=1)
+    dataset.writeprocpar("SW_p", (sw2/sfo2), status=True,dimension=1)
+    dataset.writeprocpar("SW_p", (sw1/sfo1), status=True,dimension=2)
 
     # adjust the WDW in F2 since we applied some GB/LB
-    dataset.writeprocpar("WDW", "1", True, 1)
-    dataset.writeprocpar("LB", str(args.gb), True, 1)
+    dataset.writeprocpar("WDW", 1, True, 1)
+    dataset.writeprocpar("LB", (args.gb), True, 1)
 
     dataset.writeprocpar("AXUNIT", "s", True)
     dataset.writeprocpar("AXUNIT", "s", True, dimension=1)
-    dataset.writeprocpar("AXRIGHT", str(SI*dw*1e-6), True)
-    dataset.writeprocpar("AXRIGHT", str(SI1/2*dw1*1e-6), True, dimension=2)
+    dataset.writeprocpar("AXRIGHT", (SI*dw*1e-6), True)
+    dataset.writeprocpar("AXRIGHT", (SI1/2*dw1*1e-6), True, dimension=2)
 
 
 

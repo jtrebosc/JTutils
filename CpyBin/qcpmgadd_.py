@@ -38,14 +38,14 @@ dat = bruker.dataset(bruker.splitprocpath(args.infile))
 serfile = dat.readfid()
 
 # calcule la duree d'un echo en points (a modifier selon le PP utilise)
-dw = 1e6/float(dat.readacqpar("SW_h"))
-P60 = float(dat.readacqpar("P 60")) # should store the cycle time
+dw = 1e6/dat.readacqpar("SW_h")
+P60 = dat.readacqpar("P 60") # should store the cycle time
 # in case cycle tiume is not stored in P60, this program uses a default
 # calculation based on D3, D6, P4, P3
-D3 = float(dat.readacqpar("D 3"))*1e6
-D6 = float(dat.readacqpar("D 6"))*1e6
-P4 = float(dat.readacqpar("P 4"))
-P3 = float(dat.readacqpar("P 3"))
+D3 = dat.readacqpar("D 3")*1e6
+D6 = dat.readacqpar("D 6")*1e6
+P4 = dat.readacqpar("P 4")
+P3 = dat.readacqpar("P 3")
 # cycle is set to a
 if args.c : # one can provide the cycle in argument
     cycle = float(args.c)
@@ -55,7 +55,7 @@ else : # default behavior may depend on pulse program implementation
     cycle = 2*(D3+D6+2)+P4
 
 # get the number of echoes: L22+1
-n_echoes = int(dat.readacqpar("L 22")) + 1
+n_echoes = dat.readacqpar("L 22") + 1
 if args.n and (0 < args.n)  and (args.n <= n_echoes):
     n_echoes = args.n  # in argument is the real number of echoes
 
@@ -73,7 +73,7 @@ else:
 
 # verifie si TD est coherent avec n_echoes
 digFilLen = int(round(dat.getdigfilt()))
-TD = int(dat.readacqpar("TD"))
+TD = dat.readacqpar("TD")
 # sometimes TD is too short to contain L22+1 echoes 
 # (mostly because of digital filter using some TD points)
 if TD < ppc*2*n_echoes+2*digFilLen:
@@ -140,7 +140,7 @@ s2 = SUM[:, 1]
 
 
 # Apply some zero filling (from SI) and put back digital filter
-SI = int(dat.readprocpar("SI", False))
+SI = dat.readprocpar("SI", False)
 r1 = numpy.concatenate((numpy.zeros(digFilLen), s1,
             numpy.zeros(SI-len(s1)-digFilLen)))
 r2 = numpy.concatenate((numpy.zeros(digFilLen), s2,
@@ -149,19 +149,23 @@ r2 = numpy.concatenate((numpy.zeros(digFilLen), s2,
 dat.writespect1dri(r1, r2)
 
 # set all optionnal processing parameters to 0
-ProcOptions = {"WDW": ["LB", "GB", "SSB", "TM1", "TM2"],
-         "PH_mod": ["PHC0", "PHC1"], "BC_mod": ["BCFW", "COROFFS"],
-         "ME_mod": ["NCOEF", "LPBIN", "TDoff"], "FT_mod": ["FTSIZE"]}
+ProcOptions = {"WDW"   : [["LB", 0], ["GB", 0], ["SSB", 0], ["TM1", 0], ["TM2", 0]],
+               "PH_mod": [["PHC0", 0], ["PHC1", 0]], 
+               "BC_mod": [["BCFW", 0], ["COROFFS", 0]],
+               "ME_mod": [["NCOEF", 0], ["LPBIN", 0], ["TDoff", 0]], 
+               "FT_mod": [["FTSIZE", 0], ["FCOR", 0], ["STSR", 0], 
+                          ["STSI", 0], ["REVERSE", False]],
+              }
 for par in ProcOptions:
-    dat.writeprocpar(par, "0", True, dimension=1)
+    dat.writeprocpar(par, 0, True, dimension=1)
     for opt in ProcOptions[par]:
-        dat.writeprocpar(opt, "0", True, dimension=1)
+        dat.writeprocpar(opt[0], opt[1], True, dimension=1)
 
 # write some status processed parameters in procs file so topspin can display
 # and process the data properly
-dat.writeprocpar("WDW", "1", True)
-dat.writeprocpar("LB", str(args.gb), True)
+dat.writeprocpar("WDW", 1, True)
+dat.writeprocpar("LB", (args.gb), True)
 
 dat.writeprocpar("AXUNIT", "s", True)
-dat.writeprocpar("AXRIGHT", str(SI*dw*1e-6), True)
+dat.writeprocpar("AXRIGHT", (SI*dw*1e-6), True)
 

@@ -23,7 +23,7 @@ dat = bruker.dataset(bruker.splitprocpath(args.infile))
 if args.ns:
     ns = int(args.ns)
 else:
-    ns = int(dat.readacqpar("NS",status=True))
+    ns = dat.readacqpar("NS",status=True)
 # lire la fid et eliminer le filter digital (par defaut)
 spect_r, spect_i = dat.readspect1dri()
 spect_r /= numpy.sqrt(ns)
