@@ -108,10 +108,17 @@ try:
 except:
     from numpy import concatenate
     def pad(array2pad, pad_shape, *args, **kwargs):
-        """
-        pad the spectra in selected dimensions. Same as numpy pad.
+        """Pad the spectra in selected dimensions. Same as numpy pad. 
+
+        This method act ss a fall back method when numpy too old and does not contain 
+        the pad method
+
+        --- Arguments ---
         array2pad : the array that is zero filled
         pad_shape : a tuple of (before, after) pad size
+        --- Returns --- 
+        the padded array
+
         example  :  a = np.array([[1,2] [3, 4]])
                     pad(a,((0,2), (1, 1)),'')
                     a == [[0, 1, 2, 0], [0, 3, 4, 0], [0, 0, 0, 0]]
@@ -134,10 +141,20 @@ except:
 
 # I need to rewrite this function in a cleaner way
 def splitprocpath(path):
+        """Extract [name, expno, procno, dir, user] from path to procno folder
+
+        --- Arguments ---
+        path: the path to split as string with folder separator based on os.path.split method
+
+        --- returned value ---
+        a list with [name, expno, procno, dir, [user]] elements as required to instantiate a dataset object
+        user element may be absent for topspin version > 3
+
+        --- Raised Error ---
+        raise ValueError if string cannot be splitted occording to Bruker path structure 
+        
         """
-        extract [name, expno, procno, dir, user] from path to procno folder
-        """
-        (dir, user, name, expno, procno) = ('', '', '', '', '')
+        (directory, user, name, expno, procno) = ('', '', '', '', '')
         # make path absolute and normalised
         path = os.path.abspath(path)
         (path, procno) = os.path.split(path)
@@ -152,26 +169,27 @@ def splitprocpath(path):
         while path != drive + os.sep:
             (path, tmp) = os.path.split(path)
             path_list.insert(0, tmp)
+        path_list.insert(0, path) # add the drive and root to path_list
         if len(path_list) >= 3 and path_list[-1] == "nmr" and path_list[-3] == "data":
             # we are in version <3
             path_list.pop()  # drops the nmr folder
             user = path_list.pop()
             path_list.pop()  # drops the data folder
-            dir = drive + "/" + "/".join(path_list)
-            dir = os.path.normpath(dir)
+            directory = os.path.join(*path_list)
+            directory = os.path.normpath(directory)
         else:  # this is version 3 without data/user/nmr format
-            dir = drive + "/" + "/".join(path_list)
-            dir = os.path.normpath(dir)
+            directory = os.path.join(*path_list)
+            directory = os.path.normpath(directory)
         if user == '':
-            for i in [name, expno, procno, dir]:
+            for i in [name, expno, procno, directory]:
                 if i == '':
                     raise ValueError("path %s does not seem a valid procno path" % (path,))
-            return [name, expno, procno, dir]
+            return [name, expno, procno, directory]
         else:
-            for i in [name, expno, procno, dir, user]:
+            for i in [name, expno, procno, directory, user]:
                 if i == '':
                     raise ValueError("path %s does not seem a valid procno path" % (path,))
-            return [name, expno, procno, dir, user]
+            return [name, expno, procno, directory, user]
 
 
 def getlistfilefullname(filename, type='PP'):
@@ -269,9 +287,12 @@ def getlistfilefullname(filename, type='PP'):
 
 
 def serc2DStates2HC(ser):
-    """
-     transform a ser file read with readserc of dataset acquired in States Mode
-     into hypercomplex representation array of shape (2xTD1/2xTD2)
+    """Transform a ser file read with readserc  of shape (TD1, Td2/2) of dataset acquired in States Mode
+    into hypercomplex representation array of shape (2, TD1/2, TD2/2)
+    arguments ---- 
+    ser : a complex array with alternated States rows in dimension TD1
+    returns ------
+    a view with updated shape  (2, TD1/2, TD2)
     """
     (td1, td2) = ser.shape
     td1 = td1//2*2
@@ -1092,8 +1113,8 @@ class dataset:
         try:
             f = open(path, "w")
         except:
-            print("cannot open " + path)
-            raise
+            print("Cannot open " + path)
+            raise IOError("Cannot open " + path)
         f.write(''.join(ls))
         f.close()
         return True
@@ -1494,13 +1515,8 @@ class dataset:
         For 3D one has the following order:
             0: F3F2F1
             1: F3F1F2
-        For 4D one has the following order:
+        For 4D only natural order is allowed : 
             0: F4F3F2F1
-            1: F4F3F1F2
-            2: F4F2F3F1
-            3: F4F2F1F3
-            4: F4F1F3F2
-            5: F4F1F2F3
         If AQSEQ is not set (-1 ???) then AQORDER is used
         """
         aqseq = -1
@@ -1603,6 +1619,7 @@ class dataset:
         # not sure whether to change si and of not
         self.writeprocpar("STSI", si, True)
         self.writeprocpar("SI", si, True)
+        self.writeprocpar("SI", si, False)
         # topspin uses this parameter to scale display to full amplitude:
         # note it is using the int value not the absolute (int*2^NC_proc)
         # this may not be true for topspin 3.0...
@@ -1611,6 +1628,108 @@ class dataset:
         self.writeprocpar("YMAX_p", maxSpect, True)
         self.writeprocpar("YMIN_p", minSpect, True)
         return
+
+    def xdim_unfold(self, spect):
+        """ Unfold the XDIM storing order to regular array 
+            spect shape is supposed to reflect SI,
+            XDIM parameters are read from proc_s
+        """
+        
+        SI = spect.shape
+        rank = len(spect.shape)
+        XDIMs = []
+        RESTs = []
+        for i, si_i in enumerate(si):
+            XDIMs.insert(0, self.readprocpar("XDIM", status=True, dimension=rank-i))
+            RESTs.insert(0, si[i]//xdim[0])
+        spect = spect.reshape(RESTs + XDIMs)
+        for i in range(rank-1):
+            spect = np.rollaxis(spect, rank+i, 1+2*i)
+        return spect.reshape(SI)
+
+    def guess_proc_filenames(self, domains):
+        """Tries to guess the filenames depending on transforms done for further topspin processing
+
+            Depending on number of dimension, Fourier Transform steps, MC2 value, the function will return
+            a list of names required to further process the data within topspin
+            2D: with QF 2rr and 2ii always, with HC 2rr and 2ir if F1 not processed, all quadrant otherwise with name 2[F2 i/r][F1 i/r]
+                MC2 = QF(f1) :
+                    FT(t1, t2)
+                    FT(no,no) ->  2rr, 2ii
+                    FT(no,xx) -> 2rr, 2ii
+                    FT(xx, no) -> 2rr, 2ii
+                    FT(xx, fqc) -> 2rr, 2ii
+                MC2 = States[-TPPI] (f1) with hypercomplex acquisition
+                    FT(t1, t2)
+                    FT(no, no) -> 2rr, 2ir
+                    FT(no,xx) -> 2rr, 2ir
+                    FT(xx, no) -> 2rr, 2ir, 2ri, 2ii
+                    FT(xx, xx) -> 2rr, 2ir, 2ri, 2ii
+            3D:
+                Note that topspin can only process as tf3 first then tf2 and tf1 in either order
+                and one cannot rephase a dimension once the next is transformed (unless HT is done)
+                MC2 = States[-TPPI](t2) / States[-TPPI](t1) : hypercomplex acquisition in both dimensions
+                    FT(t1, t2, t3)
+                    FT(no, no,no) ->  3rrr, 3irr (to be confirmed)
+                    FT(no, no,fqc) ->  3rrr, 3irr
+                    FT(no, fsc, fqc) -> 3rrr, 3rir
+                    FT(fsc, no, fqc) -> 3rrr, 3rri
+                    FT(fsc, fsc, fqc) -> 3rrr, 3rri or 3rir depending if tf2 or tf1 was first
+                    after 3D FT, Hilbert Transform (HT) in F3 adds 3irr, in F2 adds 3rir but there are still some missing octants like 3iii, 3iir, 3iri, 3rii.
+                    A priori, no inverse transform is feasible
+                MC2 = QF(t2) / States(t1)
+                    FT(t1, t2, t3)
+                    FT(no, no, no) -> 3rrr, 3iii (to be confirmed) 
+                    FT(no, no, fqc) -> 3rrr, 3iii
+                    FT(no, fqc, fqc) -> 3rrr, 3iii
+                    FT(fqc, no, fqc) -> 3rrr, 3iii, 3rri
+                    FT(fqc, fqc, fqc) -> 3rrr, 3rri (tf3;tf2;tf1) or 3iii (tf3;tf1;tf2)
+                MC2 = States(t2) / QF(t1)
+                    FT(t1, t2, t3)
+                    FT(no, no, no) -> 3rrr, 3iii (to be confirmed) 
+                    FT(no, no, fqc) -> 3rrr, 3iii
+                    FT(no, fqc, fqc) -> 3rrr, 3rir, 3iii
+                    FT(fqc, no, fqc) -> 3rrr, 3iii
+                    FT(fqc, fqc, fqc) -> 3rrr, 3iii (tf3;tf2;tf1) or 3rir (tf3;tf1;tf2), 
+                MC2 = QF(t2) / QF(t1)
+                    FT(t1, t2, t3)
+                    FT(no, no, no) -> 3rrr, 3iii (to be confirmed) 
+                    FT(no, no, fqc) -> 3rrr, 3iii
+                    FT(no, fqc, fqc) -> 3rrr, 3iii
+                    FT(fqc, fqc, fqc) -> 3rrr, 3iii
+            4D:
+                Only processing allowed is ftnd and mixed QF/HC not handled by topspin processing
+                only 4rrrr is generated by topspin. Separate phasing of processed data is not handled but using Hilbert transform. 
+                Topspin displays 2D slice only
+
+            So it's not so easy... The name probably tells about the imaginary part that is available for phasing : 
+            
+            --- Arguments---
+            domains : a list with the 
+            --- Returned value ---
+            A list with the names of processing files that should exist for further processing
+            output:
+        """
+        return dataset.guess_proc_filenames.__doc__
+
+    def xdim_fold(self, spect, XDIMs):
+        """ Fold spect ndArray according to XDIM storing order 
+            spect shape is supposed to reflect SI,
+            XDIMs is an array of same rank as spect 
+        """
+        SIs = spect.shape
+        rank_spect = len(SIs)
+        rank_XDIMs = len(XDIMs)
+        if rank_spect != rank_XDIMs:
+            raise ValueError("spect (%dD) and XDIMs (%dD) do not have same rank." % (rank_spect, rank_XDIMs))
+#        for i in range(DIM):
+#            XDIMs.insert(0, self.readprocpar("XDIM", True, i+1))
+        RESTs = [i//j for i, j in zip(SIs, XDIMs)]
+        import itertools
+        spect = spect.reshape(list(itertools.chain(*zip(RESTs, XDIMs))))
+        for i in range(rank_spect-1):
+            spect = np.rollaxis(spect, 2*(i+1), 1+i)
+        return spect
 
     def readspect2d(self, name="2rr"):
         """
@@ -1623,19 +1742,15 @@ class dataset:
         if not os.path.exists(filename):
             raise FileNotFoundError("Spectrum file %s not found." % (filename, ))
         scale = self.readprocpar("NC_proc", True)
-        si = self.readprocpar("SI", True)
-        si1 = self.readprocpar("SI", True, 2)
-        xdim2 = self.readprocpar("XDIM", True)
-        xdim1 = self.readprocpar("XDIM", True, 2)
-        rest1 = si1//xdim1
-        rest2 = si//xdim2
-
+        SIs = np.array([self.readprocpar("SI", status=True, dimension=dim) for dim in [2, 1]])
+        XDIMs = np.array([self.readprocpar("XDIM", status=True, dimension=dim) for dim in [2, 1]])
+        RESTs = SIs//XDIMs
         spect = np.fromfile(filename, dtype=self.dtypeP,
-                           count=si*si1).astype(float)
+                           count=SIs.prod()).astype(float)
         spect = spect*2**scale
-        spect = spect.reshape(rest1, rest2, xdim1, xdim2)
+        spect = spect.reshape(np.concatenate((RESTs, XDIMs)))
         spect = spect.swapaxes(1, 2)
-        spect = spect.reshape(si1, si)
+        spect = spect.reshape(SIs)
         return spect
 
     def writespect2dall(self, spect_array_list, MC2=None, dType=None):
@@ -1664,7 +1779,7 @@ class dataset:
         if dType[1] == 'f': 
             if   dType[0] == 't':
                 """ dType='tf' is not implemented yet"""
-                raise(dTypeValueError)
+                raise ValueError("dType='tf' is not implemented yet")
             elif dType[0] == 'f':
                 if MC2 == 0: #QF
                     names = ['2rr', '2ii']
@@ -1686,37 +1801,31 @@ class dataset:
             MAX = np.max(np.absolute(MAXar) + 1j*np.absolute(MAXai))
 
         # xdim is not optimized... I use :
-        (si1, si) = spect_array_list[0].shape
-        xdim2 = si
-        xdim1 = si1
+        SIs = list(spect_array_list[0].shape)
+        XDIMs = SIs[:]
 
         NC = int(ceil(ln(MAX)/ln(2)))-29
-        self.writeprocpar("NC_proc", NC, True)
-        self.writeprocpar("NC_proc", NC, True, 2)
-        self.writeprocpar("XDIM", xdim2, True)
-        self.writeprocpar("XDIM", xdim1, True, 2)
-        self.writeprocpar("STSI", si1, True, 2)
-        self.writeprocpar("SI", si1, True, 2)
-        self.writeprocpar("STSI", si, True)
-        self.writeprocpar("SI", si, True)
-        # topspin YMAX/YMIN to scale display to full amplitude:
-        # note it is using the int value not the absolute (int*2^NC_proc)
         smin = int(spect_array_list[0].ravel().min()/2**NC)
         smax = int(spect_array_list[0].ravel().max()/2**NC)
         if smax > 2**31 or smin < -2**31:
             print("whoowww Pb max=" + smax)
             raise ValueError("Stored int32 spectrum exceeds 2**31 magnitude. Wrong NC ? How could this happen ?")
-        self.writeprocpar("YMAX_p", smax, True, 2)
-        self.writeprocpar("YMIN_p", smin, True, 2)
-        self.writeprocpar("YMAX_p", smax, True)
-        self.writeprocpar("YMIN_p", smin, True)
+        for dim in [1, 2]:
+            self.writeprocpar("NC_proc", NC, status=True, dimension=dim)
+            self.writeprocpar("XDIM", XDIMs[-dim], status=True, dimension=dim)
+            self.writeprocpar("STSI", SIs[-dim], status=True, dimension=dim)
+            self.writeprocpar("SI", SIs[-dim], status=True, dimension=dim)
+            # topspin YMAX/YMIN to scale display to full amplitude:
+            # note it is using the int value not the absolute (int*2^NC_proc)
+            self.writeprocpar("YMAX_p", smax, status=True, dimension=dim)
+            self.writeprocpar("YMIN_p", smin, status=True, dimension=dim)
 
         self.writeprocpar("MC2", MC2, True, 2)
         if dType[0] == 'f':  # assume fqc FT applied in direct dimension
             self.writeprocpar("FT_mod", 6, True, 1)
-            self.writeprocpar("FTSIZE", si, True, 1)
+            self.writeprocpar("FTSIZE", SIs[-1], True, 1)
         if dType[1] == 'f':  
-            self.writeprocpar("FTSIZE", si1, True, 2)
+            self.writeprocpar("FTSIZE", SIs[-2], True, 2)
             if MC2 == 0 | MC2 == 3 | MC2 == 5:
                 # fqc(6) used after xfb with MC2=0 QF
                 # fqc(6) used after xfb with MC2=3 States
@@ -1740,7 +1849,7 @@ class dataset:
             dw2 = 1/sw2
             sfo2 = self.readacqpar("SFO1", status=True, dimension=1)
             self.writeprocpar("SW_p", (sw2/sfo2), status=True, dimension=1)
-            self.writeprocpar("AXRIGHT", (si*dw2), status=True)
+            self.writeprocpar("AXRIGHT", (SIs[-1]*dw2), status=True, dimension=1)
         if dType[1] == 't':
             self.writeprocpar("FT_mod", 0, True, 2)
             self.writeprocpar("FTSIZE", 0, True, 2)
@@ -1753,60 +1862,15 @@ class dataset:
             dw1 = 1/sw1
             sfo1 = self.readacqpar("SFO1", status=True, dimension=2)
             self.writeprocpar("SW_p", (sw1/sfo1), status=True, dimension=2)
-            self.writeprocpar("AXRIGHT", (si1*dw1/2.0), status=True, dimension=2)
-        rest1 = si1//xdim1
-        rest2 = si//xdim2
+            self.writeprocpar("AXRIGHT", (SIs[-2]*dw1/2.0), status=True, dimension=2)
+        RESTs = [si// xdim for si, xdim in zip(SIs,XDIMs)]
         for i, name in enumerate(names):
             filename = self.returnprocpath() + name
             spect_array_list[i] /= 2**(NC)
-            spect_array_list[i] = spect_array_list[i].reshape(rest1, xdim1, rest2, xdim2)
+            spect_array_list[i] = spect_array_list[i].reshape(RESTs + XDIMs)
             spect_array_list[i] = spect_array_list[i].swapaxes(1, 2)
-            print(filename, si, si1)
             spect_array_list[i].astype(self.dtypeP).tofile(filename)
             
-    def xdim_unfold(self, spect):
-        """ Unfold the XDIM storing order to regular array 
-            spect shape is supposed to reflect SI
-            XDIM parameters are read from procxs
-        """
-        
-        SI = spect.shape
-        rank = len(spect.shape)
-        XDIMs = []
-        RESTs = []
-        for i, si_i in enumerate(si):
-            XDIMs.insert(0, self.readprocpar("XDIM", status=True, dimension=rank-i))
-            RESTs.insert(0, si[i]//xdim[0])
-        tmpshape = rest[:]
-        tmpshape.extend(xdim)
-        spect = spect.reshape(tmpshape)
-        for i in range(rank-1):
-            spect = np.rollaxis(spect, rank+i, 1+2*i)
-        return spect.reshape(SI)
-
-    def xdim_fold(self, spect, XDIMs):
-        """ Fold spect ndArray according to XDIM storing order 
-            spect shape is supposed to reflect SI
-            XDIMs is a array of same rank as spect 
-        """
-        SIs = spect.shape
-        rank_spect = len(SIs)
-        rank_XDIMs = len(XDIMs)
-        if rank_spect != rank_XDIMs:
-            raise ValueError("spect (%dD) and XDIMs (%dD) do not have same rank." % (rank_spect, rank_XDIMs))
-        REST = []
-#        for i in range(DIM):
-#            XDIM.insert(0, self.readprocpar("XDIM", True, i+1))
-        REST = [i//j for i, j in zip(SIs, XDIMs)]
-        tmpshape = []
-        for i in range(rank_spect):
-            tmpshape.append(REST[i])
-            tmpshape.append(XDIMs[i])
-        spect = spect.reshape(tmpshape)
-        for i in range(rank_spect-1):
-            spect = np.rollaxis(spect, 2*(i+1), 1+i)
-        return spect
-
     def writespect2d(self, spectArray, name="2rr", dType=None, MAX=None):
         """
         write a 2D processed datafile
@@ -1821,8 +1885,8 @@ class dataset:
         from math import ceil
         from math import log as ln
         filename = self.returnprocpath() + name
-        (si1, si) = spectArray.shape
-#        print(si1, si)
+        SIs = spectArray.shape
+        XDIMs = list(SIs)
 
         if name == '2rr':
             # calculates NC_proc to use maximum dynamics on signed 32 bits int
@@ -1833,42 +1897,33 @@ class dataset:
 #            NC should be calculated on magnitude spectrum (2rr, 2ri, 2ir or 2ii)
 #            not only on 2rr..
             NC = int(ceil(ln(MAX)/ln(2)))-29
-            xdim2 = si
-            xdim1 = si1
-            self.writeprocpar("NC_proc", (NC), True)
-            self.writeprocpar("NC_proc", (NC), True, 2)
-            self.writeprocpar("XDIM", (xdim2), True)
-            self.writeprocpar("XDIM", (xdim1), True, 2)
-            self.writeprocpar("STSI", (si1), True, 2)
-            self.writeprocpar("SI", (si1), True, 2)
-            self.writeprocpar("STSI", (si), True)
-            self.writeprocpar("SI", (si), True)
             # topspin uses this parameter to scale display to full amplitude:
             # note it is using the int value not the absolute (int*2^NC_proc)
-            smin = int(spectArray.reshape(sizeA).min()/2**NC)
-            smax = int(spectArray.reshape(sizeA).max()/2**NC)
+            smax = int(MAX/2**NC)
+            smin = -smax
             if smax > 2**31 or smin < -2**31:
                 print("whoowww Pb: max=" + smax)
                 raise ValueError("Stored int32 spectrum exceeds 2**31 magnitude. Wrong NC ? How could this happen ?")
-            self.writeprocpar("YMAX_p", (smax), True, 2)
-            self.writeprocpar("YMIN_p", (smin), True, 2)
-            self.writeprocpar("YMAX_p", (smax), True)
-            self.writeprocpar("YMIN_p", (smin), True)
+            for dim in [1, 2]:
+                self.writeprocpar("NC_proc", NC, status=True, dimension=dim)
+                self.writeprocpar("XDIM", XDIMs[-dim], status=True, dimension=dim)
+                self.writeprocpar("STSI", SIs[-dim], status=True, dimension=dim)
+                self.writeprocpar("SI", SIs[-dim], status=True, dimension=dim)
+                self.writeprocpar("YMAX_p", smax, status=True, dimension=dim)
+                self.writeprocpar("YMIN_p", smin, status=True, dimension=dim)
         else:
             NC = self.readprocpar("NC_proc", True)
-            xdim2 = self.readprocpar("XDIM", True)
-            xdim1 = self.readprocpar("XDIM", True, 2)
 
-        rest1 = si1//xdim1
-        rest2 = si//xdim2
+    
+        RESTs = [si // xdim for si, xdim in zip(SIs,XDIMs)]
         spectArray /= 2**(NC)
-        spectArray = spectArray.reshape(rest1, xdim1, rest2, xdim2)
+        spectArray = spectArray.reshape(RESTs + XDIMs)
         spectArray = spectArray.swapaxes(1, 2)
         spectArray.astype(self.dtypeP).tofile(filename)
         if dType:
             if dType[0] == 'f':  # assume fqc FT applied
                 self.writeprocpar("FT_mod", 6, True, 1)
-                self.writeprocpar("FTSIZE", si, True, 1)
+                self.writeprocpar("FTSIZE", SIs[-1], True, 1)
             if dType[1] == 'f':  # assume fqc FT applied
                 # fqc(6) used after xfb with MC2=0 QF
                 # fsc(5) used after xfb with MC2=2 TPPI
@@ -1876,7 +1931,7 @@ class dataset:
                 # fsc(4) used after xfb with MC2=4 States-TPPI
                 # fqc(6) used after xfb with MC2=5 echo-antiecho
                 self.writeprocpar("FT_mod", 6, True, 2)
-                self.writeprocpar("FTSIZE", si1, True, 2)
+                self.writeprocpar("FTSIZE", SIs[-2], True, 2)
             if dType[0] == 't':
                 self.writeprocpar("FT_mod", 0, True, 1)
                 self.writeprocpar("FTSIZE", 0, True, 1)
@@ -1889,7 +1944,7 @@ class dataset:
                 dw2 = 1/sw2
                 sfo2 = self.readacqpar("SFO1", status=True, dimension=1)
                 self.writeprocpar("SW_p", (sw2/sfo2), status=True, dimension=1)
-                self.writeprocpar("AXRIGHT", (si*dw2), status=True)
+                self.writeprocpar("AXRIGHT", (SIs[-1]*dw2), status=True)
             if dType[1] == 't':
                 self.writeprocpar("FT_mod", 0, True, 2)
                 self.writeprocpar("FTSIZE", 0, True, 2)
@@ -1902,17 +1957,16 @@ class dataset:
                 dw1 = 1/sw1
                 sfo1 = self.readacqpar("SFO1", status=True, dimension=2)
                 self.writeprocpar("SW_p", (sw1/sfo1), status=True, dimension=2)
-                self.writeprocpar("AXRIGHT", (si1*dw1/2.0), status=True, dimension=2)
+                self.writeprocpar("AXRIGHT", (SIs[-2]*dw1/2.0), status=True, dimension=2)
                 
             # print(dType[0])
-        return
+        return True
 
     def writespectnd(self, spectArray, name=None):
         """
         Write a nD processed datafile
         name is file name where to store data: 2rr, 2ri, 2ii, 3rrr, 4iiii etc...
         default to None, in which case automatic name is generated to X(r)X where X is rank and (r)X repeats r X times
-        TODO : calculate the NC
         """
         from math import ceil
         from math import log as ln
@@ -1932,7 +1986,7 @@ class dataset:
         NC = int(ceil(np.log2(MAX/2)))-29
         #NC = self.readprocpar("NC_proc", True)
         spectArray /= 2**(NC)
-        XDIMs = spectArray.shape                 # set XDIMs to SIs (no shuffling)
+        XDIMs = list(SIs)                 # set XDIMs to SIs (no shuffling)
         spectArray = self.xdim_fold(spectArray, XDIMs)
         if name is None:
             name = str(spect_rank)
@@ -1967,12 +2021,12 @@ class dataset:
                     self.writeprocpar(opt[0], opt[1], status=True, dimension=dim)
 
         # adjust required parameters : XDIM, SI, STSI
-        for i in range(spect_rank):
-            si = SIs[spect_rank-1-i]
-            xdim = XDIMs[spect_rank-1-i]
-            self.writeprocpar("XDIM", (xdim), status=True, dimension=i+1)
-            self.writeprocpar("SI", (si), status=True, dimension=i+1)
-            self.writeprocpar("STSI", (si), status=True, dimension=i+1)
+        for dim in range(1,spect_rank+1):
+            self.writeprocpar("XDIM", XDIMs[-dim], status=True, dimension=dim)
+            self.writeprocpar("SI", SIs[-dim], status=True, dimension=dim)
+            self.writeprocpar("STSI", SIs[-dim], status=True, dimension=dim)
+            # for further processing in topspin status SI and non status SI should match
+            self.writeprocpar("SI", SIs[-dim], status=False, dimension=dim)
  
     def readspectnd(self, name="2rr"):
         """
@@ -1985,24 +2039,22 @@ class dataset:
         if not os.path.exists(filename):
             raise FileNotFoundError("Spectrum file %s not found." % (name, ))
         scale = self.readprocpar("NC_proc", True)
-        dim = self.readprocpar("PPARMOD", True)+1
-        si = []
-        xdim = []
-        rest = []
+        num_dim = self.readprocpar("PPARMOD", True)+1
+        SIs = []
+        XDIMs = []
+        RESTs = []
         size = 1
-        for i in range(dim):
-            si.insert(0, self.readprocpar("STSI", True, i+1))
+        for dim in range(1, num_dim+1):
+            SIs.insert(0, self.readprocpar("STSI", True, dim))
             size *= si[0]
-            xdim.insert(0, self.readprocpar("XDIM", True, i+1))
-            rest.insert(0, si[0]//xdim[0])
+            XDIMs.insert(0, self.readprocpar("XDIM", True, dim))
+            RESTs.insert(0, SIs[0]//XDIMs[0])
         spect = np.fromfile(filename, dtype=self.dtypeP,
                            count=size).astype(float)
         spect = spect*2**scale
-        tmpshape = rest[:]
-        tmpshape.extend(xdim)
-        spect = spect.reshape(tmpshape)
-        for i in range(dim-1):
-            spect = np.rollaxis(spect, dim+i, 1+2*i)
+        spect = spect.reshape(RESTs + XDIMs)
+        for i in range(num_dim-1):
+            spect = np.rollaxis(spect, num_dim+i, 1+2*i)
         spect = spect.reshape(si)
         return spect
 
@@ -2146,9 +2198,15 @@ class dataset:
         return ppm[stsr:stsr+stsi]
 
 def SInext(TD):
-    """ Calculates the closest SI value (power of 2) directly larger than TD """
+    """ Calculates the closest SI value (power of 2) directly larger than TD 
+        TD can be scalar or iterable
+        if iterable, return a list of ints
+    """
     import numpy as np
-    return [int(i) for i in 2**(np.ceil(np.log2(TD)))]
+    if type(TD) is int:
+        return 2**(np.ceil(np.log2(TD)))
+    else:
+        return [int(i) for i in 2**(np.ceil(np.log2(TD)))]
 
 def zeroFill(spect, SI): 
     """ Zero fill a nDarray according to SI shape tuple.
