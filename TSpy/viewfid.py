@@ -30,6 +30,7 @@ if FnTYPE == '0':
 
 if FnTYPE == '2':
     import JTutils
-    JTutils.run_CpyBin_script('viewfid_.py', [])
+    fulldataPATH = JTutils.fullpath(current_expno)
+    JTutils.run_CpyBin_script('viewfid_.py', [fulldataPATH])
 
 RE(current_expno)
