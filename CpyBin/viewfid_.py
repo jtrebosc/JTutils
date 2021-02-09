@@ -3,7 +3,7 @@
 # copyright Julien TREBOSC 2012-2021
 # check that variable PYTHONPATH points to the right folder for bruker.py library
 
-from __future__ import division
+from __future__ import print_function, division
 
 Descript="""
 OK so what is this program doing exactly ?

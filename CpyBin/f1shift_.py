@@ -4,7 +4,7 @@
 # check that variable PYTHONPATH points to the right folder for bruker.py library
 
 #TODO : check if shift works when STSR/STSI is applied
-
+from __future__ import print_function, division
 import numpy
 import sys
 import bruker

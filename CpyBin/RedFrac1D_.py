@@ -7,6 +7,7 @@
 # if a point of S0 spectrum is below the defined threshold
 # then set S0 point to threshold if S0 below threshold
 
+from __future__ import division
 import sys
 import bruker
 import numpy as n
