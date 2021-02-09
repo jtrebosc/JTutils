@@ -25,7 +25,7 @@ spect = dat.readspect1d()
 # print("spectrum shape is ",spect.shape)
 (si2,) = spect.shape
 # print("si2=%d" % (si2,))
-spect = spect.reshape(si2/2, 2)
+spect = spect.reshape(si2//2, 2)
 if order == '0':
 	S0 = spect[:, 0]
 	S = spect[:, 1]
@@ -34,7 +34,7 @@ elif order == '1':
 	S0 = spect[:, 1]
 else: raise("order should be 0 (S0-S) or 1 (S-S0)")
 	
-for i in n.arange(si2/2):
+for i in range(si2//2):
 		if S0[i] < threshold : 
 		   S0[i] = threshold*10
 		   S[i] = threshold*10
