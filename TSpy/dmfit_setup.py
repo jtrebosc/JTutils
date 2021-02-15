@@ -158,6 +158,7 @@ class ConfigPanel(JFrame):
             else:
                 self.button = button
             self.initUI()
+            
         def initUI(self):
             self.JP = JPanel()
             self.JL = JLabel('Set version label: enter to validate')
@@ -167,7 +168,9 @@ class ConfigPanel(JFrame):
             self.JP.add(self.JTF)
             self.add(self.JP)
             self.pack()
+            self.setLocation(150,150)
             self.setVisible(True)
+            
         def doit(self,event):
             key = self.JTF.getText()
             self.button.setText(self.JTF.getText())
@@ -371,6 +374,8 @@ class ConfigPanel(JFrame):
                 continue
             self.add_UI_entry(key, config[key])
         self.pack()
+        self.setLocation(150,150)
+
         self.setVisible(True)
 
 def select_winepath(hidden=False, dir_only=False, title="Select wine executable", defaultFile=which('wine')): 
