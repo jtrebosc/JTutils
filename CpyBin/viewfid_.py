@@ -37,13 +37,30 @@ dat = bruker.dataset(bruker.splitprocpath(args.infile))
 
 # read ser file 
 serfile = dat.readserc(rmGRPDLY=False)
+# determine the hypercomplex status
+FnMode = dat.readacqpar("FnMODE", status=True, dimension=2)
+if FnMode == 0:  # if undefined then read MC2 processing parameter 
+    # note that MC2 has different meaning : same order as FnMode but with 0 starting for QF
+    # hence need to add 1 to MC2 to have same correspondance as for FnMode
+    FnMode == dat.readprocpar("MC2", status=False, dimension=2) + 1
+
+if FnMode in [4, 5, 6]:  # State, States-TPPI, Echo-AntiEcho
+    HCsize = 2
+    td1 = 2*(td1//2)  # one only keeps an even number of rows
+    serfile=serfile[0:td1, :]
+elif FnMode in [0, 1, 2, 3]:  # undefined, QF, QSEQ, TPPI
+    HCsize = 1
+else:
+    raise ValueError("FnMODE is outside acceptable range (0..6)!!! Problem with acqu2s or proc2 file ?")
+
+
 #check FnTYPE {0: 'traditionnal', 1: 'full(points)', 
 #              2:'non_uniform_sampling', 3: 'projection-spectroscopy'} 
 FnTYPE = dat.readacqpar("FnTYPE", status=True, dimension=1)
 if FnTYPE == 2: # NUS
     sershape = serfile.shape
     FullF1TD = dat.readacqpar('NusTD', status=True, dimension=2)
-    serfile = serfile.reshape(sershape[0]//2, 2, sershape[-1])
+    serfile = serfile.reshape(sershape[0]//HCsize, HCsize, sershape[-1])
     import os.path
     nuslist = []
     with open(os.path.join(dat.returnacqpath(), 'nuslist')) as f:
@@ -51,7 +68,7 @@ if FnTYPE == 2: # NUS
             nuslist.append(int(line.strip()))
     print(nuslist)
     print(sorted(nuslist))
-    newser = numpy.zeros((FullF1TD//2, 2, sershape[-1]), dtype=serfile.dtype)
+    newser = numpy.zeros((FullF1TD//HCsize, HCsize, sershape[-1]), dtype=serfile.dtype)
     newser[nuslist] = serfile
 #    for i,j in enumerate(nuslist):
 #        newser[j] = serfile[i]
