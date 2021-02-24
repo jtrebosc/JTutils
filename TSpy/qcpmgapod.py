@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 ## perform apodization of echoes using external python script
 ## new writing in a module like fashion in order to be able to call it from another python script
-def apodize_echoes(gb=None, cycle=None, echo_position=None, noDialog=False, dataset=None):
+def apodize_echoes(gb=None, cycle=None, echo_position=None, dead_pts=None, noDialog=False, dataset=None):
     """
     This function applies a gaussian apodization to each echo of a cpmg acquisition
     that used qcpmg.jt pulse sequence by calling an external python program.
@@ -46,6 +46,8 @@ def apodize_echoes(gb=None, cycle=None, echo_position=None, noDialog=False, data
             cycle = 2*(D3+D6) + P4
         cycle = str(cycle)
 
+    if dead_pts == None:
+        dead_pts = GETPAR("TDoff")
     if echo_position == None:
         echo_position = GETPAR("USERP2")
         try : 
@@ -59,25 +61,27 @@ def apodize_echoes(gb=None, cycle=None, echo_position=None, noDialog=False, data
 
     if not noDialog:
         result = INPUT_DIALOG("processing parameters", 
-          """Please provide 
-          the gaussian broadening (GB) applyied to each echo,
-          the cycle time of the sequence 
-          the position of first echo with respect to start of FID 
+          """Please provide: 
+          - the gaussian broadening (GB) applyied to each echo,
+          - the cycle time of the sequence 
+          - the position of first echo with respect to start of FID 
             (not including digital filter) Echo position defaults to D3+D6, 
             setting it to 0 resets it to default.
+          - the number of dead pts to zero at start of echo (stored as TDoff)
           """, 
-             ["GB (Hz)=", "cycle time (us)", "echo position (default=D3+D6) (us)"],
-             [gb, cycle, echo_position])
+             ["GB (Hz)=", "cycle time (us)", "echo position (default=D3+D6) (us)", "dead points"],
+             [gb, cycle, echo_position, dead_pts])
         try :
-            (gb, cycle, echo_position) = result
+            (gb, cycle, echo_position, dead_pts) = result
         except TypeError: 
             EXIT()
+    PUTPAR("TDoff", dead_pts)
     PUTPAR("USERP1", gb)
     PUTPAR("USERP2", echo_position)
 
     fulldataPATH = JTutils.fullpath(dataset)
 
-    opt_args = " -g %s -c %s -s %s" % (gb, cycle, echo_position)
+    opt_args = " -g %s -c %s -s %s -t %s" % (gb, cycle, echo_position, dead_pts)
 
     JTutils.run_CpyBin_script("qcpmgapod_.py",  opt_args.split() + [fulldataPATH])
     RE(dataset)
@@ -87,6 +91,7 @@ if __name__ == '__main__':
         def __init__(self):
             self.gb = None
             self.c = None
+            self.t = None
             self.echo_position = None
             self.noDialog = False
     try : 
@@ -94,6 +99,7 @@ if __name__ == '__main__':
         parser  =  argparse.ArgumentParser(description='Add echoes in a qcpmg bruker experiment')
         parser.add_argument('-g', '--gb', help='Gaussian broadening applied to each echo', default=None)
         parser.add_argument('-c', help='qcpmg cycle in us', default=None)
+        parser.add_argument('-t', help='number of point to discard at start of echo to remove dead time.', default=None)
         parser.add_argument('--echo_position', default=None,
            help='echo position from start of FID (digital filter excluded) in us')
         parser.add_argument('--noDialog', action='store_true', help='Do not show dialog : use default or provided optional arguments')
@@ -109,4 +115,4 @@ if __name__ == '__main__':
         """  + parser.format_help() )
         EXIT()
     dataset = CURDATA()
-    apodize_echoes(gb=args.gb, cycle=args.c, echo_position=args.echo_position, noDialog=args.noDialog, dataset=dataset)
+    apodize_echoes(gb=args.gb, cycle=args.c, echo_position=args.echo_position, dead_pts=args.t, noDialog=args.noDialog, dataset=dataset)
