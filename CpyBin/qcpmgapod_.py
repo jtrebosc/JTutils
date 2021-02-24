@@ -102,8 +102,9 @@ apod = numpy.swapaxes(apod, 0, 1)
 SUM = summed*apod
 
 #print("zeroes the initial %d dead_pts" % (dead_pts,))
-SUM[:,0:dead_pts,:] = 0.0
-SUM[:,-dead_pts:,:] = 0.0
+if dead_pts != 0:
+    SUM[:,0:dead_pts,:] = 0.0
+    SUM[:,-dead_pts:,:] = 0.0
 
 SUM = SUM.reshape(n_echoes*npoints, 2)
 # separate Re and Im

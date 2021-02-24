@@ -21,6 +21,7 @@ parser.add_argument('-g', '--gb', type=float,
                     help='Gaussian broadening applied to each echo', default=0)
 parser.add_argument('-n', type=int, help='Number of echo to sum')
 parser.add_argument('-c', type=float, help='qcpmg cycle in us')
+parser.add_argument('-t', type=int, help='dead time points to remove')
 parser.add_argument('-s', type=float, 
    help='echo position from start of FID (digital filter excluded) in us')
 parser.add_argument('--norm_noise', action='store_true', 
@@ -54,6 +55,10 @@ elif P60 > 0: # pulse program should store status cycle in P60
 else : # default behavior may depend on pulse program implementation
     cycle = 2*(D3+D6+2)+P4
 
+if args.t :
+    dead_pts = args.t
+else:
+    dead_pts = int(dat.readprocpar("TDoff", status=False))
 # get the number of echoes: L22+1
 n_echoes = dat.readacqpar("L 22") + 1
 if args.n and (0 < args.n)  and (args.n <= n_echoes):
@@ -88,6 +93,11 @@ else:
     summed = numpy.zeros((n_echoes, npoints, 2))
     for i in range(n_echoes):
         summed[i, :, :] += tmp[int(i*ppc+0.5):int(ppc*i+0.5) + npoints, :]
+
+# remove the dead_pts
+if dead_pts != 0:
+    summed[:,0:dead_pts,:] = 0.0
+    summed[:,-dead_pts:,:] = 0.0
 
 # create a gaussian apodization function
 # time exp(-(a(t-center))**2) -> spectral exp(-(w/2a)**2)

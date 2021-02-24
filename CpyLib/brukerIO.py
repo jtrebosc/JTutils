@@ -1602,7 +1602,12 @@ class dataset:
         f2 = self.returnprocpath() + "1i"
         # calculates NC_proc to use maximum dynamics on signed 32 bits int
         MAX = np.max(np.absolute(s1+1j*s2))
-        NC = int(ceil(ln(MAX)/ln(2)))-29
+        if self.dtypeP != np.dtype('float64'):
+            # recalculate a good NC value
+            print(MAX)
+            NC = int(ceil(ln(MAX)/ln(2)))-29
+        else:
+            NC = 0
 #        print("NC=%d max=%f" % (NC, MAX))
         (si, ) = s1.shape
 #        print(s1)
@@ -1804,7 +1809,11 @@ class dataset:
         SIs = list(spect_array_list[0].shape)
         XDIMs = SIs[:]
 
-        NC = int(ceil(ln(MAX)/ln(2)))-29
+        if self.dtypeP != np.dtype('float64'):
+            # recalculate a good NC value
+            NC = int(ceil(ln(MAX)/ln(2)))-29
+        else:
+            NC = 0
         smin = int(spect_array_list[0].ravel().min()/2**NC)
         smax = int(spect_array_list[0].ravel().max()/2**NC)
         if smax > 2**31 or smin < -2**31:
@@ -1896,7 +1905,11 @@ class dataset:
 #            print(MAX)
 #            NC should be calculated on magnitude spectrum (2rr, 2ri, 2ir or 2ii)
 #            not only on 2rr..
-            NC = int(ceil(ln(MAX)/ln(2)))-29
+            if self.dtypeP != np.dtype('float64'):
+                # recalculate a good NC value
+                NC = int(ceil(ln(MAX)/ln(2)))-29
+            else:
+                NC = 0
             # topspin uses this parameter to scale display to full amplitude:
             # note it is using the int value not the absolute (int*2^NC_proc)
             smax = int(MAX/2**NC)
@@ -1983,7 +1996,11 @@ class dataset:
             raise ValueError("processing rank %dD does not match spectrum rank %dD." % (proc_dim, spect_rank))
 
         MAX = np.abs(spectArray).max()
-        NC = int(ceil(np.log2(MAX/2)))-29
+        if self.dtypeP != np.dtype('float64'):
+            # recalculate a good NC value
+            NC = int(ceil(ln(MAX)/ln(2)))-29
+        else:
+            NC = 0
         #NC = self.readprocpar("NC_proc", True)
         spectArray /= 2**(NC)
         XDIMs = list(SIs)                 # set XDIMs to SIs (no shuffling)

@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 ## does summation of echoes using external python script
 ## new writing in a module like fashion in order to be able to call it from another python script
-def add_echoes(lb=None, gb=None, n_echoes=None, cycle=None, echo_position=None, norm_noise=False, 
-                odd_only=False, even_only=False, noDialog=False, dataset=None):
+def add_echoes(lb=None, gb=None, n_echoes=None, cycle=None, dead_pts=None, 
+                echo_position=None, norm_noise=False, odd_only=False, 
+                even_only=False, noDialog=False, dataset=None):
     """
     This function applies a gaussian apodization to each echo of a cpmg acquisition
     that used qcpmg.jt pulse sequence by calling an external python program.
@@ -68,6 +69,8 @@ def add_echoes(lb=None, gb=None, n_echoes=None, cycle=None, echo_position=None, 
         except ValueError: 
             echo_position = str(D3+D6)
 
+    if dead_pts == None:
+        dead_pts = GETPAR("TDoff") 
     if n_echoes == None: 
         n_echoes = GETPAR("USERP3")
         try : 
@@ -82,18 +85,19 @@ def add_echoes(lb=None, gb=None, n_echoes=None, cycle=None, echo_position=None, 
     if not noDialog:
         result = INPUT_DIALOG("processing parameters", 
           """Please provide:
-          the gaussian broadening (GB) applyied to each echo, 
-          the exponential decay that weight the different echoes in terms of line broadening (LB), 
-          the number N of echoes to sum,
-          the cycle time of the sequence
-          the position of first echo with respect to start of FID (not including 
+          - the gaussian broadening (GB) applyied to each echo, 
+          - the exponential decay that weight the different echoes in terms of line broadening (LB), 
+          - the number N of echoes to sum,
+          - the cycle time of the sequence
+          - dead time points to be removed at start and end of echoes
+          - the position of first echo with respect to start of FID (not including 
              digital filter). Echo position defaults to D3+D6, 
              setting it to 0 resets it to default.
           """, 
-             ["GB = ", "LB=", "N", "cycle time (us)", "echo position (us)"], 
-             [gb, lb, n_echoes, cycle, echo_position])
+             ["GB = ", "LB=", "N", "cycle time (us)", "dead points", "echo position (us)"], 
+             [gb, lb, n_echoes, cycle, dead_pts, echo_position])
         try :
-            (gb, lb, n_echoes, cycle, echo_position) = result
+            (gb, lb, n_echoes, cycle, dead_pts, echo_position) = result
         except TypeError: 
             EXIT()
 
@@ -101,6 +105,7 @@ def add_echoes(lb=None, gb=None, n_echoes=None, cycle=None, echo_position=None, 
     PUTPAR("USERP1", gb)
     PUTPAR("USERP2", echo_position)
     PUTPAR("USERP3", n_echoes)
+    PUTPAR("TDoff", dead_pts)
 
     fulldataPATH = JTutils.fullpath(dataset)
 
@@ -128,13 +133,15 @@ if __name__ == '__main__':
         import argparse
         parser  =  argparse.ArgumentParser(
             description='Add echoes in a qcpmg bruker experiment')
-        parser.add_argument('-l', '--lb',  
-            help='Lorentzian broadening applied to the decaying echo', default=None)
+        parser.add_argument('-l', '--lb', default=None,
+            help='Lorentzian broadening applied to the decaying echo')
         parser.add_argument('-g', '--gb',  
             help='Gaussian broadening applied to each echo', default=None)
         parser.add_argument('-n', 
             help='Number of echo to sum', default=None)
         parser.add_argument('-c', help='qcpmg cycle in us', default=None)
+        parser.add_argument('-t', default=None, 
+            help='dead time points to be removed at start and end of echo')
         parser.add_argument('--echo_position', default=None,
             help='echo position from start of FID (digital filter excluded) in us')
         parser.add_argument('--noDialog',action='store_true', 
@@ -142,8 +149,10 @@ if __name__ == '__main__':
         parser.add_argument('--norm_noise',action='store_true', 
             help='Normalize noise as function of number of echoes added.')
         group = parser.add_mutually_exclusive_group()
-        group.add_argument('-e', action='store_true', help='Sum only even echoes')
-        group.add_argument('-o', action='store_true', help='Sum only odd echoes')
+        group.add_argument('-e', action='store_true', 
+            help='Sum only even echoes')
+        group.add_argument('-o', action='store_true', 
+            help='Sum only odd echoes')
         
         args  =  parser.parse_args(sys.argv[1:])
     except ImportError:
@@ -155,6 +164,7 @@ if __name__ == '__main__':
                 self.gb = None
                 self.n = None
                 self.c = None
+                self.t = None
                 self.echo_position = None
                 self.noDialog = False
                 self.norm_noise = False
@@ -178,7 +188,8 @@ if __name__ == '__main__':
     print(err_msg)
 
     dataset = CURDATA()
-    add_echoes(lb=args.lb, gb=args.gb, n_echoes=args.n, cycle=args.c, echo_position=args.echo_position,
-                norm_noise=args.norm_noise, odd_only=args.e, even_only=args.o, noDialog=args.noDialog,
-                dataset=dataset)
+    add_echoes(lb=args.lb, gb=args.gb, n_echoes=args.n, cycle=args.c, 
+                dead_pts=args.t, echo_position=args.echo_position,
+                norm_noise=args.norm_noise, odd_only=args.e, even_only=args.o, 
+                noDialog=args.noDialog, dataset=dataset)
     RE(dataset)
