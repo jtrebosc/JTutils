@@ -1,13 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 # copyright Julien TREBOSC 2012-2013
-# check that variable PYTHONPATH points to the right folder for bruker.py
+# check that variable PYTHONPATH points to the right folder for brukerIO.py
 #      library
 from __future__ import division, print_function
 
 import numpy
 import sys
-import bruker
+import brukerIO
 import math
 
 
@@ -23,7 +23,7 @@ parser.add_argument('-s', type=float,
 parser.add_argument('infile', help='Full path of the dataset to process')
 
 args = parser.parse_args()
-dat = bruker.dataset(bruker.splitprocpath(args.infile))
+dat = brukerIO.dataset(brukerIO.splitprocpath(args.infile))
 
 # read FID file (digital filter is removed by default)
 serfile = dat.readfid()

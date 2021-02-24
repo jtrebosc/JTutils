@@ -523,7 +523,7 @@ def create_report():
     import_report = "JTutils jython module requirement:\n"
     # test if modules can be imported in topspin
     jmodule_imported = {}
-    for module in ['JTutils', 'JTutils.CpyLib.brukerPAR', 'argparse']:
+    for module in ['JTutils', 'JTutils.CpyLib.brukerPARIO', 'argparse']:
         jmodule_imported[module], version_message = test_jmodule_import(module)
         if jmodule_imported[module]:
             import_report += "%s %s module imported successfully\n" % (module, version_message)

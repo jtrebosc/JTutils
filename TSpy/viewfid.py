@@ -3,7 +3,7 @@
 import sys
 import os
 
-from JTutils.CpyLib.brukerPAR import dataset
+from JTutils.CpyLib.brukerPARIO import dataset
 current_expno = CURDATA()
 
 FnTYPE = GETPAR("2s FnTYPE")

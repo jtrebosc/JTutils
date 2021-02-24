@@ -1,13 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 # copyright Julien TREBOSC 2012-2013
-# check that variable PYTHONPATH points to the right folder for bruker.py library
+# check that variable PYTHONPATH points to the right folder for brukerIO.py library
 
 #TODO : check if shift works when STSR/STSI is applied
 from __future__ import print_function, division
 import numpy
 import sys
-import bruker
+import brukerIO
 import math
 
 
@@ -18,8 +18,8 @@ parser.add_argument('-n', type=int, required=True, help='Number of points to shi
 parser.add_argument('infile', help='Full path of the dataset to process')
 
 args = parser.parse_args()
-#print(bruker.splitprocpath(infile))
-dat = bruker.dataset(bruker.splitprocpath(args.infile))
+#print(brukerIO.splitprocpath(infile))
+dat = brukerIO.dataset(brukerIO.splitprocpath(args.infile))
 
 # 0 undef, 1 QF, 2 QSEQ, 3 TPPI, 4 states, 5 states-tppi, 6 echo=antiecho
 mode2D = dat.readacqpar("FnMODE", dimension=2, status=True)

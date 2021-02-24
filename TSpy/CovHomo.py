@@ -5,7 +5,7 @@ import sys
 import subprocess
 
 import JTutils
-import JTutils.CpyLib.brukerPAR as brukerPAR
+import JTutils.CpyLib.brukerPARIO as brukerPARIO
 
 options = []
 do_xf2 = 0
@@ -16,7 +16,7 @@ if len(sys.argv)>1 :
 data2d = CURDATA()
 fulld2d = JTutils.fullpath(data2d)
 
-dta = brukerPAR.dataset(data2d)
+dta = brukerPARIO.dataset(data2d)
 fulld2d = dta.returnprocpath()
 fntype = dta.readacqpar("FnTYPE")
 if fntype == "2" : 

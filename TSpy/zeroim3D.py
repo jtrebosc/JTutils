@@ -4,12 +4,12 @@ import sys
 import os
 PYTHONPATH=os.getenv("PYTHONPATH","not_defined")
 if "not_defined" in PYTHONPATH:
-	MSG("cannot acces to PYTHONPATH environment. It's required for accessing to brukerPAR lib" )
+	MSG("cannot acces to PYTHONPATH environment. It's required for accessing to brukerPARIO lib" )
 	EXIT()
-#add the Library path for importing brukerPAR
+#add the Library path for importing brukerPARIO
 sys.path.append(PYTHONPATH)
 
-import brukerPAR
+import brukerPARIO
 
 from os.path import getsize 
 # from os import system as execute
@@ -25,7 +25,7 @@ def get_os_version():
 OS=get_os_version()
 
 dt=CURDATA()
-dat=brukerPAR.dataset(dt)
+dat=brukerPARIO.dataset(dt)
 fn3iii=dat.returnprocpath()+"/3iii"
 
 try :

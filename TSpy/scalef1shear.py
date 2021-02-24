@@ -29,10 +29,10 @@ def scalef1sheared(F2toF1=False, exptype='3QMAS', dataset=None):
     # so that they are available in the current namespace
     from TopCmds import CURDATA, RE, MSG, SELECT
 
-    from JTutils.CpyLib import brukerPAR
+    from JTutils.CpyLib import brukerPARIO
     if dataset == None: 
         dataset = CURDATA()
-    dtst = brukerPAR.dataset(dataset)
+    dtst = brukerPARIO.dataset(dataset)
 
     # check the dimensionality of dataset 
     #maxdim = GETACQUDIM()

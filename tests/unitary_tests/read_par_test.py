@@ -1,4 +1,4 @@
-import bruker
+import brukerIO
 from shutil import copyfile
 
 sample = "../data/qcpmg/4/pdata/1/"
@@ -7,7 +7,7 @@ backup = "../data/qcpmg/4/" + 'acqu.bak'
 
 copyfile(backup, fresh)
 
-dat = bruker.dataset(bruker.splitprocpath(sample))
+dat = brukerIO.dataset(brukerIO.splitprocpath(sample))
 
 P = ["P 1", 
 "L 31", 

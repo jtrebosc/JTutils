@@ -23,7 +23,7 @@ Requirements for running python program:
 Scripts are designed to run with the lowest version number possible. 
 But with time tests were run with more recent versions. So minimum version 
 can depend upon script
- - in CpyLib: bruker.py or brukerPAR.py package will needs at least
+ - in CpyLib: brukerIO.py or brukerPARIO.py package will needs at least
     * python 2.5
     * numpy 1.0.1 
 - in CpyBin : same requirement as CpyLib + processing module for covariance

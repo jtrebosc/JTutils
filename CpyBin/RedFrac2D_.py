@@ -9,7 +9,7 @@
 from __future__ import division
 
 import sys
-import bruker
+import brukerIO
 import numpy as n
 
 import argparse
@@ -20,7 +20,7 @@ parser.add_argument('--outType', '-T', required=False, choices=['S', 'S0', 'F'],
 args = parser.parse_args()
 infile = args.inputs
 order = args.order
-dat = bruker.dataset(bruker.splitprocpath(infile))
+dat = brukerIO.dataset(brukerIO.splitprocpath(infile))
 spect = dat.readspect2d('2rr')
 specti = dat.readspect2d('2ii')
 print(spect.shape)

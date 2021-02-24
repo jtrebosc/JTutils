@@ -7,7 +7,7 @@ import sys
 #import os
 #modulePath=os.environ['PYBRUKER']
 #sys.path.append(modulePath)
-import bruker
+import brukerIO
 import numpy.core as n
 
 def usage():
@@ -17,7 +17,7 @@ def usage():
 # to be done in bruker script
 # need two args : 2D source data and 1D dest data
 
-# improvement for bruker library :
+# improvement for brukerIO library :
 # deal with scale and units
 # dimensionalite (1D, 2D), 
 # axes units (s, Hz, opt)
@@ -40,11 +40,11 @@ infile1D = sys.argv[2]
 # create 1D processed dataset :
 # - copy 2D into 1D and adapt proc and procs to 1D
 #translate filename into bruker dataset components
-data = bruker.splitprocpath(infile)
-data1D = bruker.splitprocpath(infile1D)
+data = brukerIO.splitprocpath(infile)
+data1D = brukerIO.splitprocpath(infile1D)
 #initialize dataset
-dat = bruker.dataset(data)
-dat1D = bruker.dataset(data1D)
+dat = brukerIO.dataset(data)
+dat1D = brukerIO.dataset(data1D)
 #read 2D 2rr data
 Fr = "2rr"
 Fi = "2ii"

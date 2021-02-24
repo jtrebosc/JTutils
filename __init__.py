@@ -1,14 +1,14 @@
 # coding: utf8 
 # JTutils module should expose: 
-#    brukerPAR submodule
+#    brukerPARIO submodule
 #    TSpy submodule
 #    fullpath utility (return fulpath to a dataset as returned by CURDATA Bruker function
 #    run_CpyBin_script : a function that runs an external script from CpyBin in 
 #                        a CPYTHON environment with correct PYTHONPATH
 from __future__ import unicode_literals
 
-__all__ = ['TSpy', 'brukerPAR', 'fullpath', 'run_CpyBin_script']
-from .CpyLib import brukerPAR 
+__all__ = ['TSpy', 'brukerPARIO', 'fullpath', 'run_CpyBin_script']
+from .CpyLib import brukerPARIO
 from os.path import dirname, abspath, join, normpath
 import os
 

@@ -4,7 +4,7 @@
 from __future__ import division
 import sys
 #sys.path.append('/opt/pulse_programs/CpyLib')
-import bruker
+import brukerIO
 import numpy.core as np
 
 
@@ -28,10 +28,10 @@ parser.add_argument('infile', help='Full path of the dataset to process')
 args = parser.parse_args()
 
 
-data = bruker.splitprocpath(args.infile)
+data = brukerIO.splitprocpath(args.infile)
 
 #initialize dataset
-dat = bruker.dataset(data)
+dat = brukerIO.dataset(data)
 
 #read 1D fid file and remove digital filter
 spect = dat.readfidc(rmGRPDLY=False)
@@ -54,7 +54,7 @@ else:
 #print(td, td_spectrum)
 # some times td is too short (final digital filter is truncated) and one must pad with 0
 if td_spectrum < td:
-    spect = bruker.pad(spect,(0,td-td_spectrum),mode='constant')
+    spect = brukerIO.pad(spect,(0,td-td_spectrum),mode='constant')
 #print(spect.shape, digfilt)
 else : # if too long then truncate FID to optimal td
     spect = spect[0:td]

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 # copyright Julien TREBOSC 2012-2021
-# check that variable PYTHONPATH points to the right folder for bruker.py library
+# check that variable PYTHONPATH points to the right folder for brukerIO.py library
 
 from __future__ import print_function, division
 
@@ -14,7 +14,7 @@ plot the result
 
 import numpy
 import sys
-import bruker
+import brukerIO
 
 def showser(fid2D):
     import matplotlib.pyplot as p
@@ -33,7 +33,7 @@ parser = argparse.ArgumentParser(description='Read Ser file order row according 
 parser.add_argument('infile', help='Full path of the dataset to process')
 
 args = parser.parse_args()
-dat = bruker.dataset(bruker.splitprocpath(args.infile))
+dat = brukerIO.dataset(brukerIO.splitprocpath(args.infile))
 
 # read ser file 
 serfile = dat.readserc(rmGRPDLY=False)
@@ -76,8 +76,8 @@ if FnTYPE == 2: # NUS
 else:
     newser = serfile
 
-shape = bruker.SInext(newser.shape)
-newser = bruker.zeroFill(newser,shape)
+shape = brukerIO.SInext(newser.shape)
+newser = brukerIO.zeroFill(newser,shape)
 dat.writespectnd(newser.imag, name='2ir')
 dat.writespectnd(newser.real)
 # set time units

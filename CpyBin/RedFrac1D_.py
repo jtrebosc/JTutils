@@ -9,7 +9,7 @@
 
 from __future__ import division
 import sys
-import bruker
+import brukerIO
 import numpy as n
 
 import argparse
@@ -21,7 +21,7 @@ args = parser.parse_args()
 infile = args.inputs
 threshold = float(args.threshold)
 order = args.order
-dat  =bruker.dataset(bruker.splitprocpath(infile))
+dat  =brukerIO.dataset(brukerIO.splitprocpath(infile))
 spect = dat.readspect1d()
 # print("spectrum shape is ",spect.shape)
 (si2,) = spect.shape

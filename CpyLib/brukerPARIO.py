@@ -1,4 +1,4 @@
-## this bruker Cpython library requires numpy to manipulate arrays
+## this brukerIO Cpython library requires numpy to manipulate arrays
 ## in particular this is true for reading 2D processed data that 
 ## have submatrix ordering (xdim) 
 ## therefore this cannot be used directly in topspin python scripts

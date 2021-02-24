@@ -15,7 +15,7 @@ options:
 import os
 import sys
 
-from JTutils import brukerPAR
+from JTutils import brukerPARIO
 
 try: 
     args = sys.argv[1:]
@@ -49,15 +49,15 @@ def searchAcqus(initdir):
 
 dataset = CURDATA()
 
-dt = brukerPAR.dataset(dataset)
+dt = brukerPARIO.dataset(dataset)
 
 expnamedir = dt.returnacqpath() + '/../'
 
 expnoList = searchAcqus(expnamedir)
 res = []
 for i in expnoList :
-    dataset = brukerPAR.splitprocpath(i + '/pdata/1/')
-    dt = brukerPAR.dataset(dataset)
+    dataset = brukerPARIO.splitprocpath(i + '/pdata/1/')
+    dt = brukerPARIO.dataset(dataset)
     expno = dt.dataset[1]
     val = dt.readacqpar(param, status=S, dimension=D)
     res.append("%s\t%s" % (str(expno), str(val)))

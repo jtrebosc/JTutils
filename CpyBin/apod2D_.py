@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 # copyright Julien TREBOSC 2012-2013
-# check that variable PYTHONPATH points to the right folder for bruker.py library
+# check that variable PYTHONPATH points to the right folder for brukerIO.py library
 
 from __future__ import division
 
@@ -14,7 +14,7 @@ It writes back into topspin  format for further processing.
 
 import numpy
 import sys
-import bruker
+import brukerIO
 
 #def showser(ser):
 #    import matplotlib.pyplot as p
@@ -32,8 +32,8 @@ parser.add_argument('-e', '--echoOnly', action='store_true', help='Apodize only 
 parser.add_argument('infile', help='Full path of the dataset to process')
 
 args = parser.parse_args()
-#print(bruker.splitprocpath(infile))
-dat = bruker.dataset(bruker.splitprocpath(args.infile))
+#print(brukerIO.splitprocpath(infile))
+dat = brukerIO.dataset(brukerIO.splitprocpath(args.infile))
 
 # read ser file 
 serfile = dat.readserc(rmGRPDLY=False)
@@ -132,7 +132,7 @@ SUM = serfile*ApodArray  # multiply with broadcasting on HCsize dimension
 SUM = numpy.swapaxes(SUM, 0, 1).reshape((td1, td2c))
 
 # Apply zero filling according to final size SI1, SI2 from topspin processing parameters
-rr = bruker.pad(SUM, ((0, SI1-td1), (0, SI2-td2c)), 'constant')
+rr = brukerIO.pad(SUM, ((0, SI1-td1), (0, SI2-td2c)), 'constant')
 print("rr shape is ", rr.shape)
 
 # set all optionnal processing parameters to 0

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 # copyright Julien TREBOSC 2012-2013
-# check that variable PYTHONPATH points to the right folder for bruker.py library
+# check that variable PYTHONPATH points to the right folder for brukerIO.py library
 
 from __future__ import division
 
@@ -17,7 +17,7 @@ son one always find 2rr and 2ii or 2ir at least
 
 import numpy
 import sys
-import bruker
+import brukerIO
 import math
 
 def showser(ser):
@@ -35,8 +35,8 @@ parser.add_argument('-c', type=float,  help='initial center position (at row 0) 
 parser.add_argument('infile', help='Full path of the dataset to process')
 
 args = parser.parse_args()
-#print(bruker.splitprocpath(infile))
-dat = bruker.dataset(bruker.splitprocpath(args.infile))
+#print(brukerIO.splitprocpath(infile))
+dat = brukerIO.dataset(brukerIO.splitprocpath(args.infile))
 
 # read ser file and correct automatically for digital filter
 serfile = dat.readserc(rmGRPDLY=False)
@@ -179,9 +179,9 @@ print(rr.shape)
 # Apply zero filling according to final size SI1, SI2 from topspin processing parameters
 #SI2 = dat.readprocpar("SI", False, 1)
 #SI1 = dat.readprocpar("SI", False, 2)
-# note that pad is only available from numpy 1.7.0 : implemented in bruker library
-rr = bruker.pad(rr, ((0, SI1-td1), (0, SI2-td2c)), 'constant')
-ri = bruker.pad(ri, ((0, SI1-td1), (0, SI2-td2c)), 'constant')
+# note that pad is only available from numpy 1.7.0 : implemented in brukerIO library
+rr = brukerIO.pad(rr, ((0, SI1-td1), (0, SI2-td2c)), 'constant')
+ri = brukerIO.pad(ri, ((0, SI1-td1), (0, SI2-td2c)), 'constant')
 # set all optionnal processing parameters to 0
 ProcOptions = {"WDW"   : [["LB", 0], ["GB", 0], ["SSB", 0], ["TM1", 0], ["TM2", 0]],
                "PH_mod": [["PHC0", 0], ["PHC1", 0]], "BC_mod": [["BCFW", 0], ["COROFFS", 0]],

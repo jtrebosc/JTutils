@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# this bruker Cpython library requires numpy to manipulate arrays
+# this brukerIO Cpython library requires numpy to manipulate arrays
 # in particular this is true for reading 2D processed data that
 # have submatrix ordering (xdim)
 # therefore this cannot be used directly in topspin python scripts
@@ -100,7 +100,7 @@ if pyver < "2.2":
     print("python version: " + pyver)
     raise Exception("current version %s. version >= 2.2 required!" % (pyver,))
 
-# a workaround for pad function not available with numpy version < 1.7 : lets make it available within bruker library:
+# a workaround for pad function not available with numpy version < 1.7 : lets make it available within brukerIO library:
 try:
     # for now I only use my pad version
     raise

@@ -5,7 +5,7 @@ from __future__ import division
 
 import numpy
 import sys
-import bruker
+import brukerIO
 import math
 # gestion des arguments
 import argparse
@@ -41,8 +41,8 @@ ADDREF = args.addref
 slope = args.slope
 PHI0 = -args.refPh0/180*numpy.pi
 PHC1 = -args.refPh1
-#print(bruker.splitprocpath(infile))
-dat = bruker.dataset(bruker.splitprocpath(args.infile))
+#print(brukerIO.splitprocpath(infile))
+dat = brukerIO.dataset(brukerIO.splitprocpath(args.infile))
 
 # FnMODE = 0 undefined, 1 QF, 2 QSEQ, 3 TPPI, 4 States, 5 States-TPPI, 6 Echo-Antiecho
 MODEflag = dat.readacqpar("FnMODE", dimension=2)
