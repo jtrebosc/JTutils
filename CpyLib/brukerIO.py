@@ -264,8 +264,8 @@ def getlistfilefullname(filename, type='PP'):
     try:
         f = open(userparamfile, 'r')
     except:
-        print("cannot open " + userparamfile)
-        raise
+        raise IOError("Cannot open " + userparamfile)
+
     for i in f.readlines():
         m = re.match(type + "_DIRS=(.*)", i)
         if m:
@@ -472,34 +472,24 @@ class dataset:
                               (','.join(dset), len(dset)))
         self.MC2_list = ["QF", "QSEQ", "TPPI", "States", "States-TPPI", "echo-antiecho", "QF(no-frequency)"]
         if not os.path.exists(self.returnacqpath()):
-            print("Wrong dataset:\n" + self.returnacqpath() +
-                  " does not exist!!")
             raise IOError("Wrong dataset:\n" + self.returnacqpath() +
                           " does not exist!!")
         if not os.path.exists(self.returnacqpath() + 'acqu'):
-            print("Wrong dataset:\n" + self.returnacqpath() + 'acqu' +
-                  " does not exist!!")
             raise IOError("Wrong dataset:\n" + self.returnacqpath() + 'acqu' +
                           " does not exist!!")
         if not os.path.exists(self.returnprocpath() + 'proc'):
-            print("Wrong dataset:\n" + self.returnprocpath() + 'proc' +
-                  " does not exist!!")
             raise IOError("Wrong dataset:\n" + self.returnprocpath() + 'proc' +
                           " does not exist!!")
         try:
             self.dimA = self.readacqpar("PARMODE", False) + 1
             self.dimA = self.readacqpar("PARMODE", False) + 1
         except TypeError:
-            print("Wrong dataset:\n" + self.returnacqpath() + 'acqu' +
-                  " is not readable")
             raise IOError("Wrong dataset:\n" + self.returnacqpath() + 'acqu' +
                           " is not readable")
         try:
             self.dimP = self.readprocpar("PPARMOD", False) + 1
             self.dimP = self.readprocpar("PPARMOD", False) + 1
         except TypeError:
-            print("Wrong dataset:\n" + self.returnprocpath() + 'proc' +
-                  " is not readable")
             raise IOError("Wrong dataset:\n" + self.returnprocpath() + 'proc' +
                           " is not readable")
 
@@ -732,14 +722,12 @@ class dataset:
         try:
             f = open(path, "r")
         except:
-            print("cannot open " + path)
-            raise
+            raise IOError("Cannot open " + path)
 
         try:
             ls = f.readlines()
         except:
-            print("error reading " + path)
-            raise
+            raise IOError("Error reading" + path)
         f.close()
         found = 0
         for index in range(0, len(ls)-1):
@@ -759,9 +747,8 @@ class dataset:
                         maxindex = int(matchres.group(1))
                         # print("maxindex="+str(maxindex))
                     else:
-                        print("sorry, " + searchString +
+                        raise ValueError("Sorry, " + searchString +
                               " doesn't appear to be an array")
-                        return None
 
                     [tmp, arrayed] = line.split(')')
                     if not arrayed == '':
@@ -778,12 +765,10 @@ class dataset:
                 value = arraylist[int(pindex)]
                 found = 1
             else:
-                print("sorry array list goes only up to " + str(maxindex))
-                return None
+                raise ValueError("Sorry array list index %s is beyond MAX index %d: " % (pindex, maxindex))
 
         if not found:
-            print("sorry couldn't find param '" + searchString + "'")
-            return None
+            raise ValueError("Sorry, couldn't find param '" + searchString + "'")
         return value
 
     def _writepar(self, path=None, param=None, value=""):
@@ -813,8 +798,7 @@ class dataset:
         try:
             f = open(path, "r")
         except:
-            print("cannot open " + path)
-            raise
+            raise IOError("cannot open " + path)
 
         ls = f.readlines()
         f.close()
@@ -839,8 +823,6 @@ class dataset:
                         maxindex = int(matchres.group(1))
                         # print("maxindex="+str(maxindex))
                     else:
-                        print("sorry, " + searchString +
-                              " doesn't appear to be an array")
                         raise ValueError("Search string %s is not an array" % (searchString,))
 
                     # read all array values
@@ -882,8 +864,7 @@ class dataset:
         try:
             f = open(path, "w")
         except:
-            print("cannot open " + path)
-            raise
+            raise IOError("cannot open " + path)
         f.write(''.join(ls))
         f.close()
         return True
@@ -904,13 +885,11 @@ class dataset:
         try:
             f = open(path, "r")
         except:
-            print("cannot open " + path)
             raise IOError("Cannot open file %s" % (path,))
         try:
             ls = f.readlines()
         except:
-            print("error reading " + path)
-            raise IOError("Cannot read file %s lines" % (path,))
+            raise IOError("Cannot read lines in file %s." % (path,))
         f.close()
 
         for index in range(0, len(ls)-1):
@@ -991,8 +970,7 @@ class dataset:
         try:
             f = open(path, "r")
         except:
-            print("cannot open " + path)
-            raise
+            raise IOError("Cannot open " + path)
 
         ls = f.readlines()
         f.close()
@@ -1113,7 +1091,6 @@ class dataset:
         try:
             f = open(path, "w")
         except:
-            print("Cannot open " + path)
             raise IOError("Cannot open " + path)
         f.write(''.join(ls))
         f.close()
@@ -1260,7 +1237,10 @@ class dataset:
         if self.dtypeA != np.dtype('float64'):
             # recalculate a good NC value
             MAX = np.abs(spect).max()
-            NC = int(ceil(ln(MAX/2)/ln(2)))-29
+            if MAX > 0:
+                NC = int(ceil(ln(MAX/2)/ln(2)))-29
+            else:
+                NC = 0
         else:
             NC = 0
 
@@ -1329,7 +1309,10 @@ class dataset:
         # recalculate a good NC value
         if self.dtypeA != np.dtype('float64'):
             MAX = np.absolute(spect).max()
-            NC = int(ceil(ln(MAX/2)/ln(2)))-29
+            if MAX > 0:
+                NC = int(ceil(ln(MAX/2)/ln(2)))-29
+            else:
+                NC = 0
         else:
             NC = 0
 
@@ -1524,9 +1507,8 @@ class dataset:
             aqseq = self.readacqpar("AQSEQ", True)
 
         if len(arrayShape) != dim:
-            print("dataset is %sD while array is %sD: giving up" % (
+            raise TypeError("dataset is %sD while array is %sD: giving up" % (
                   str(dim), str(len(arrayShape))))
-            return None
 
         TD = arrayShape[-1]
 
@@ -1550,8 +1532,11 @@ class dataset:
 
         # NC enlever 17 soit presque la moitie de 31 ????
         if self.dtypeA != np.dtype('float64'):
-            NC = int(ceil(ln(MAX)/ln(2)))-29
             MAX = np.max(np.fabs(serArray.reshape(sizeA)))
+            if MAX > 0:
+                NC = int(ceil(ln(MAX)/ln(2)))-29
+            else:
+                NC = 0
             serArray /= 2**NC
         else:
             NC = 0
@@ -1604,8 +1589,10 @@ class dataset:
         MAX = np.max(np.absolute(s1+1j*s2))
         if self.dtypeP != np.dtype('float64'):
             # recalculate a good NC value
-            print(MAX)
-            NC = int(ceil(ln(MAX)/ln(2)))-29
+            if MAX > 0:
+                NC = int(ceil(ln(MAX)/ln(2)))-29
+            else:
+                NC = 0
         else:
             NC = 0
 #        print("NC=%d max=%f" % (NC, MAX))
@@ -1811,13 +1798,15 @@ class dataset:
 
         if self.dtypeP != np.dtype('float64'):
             # recalculate a good NC value
-            NC = int(ceil(ln(MAX)/ln(2)))-29
+            if MAX > 0:
+                NC = int(ceil(ln(MAX)/ln(2)))-29
+            else:
+                NC = 0
         else:
             NC = 0
         smin = int(spect_array_list[0].ravel().min()/2**NC)
         smax = int(spect_array_list[0].ravel().max()/2**NC)
         if smax > 2**31 or smin < -2**31:
-            print("whoowww Pb max=" + smax)
             raise ValueError("Stored int32 spectrum exceeds 2**31 magnitude. Wrong NC ? How could this happen ?")
         for dim in [1, 2]:
             self.writeprocpar("NC_proc", NC, status=True, dimension=dim)
@@ -1907,7 +1896,10 @@ class dataset:
 #            not only on 2rr..
             if self.dtypeP != np.dtype('float64'):
                 # recalculate a good NC value
-                NC = int(ceil(ln(MAX)/ln(2)))-29
+                if MAX > 0:
+                    NC = int(ceil(ln(MAX)/ln(2)))-29
+                else:
+                    NC = 0
             else:
                 NC = 0
             # topspin uses this parameter to scale display to full amplitude:
@@ -1915,7 +1907,6 @@ class dataset:
             smax = int(MAX/2**NC)
             smin = -smax
             if smax > 2**31 or smin < -2**31:
-                print("whoowww Pb: max=" + smax)
                 raise ValueError("Stored int32 spectrum exceeds 2**31 magnitude. Wrong NC ? How could this happen ?")
             for dim in [1, 2]:
                 self.writeprocpar("NC_proc", NC, status=True, dimension=dim)
@@ -1998,7 +1989,13 @@ class dataset:
         MAX = np.abs(spectArray).max()
         if self.dtypeP != np.dtype('float64'):
             # recalculate a good NC value
-            NC = int(ceil(ln(MAX)/ln(2)))-29
+            if MAX > 0:
+                if MAX > 0:
+                    NC = int(ceil(ln(MAX)/ln(2)))-29
+                else:
+                    NC = 0
+            else:
+                NC=0
         else:
             NC = 0
         #NC = self.readprocpar("NC_proc", True)
@@ -2018,7 +2015,7 @@ class dataset:
         smin = int(spectArray.ravel().min())
         smax = int(spectArray.ravel().max())
         if smax > 2**31 or smin < -2**31:
-            print("whoowww Pb max=" + smax)
+            #print("whoowww Pb max=" + smax)
             raise ValueError("Stored int32 spectrum exceeds 2**31 magnitude. Wrong NC ? How could this happen ?")
 
 
