@@ -44,6 +44,7 @@ if FnMode == 0:  # if undefined then read MC2 processing parameter
     # hence need to add 1 to MC2 to have same correspondance as for FnMode
     FnMode == dat.readprocpar("MC2", status=False, dimension=2) + 1
 
+td1 = dat.readacqpar("TD", dimension=2, status=True)
 if FnMode in [4, 5, 6]:  # State, States-TPPI, Echo-AntiEcho
     HCsize = 2
     td1 = 2*(td1//2)  # one only keeps an even number of rows
@@ -66,6 +67,7 @@ if FnTYPE == 2: # NUS
     with open(os.path.join(dat.returnacqpath(), 'nuslist')) as f:
         for line in f:
             nuslist.append(int(line.strip()))
+    nuslist = nuslist[0:td1//HCsize]
     print(nuslist)
     print(sorted(nuslist))
     newser = numpy.zeros((FullF1TD//HCsize, HCsize, sershape[-1]), dtype=serfile.dtype)
