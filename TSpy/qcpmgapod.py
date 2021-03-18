@@ -51,12 +51,15 @@ def apodize_echoes(gb=None, cycle=None, echo_position=None, dead_pts=None, noDia
     if echo_position == None:
         echo_position = GETPAR("USERP2")
         try : 
-            echo_position = int(echo_position)
+            echo_position = float(echo_position)
             if echo_position > 0:
                 echo_position = str(echo_position)
             else:
                 echo_position = str(D3+D6)
         except ValueError: 
+            MSG("""Warning!
+echo position form USERP2 could not be converted to float: %s.
+Using default D3+D6.""" % (echo_position,)) 
             echo_position = str(D3+D6)
 
     if not noDialog:
