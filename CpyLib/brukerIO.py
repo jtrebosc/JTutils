@@ -949,7 +949,7 @@ class dataset:
         """
         changes parameter "param" to value in JCAMPDX file specified in path
         returns parameter as string or None if parameter is not found.
-        User must convert the parameter type himself if needed
+        Parameter type is checked. TypeError is raise if type does not match
         Can extract arrayed parameter with parameter array name and index in
                 the array separated by a space
         e.g.: "P 1", "D 0"
@@ -2040,7 +2040,7 @@ class dataset:
             self.writeprocpar("SI", SIs[-dim], status=True, dimension=dim)
             self.writeprocpar("STSI", SIs[-dim], status=True, dimension=dim)
             # for further processing in topspin status SI and non status SI should match
-            self.writeprocpar("SI", SIs[-dim], status=False, dimension=dim)
+#            self.writeprocpar("SI", SIs[-dim], status=False, dimension=dim)
  
     def readspectnd(self, name="2rr"):
         """
