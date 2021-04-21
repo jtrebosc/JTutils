@@ -1203,6 +1203,8 @@ class dataset:
             return tabgrpdly[dspfvs][decim]
         if dspfvs == 0:
             return 0.0
+        if dspfvs == -1: # For FIDs gnereated by genser of genfid for example
+            return 0.0
 
         raise NameError("DSPFVS="+str(dspfvs)+" not yet implemented")
 
