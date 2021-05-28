@@ -95,10 +95,11 @@ def scalef1sheared(F2toF1=False, exptype='3QMAS', dataset=None):
 
     #MSG(str(swh)+"\n"+str(inf1))
     if F2toF1:
-        sf = float(dtst.readprocpar("SF", dimension=1, status=False))
+        # status of not status that is the question....
+        sf = float(dtst.readprocpar("SF", dimension=1, status=True))
     else:
-        sf = float(dtst.readprocpar("SF", dimension=2, status=False))
-
+        sf = float(dtst.readprocpar("SF", dimension=2, status=True))
+    MSG("sf=" + str(sf))
     # select spin number based on nucleus name from bruker table
     TOPSPIN_HOME = os.path.normpath(os.getenv("XWINNMRHOME"))
     nuclei = TOPSPIN_HOME + os.path.normpath("/exp/stan/nmr/lists/nuclei.all")
