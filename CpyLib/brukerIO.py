@@ -1840,6 +1840,7 @@ class dataset:
         if dType[0] == 't':
             self.writeprocpar("FT_mod", 0, True, 1)
             self.writeprocpar("FTSIZE", 0, True, 1)
+            self.writeprocpar("PKNL", False, True, 1) # at some point one needs to deal with PKNL... how ?
             self.writeprocpar("AXUNIT", "s", True, 1)
             # even though we are in time domain we need to set a SW_p in ppm
             # with respect to irradiation frequency SFO1
@@ -1862,14 +1863,21 @@ class dataset:
             dw1 = 1/sw1
             sfo1 = self.readacqpar("SFO1", status=True, dimension=2)
             self.writeprocpar("SW_p", (sw1/sfo1), status=True, dimension=2)
-            self.writeprocpar("AXRIGHT", (SIs[-2]*dw1/2.0), status=True, dimension=2)
+            # f_time:
+            # a factor to calculate the AXRIGHT in time domain
+            # if FnMODE=QF f_time = 1, else f_time = 2
+            # This is bizarely related to sw_p calculated further by xf1
+            # here one should account for FnMode but...
+            f_time = 1 
+            self.writeprocpar("AXRIGHT", (SIs[-2]*dw1/f_time), 
+                              status=True, dimension=2)
         RESTs = [si// xdim for si, xdim in zip(SIs,XDIMs)]
         for i, name in enumerate(names):
             filename = self.returnprocpath() + name
-            spect_array_list[i] /= 2**(NC)
-            spect_array_list[i] = spect_array_list[i].reshape(RESTs + XDIMs)
-            spect_array_list[i] = spect_array_list[i].swapaxes(1, 2)
-            spect_array_list[i].astype(self.dtypeP).tofile(filename)
+            spect = spect_array_list[i] / 2**(NC)
+            spect = spect.reshape(RESTs + XDIMs)
+            spect = spect.swapaxes(1, 2)
+            spect.astype(self.dtypeP).tofile(filename)
             
     def writespect2d(self, spectArray, name="2rr", dType=None, MAX=None):
         """
@@ -2244,6 +2252,6 @@ def zeroFill(spect, SI):
     # now slice if required
     if slice_required:
         slicers = [slice(i) for i in SI]
-        return spect[slicers]
+        return spect[tuple(slicers)]
     else:
         return spect
