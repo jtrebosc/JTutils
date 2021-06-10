@@ -47,6 +47,7 @@ if args.tdeff == True: # truncate according to TDeff in direct dim only
     tdeff2 = dat.readprocpar("TDeff", dimension=1, status=False) // 2
     if tdeff2>0 and tdeff2<td2:
         td2 = tdeff2
+dat.writeprocpar("TDeff", td2*2, dimension=1, status=True)
 
 if args.rmdigfilt:
     digfilt = dat.getdigfilt()
@@ -111,6 +112,7 @@ if args.tdeff == True:
     if tdeff1 > 0 and tdeff1 < td1:
         td1 = tdeff1
         newser = newser[0:td1, :]
+dat.writeprocpar("TDeff", td1, dimension=2, status=True)
 
 if args.si == True:
     SIs = (dat.readprocpar("SI", status=False, dimension=2),
