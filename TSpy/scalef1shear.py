@@ -99,7 +99,7 @@ def scalef1sheared(F2toF1=False, exptype='3QMAS', dataset=None):
         sf = float(dtst.readprocpar("SF", dimension=1, status=True))
     else:
         sf = float(dtst.readprocpar("SF", dimension=2, status=True))
-    MSG("sf=" + str(sf))
+    #MSG("sf=" + str(sf))
     # select spin number based on nucleus name from bruker table
     TOPSPIN_HOME = os.path.normpath(os.getenv("XWINNMRHOME"))
     nuclei = TOPSPIN_HOME + os.path.normpath("/exp/stan/nmr/lists/nuclei.all")
