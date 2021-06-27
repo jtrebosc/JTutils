@@ -542,7 +542,7 @@ def create_report():
     WarningCpython += message + '\n'
     if success:
         cmodule_imported = {}
-        for module in ["numpy", "argparse", "multiprocessing", "bruker"]:
+        for module in ["numpy", "argparse", "multiprocessing", "brukerIO"]:
             cmodule_imported[module], version_message = test_cmodule_import(module)
             if cmodule_imported[module]:
                 WarningCpython += "%s %s module imported successfully\n" % (module, version_message)
