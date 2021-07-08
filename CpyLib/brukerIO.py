@@ -2228,7 +2228,7 @@ def SInext(TD):
     """
     import numpy as np
     if type(TD) is int:
-        return 2**(np.ceil(np.log2(TD)))
+        return int(2**(np.ceil(np.log2(TD))))
     else:
         return [int(i) for i in 2**(np.ceil(np.log2(TD)))]
 
