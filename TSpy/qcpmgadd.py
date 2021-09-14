@@ -61,7 +61,7 @@ def add_echoes(lb=None, gb=None, n_echoes=None, cycle=None, dead_pts=None,
     if echo_position == None:
         echo_position = GETPAR("USERP2")
         try : 
-            echo_position = int(echo_position)
+            echo_position = float(echo_position)
             if echo_position > 0:
                 echo_position = str(echo_position)
             else:
@@ -109,7 +109,7 @@ def add_echoes(lb=None, gb=None, n_echoes=None, cycle=None, dead_pts=None,
 
     fulldataPATH = JTutils.fullpath(dataset)
 
-    opt_args = " -g %s -l %s -n %s -c %s " % (gb, lb, n_echoes, cycle)
+    opt_args = " -g %s -l %s -n %s -c %s -s %s" % (gb, lb, n_echoes, cycle, echo_position)
     if norm_noise:
         opt_args += "--norm_noise "
     if  even_only:
