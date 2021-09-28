@@ -69,13 +69,6 @@ def _write_config(config):
     with open(config_file, 'w') as f:
         json.dump(config, f)
 
-def cpython_path():
-    """
-    Return absolute path to external C python interpreter 
-    as read from config file.
-    """
-    return _read_config()['CPYTHON']
-
 def _get_cpython_path():
     """
     Obsolete function: not used anymore
