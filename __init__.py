@@ -7,11 +7,10 @@
 #                        a CPYTHON environment with correct PYTHONPATH
 from __future__ import unicode_literals
 
-__all__ = ['TSpy', 'brukerPARIO', 'fullpath', 'run_CpyBin_script']
+__all__ = ['TSpy', 'brukerPARIO', 'fullpath', 'run_CpyBin_script', 'run_ext_script']
 from .CpyLib import brukerPARIO
 from os.path import dirname, abspath, join, normpath
 import os
-
 
 def _get_os_version():
     """ returns the underlying OS as lowercase string: 
@@ -23,8 +22,6 @@ def _get_os_version():
         version = java.lang.System.getProperty("os.name").lower()
     return version
 
-_OS = _get_os_version()
-# _OS in [ 'linux', 'win', 'mac os x']
 
 # special treatment for topspin<3
 def fullpath(dataset):
@@ -69,12 +66,12 @@ def _write_config(config):
     with open(config_file, 'w') as f:
         json.dump(config, f)
 
-def cpython_path():
+def _cpython_path():
     """
     Return absolute path to external C python interpreter 
     as read from config file.
     """
-    return _read_config()['CPYTHON']
+    return _config()['CPYTHON']
 
 def _get_cpython_path():
     """
@@ -108,17 +105,15 @@ def _set_external_environment(config):
 
 def _run_string_ext_script(script):
     """
-    launch script using external CPYTHON
-    script : string containing script to execute
-    returns the output of script
+    Launch script using external CPYTHON
+        script : string containing script to execute
+        Returns the output of script
     """
     import subprocess
-    _config = _read_config()
-    _environment = _set_external_environment(_config)
 
     try:
         result = subprocess.check_output([_config['CPYTHON'], "-c", script], 
-                        env=_environment, stderr=subprocess.STDOUT)    
+                        env=_external_environment, stderr=subprocess.STDOUT)    
         if 'win' in _OS:
             # default codepage is cp850 on windows
             result = result.decode('cp850')
@@ -132,16 +127,27 @@ def _run_string_ext_script(script):
             error_message = exc.output
         raise subprocess.CalledProcessError(exc.returncode, exc.cmd, error_message)
  
+def run_ext_script(script_name, args):
+    """
+    launch external script_name with args using external CPYTHON
+    script_name: name of external python script with absolute path
+    args : a list of strings : list of arguments to pass to script
+    """
+    import subprocess
+    subprocess.call([_config['CPYTHON']]+[script_name]+args, env=_external_environment)    
+
 def run_CpyBin_script(script_name, args):
     """
     launch CpyBin/script_name with args using external CPYTHON
     script_name: name of external python script in CpyBin
     args : a list of strings : list of arguments to pass to script
     """
-    import subprocess
-    _config = _read_config()
-    _environment = _set_external_environment(_config)
     script = join(dirname(abspath(__file__)), "CpyBin", script_name)
-    subprocess.call([_config['CPYTHON']]+[script]+args, env=_environment)    
+    run_ext_script(script, args)
     
+
+_config = _read_config()
+_OS = _get_os_version()
+# _OS in [ 'linux', 'win', 'mac os x']
+_external_environment = _set_external_environment(_config)
 

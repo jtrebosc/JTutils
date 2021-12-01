@@ -4,15 +4,19 @@ import subprocess
 import sys
 import JTutils
 
+def read_mdisp(dataset):
+		pass
+
 def launch_ssnake(datfile, config):
-    environment_var = os.environ.copy()
     if 'SSNAKEPATH' in config.keys():
         ssnake_path = config['SSNAKEPATH']
 
-    subp_args = [JTutils.cpython_path(), ssnake_path]
-    if datfile is not None:
-        subp_args.append(datfile)
-    subprocess.call(subp_args, env=environment_var)
+    args = []
+    
+    if datfile:
+        args.append(datfile) 
+        
+    JTutils.run_ext_script(ssnake_path, args)
 
 if __name__ == '__main__':
     from JTutils.TSpy.ssnake_setup import read_config_file, run_setup
@@ -79,7 +83,7 @@ currently installed versions are: %s''' % (', '.join(config.keys())),
     sys.stderr = old_stderr
     print(err_msg)
     
-    print config
+#    print config
     if version == None :
         for key in config.keys():
             if config[key]['DEFAULT']:
