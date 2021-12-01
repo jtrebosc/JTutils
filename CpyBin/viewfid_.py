@@ -98,6 +98,7 @@ if FnTYPE == 2: # NUS
     newser = numpy.zeros((FullF1TD//HCsize, HCsize, sershape[-1]), dtype=serfile.dtype)
 #    print(nuslist, serfile.shape)
     newser[nuslist] = serfile
+    print(nuslist)
 #    for i,j in enumerate(nuslist):
 #        newser[j] = serfile[i]
     newser = newser.reshape((FullF1TD, sershape[-1]))
@@ -124,24 +125,25 @@ else:
     SIs = newser.shape
 shape = brukerIO.SInext(SIs)
 newser = brukerIO.zeroFill(newser,shape)
-dat.writespectnd(newser.imag, name=names[1])
-dat.writespectnd(newser.real, name=names[0])
+dat.writespect2dall([newser.real, newser.imag], MC2=FnMode-1, dType='tt')
+#dat.writespectnd(newser.imag, name=names[1])
+#dat.writespectnd(newser.real, name=names[0])
 # set time units
-rank = len(newser.shape)
+#rank = len(newser.shape)
 # write some status parameters not already written by writespectnd
-for dim in range(1, rank+1):
-    dat.writeprocpar("AXUNIT", "s", status=True, dimension=dim)
-    dat.writeprocpar("AXLEFT", 0, status=True, dimension=dim)
-    swh = dat.readacqpar("SW_h", status=True, dimension=dim)
-    si = newser.shape[-dim]
-    sfo1 = dat.readacqpar("SFO1", status=True, dimension=dim)
-    sf = dat.readprocpar("SF", status=False, dimension=dim)
-    dat.writeprocpar("AXRIGHT", (1/swh*(si)/dim), status=True, dimension=dim)
-    dat.writeprocpar("OFFSET", ((sfo1+swh/2-sf)/sf), status=True, dimension=dim)
-    dat.writeprocpar("SW_p", (swh/sfo1), status=True, dimension=dim)
-    dat.writeprocpar("PH_mod", 0, status=True, dimension=dim)
-    dat.writeprocpar("BC_mod", 0, status=True, dimension=dim)
-    dat.writeprocpar("Mdd_mod", 0, status=True, dimension=dim)
+#for dim in range(1, rank+1):
+#    dat.writeprocpar("AXUNIT", "s", status=True, dimension=dim)
+#    dat.writeprocpar("AXLEFT", 0, status=True, dimension=dim)
+#    swh = dat.readacqpar("SW_h", status=True, dimension=dim)
+#    si = newser.shape[-dim]
+#    sfo1 = dat.readacqpar("SFO1", status=True, dimension=dim)
+#    sf = dat.readprocpar("SF", status=False, dimension=dim)
+#    dat.writeprocpar("AXRIGHT", (1/swh*(si)/dim), status=True, dimension=dim)
+#    dat.writeprocpar("OFFSET", ((sfo1+swh/2-sf)/sf), status=True, dimension=dim)
+#    dat.writeprocpar("SW_p", (swh/sfo1), status=True, dimension=dim)
+#    dat.writeprocpar("PH_mod", 0, status=True, dimension=dim)
+#    dat.writeprocpar("BC_mod", 0, status=True, dimension=dim)
+#    dat.writeprocpar("Mdd_mod", 0, status=True, dimension=dim)
 
 # deal with digital filter for phase correction
 dat.writeprocpar("PKNL", args.rmdigfilt, status=True, dimension=1)

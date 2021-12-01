@@ -1868,7 +1868,7 @@ class dataset:
             # if FnMODE=QF f_time = 1, else f_time = 2
             # This is bizarely related to sw_p calculated further by xf1
             # here one should account for FnMode but...
-            f_time = 1 
+            f_time = 2 
             self.writeprocpar("AXRIGHT", (SIs[-2]*dw1/f_time), 
                               status=True, dimension=2)
         RESTs = [si// xdim for si, xdim in zip(SIs,XDIMs)]
@@ -1934,6 +1934,7 @@ class dataset:
         spectArray = spectArray.reshape(RESTs + XDIMs)
         spectArray = spectArray.swapaxes(1, 2)
         spectArray.astype(self.dtypeP).tofile(filename)
+        print('OK')
         if dType:
             if dType[0] == 'f':  # assume fqc FT applied
                 self.writeprocpar("FT_mod", 6, True, 1)
