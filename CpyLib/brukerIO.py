@@ -1096,6 +1096,19 @@ class dataset:
         f.close()
         return True
 
+    def delete_processed_data(self):
+        import itertools
+        import os
+        # list of files '1r', '2ri', '3rir' for example
+        files = [str(self.dimP) + ''.join(ri) for ri in itertools.product(['r', 'i'], repeat=self.dimP)]
+        print("deleting" + ' '.join(files))
+        for f in files: 
+            try:
+                os.remove(self.returnprocpath() + f)
+            except FileNotFoundError:
+                # all files may not exist, just skip silently
+                pass
+     
     def getdigfilt(self):
         """
         returns the number of complex points that corresponds to
@@ -1851,6 +1864,7 @@ class dataset:
             sfo2 = self.readacqpar("SFO1", status=True, dimension=1)
             self.writeprocpar("SW_p", (sw2/sfo2), status=True, dimension=1)
             self.writeprocpar("AXRIGHT", (SIs[-1]*dw2), status=True, dimension=1)
+            self.writeprocpar("AXLEFT", 0.0, status=True, dimension=1)
         if dType[1] == 't':
             self.writeprocpar("FT_mod", 0, True, 2)
             self.writeprocpar("FTSIZE", 0, True, 2)
@@ -1871,6 +1885,7 @@ class dataset:
             f_time = 2 
             self.writeprocpar("AXRIGHT", (SIs[-2]*dw1/f_time), 
                               status=True, dimension=2)
+            self.writeprocpar("AXLEFT", 0.0, status=True, dimension=1)
         RESTs = [si// xdim for si, xdim in zip(SIs,XDIMs)]
         for i, name in enumerate(names):
             filename = self.returnprocpath() + name
@@ -1934,7 +1949,7 @@ class dataset:
         spectArray = spectArray.reshape(RESTs + XDIMs)
         spectArray = spectArray.swapaxes(1, 2)
         spectArray.astype(self.dtypeP).tofile(filename)
-        print('OK')
+#        print('OK')
         if dType:
             if dType[0] == 'f':  # assume fqc FT applied
                 self.writeprocpar("FT_mod", 6, True, 1)

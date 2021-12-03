@@ -38,6 +38,8 @@ parser.add_argument('infile', help='Full path of the dataset to process')
 args = parser.parse_args()
 dat = brukerIO.dataset(brukerIO.splitprocpath(args.infile))
 
+# I think I need to delete any 2[ri][ri[ file for topspin to run good processing... If 2ii or 2ri file is there then it perturbs topspin understanding
+
 # read ser file 
 serfile = dat.readserc(rmGRPDLY=args.rmdigfilt)
 
@@ -102,6 +104,7 @@ if FnTYPE == 2: # NUS
 #    for i,j in enumerate(nuslist):
 #        newser[j] = serfile[i]
     newser = newser.reshape((FullF1TD, sershape[-1]))
+#    dat.writeprocpar("MddSRSIZE", 0, status=True, dimension=1)
 else:
     newser = serfile
 
@@ -124,30 +127,43 @@ if args.si == True:
 else:
     SIs = newser.shape
 shape = brukerIO.SInext(SIs)
-newser = brukerIO.zeroFill(newser,shape)
+newser = brukerIO.zeroFill(newser, shape)
+dat.delete_processed_data()
 dat.writespect2dall([newser.real, newser.imag], MC2=FnMode-1, dType='tt')
 #dat.writespectnd(newser.imag, name=names[1])
 #dat.writespectnd(newser.real, name=names[0])
 # set time units
-#rank = len(newser.shape)
+rank = len(newser.shape)
 # write some status parameters not already written by writespectnd
-#for dim in range(1, rank+1):
+for dim in range(1, rank+1):
 #    dat.writeprocpar("AXUNIT", "s", status=True, dimension=dim)
+    swh = dat.readacqpar("SW_h", status=True, dimension=dim)
+    si = newser.shape[-dim]
+    sfo1 = dat.readacqpar("SFO1", status=True, dimension=dim)
+    sf = dat.readprocpar("SF", status=False, dimension=dim)
+# AXRIGHT/LEFT/SW_p set during writespect2dall
 #    dat.writeprocpar("AXLEFT", 0, status=True, dimension=dim)
-#    swh = dat.readacqpar("SW_h", status=True, dimension=dim)
-#    si = newser.shape[-dim]
-#    sfo1 = dat.readacqpar("SFO1", status=True, dimension=dim)
-#    sf = dat.readprocpar("SF", status=False, dimension=dim)
 #    dat.writeprocpar("AXRIGHT", (1/swh*(si)/dim), status=True, dimension=dim)
-#    dat.writeprocpar("OFFSET", ((sfo1+swh/2-sf)/sf), status=True, dimension=dim)
 #    dat.writeprocpar("SW_p", (swh/sfo1), status=True, dimension=dim)
-#    dat.writeprocpar("PH_mod", 0, status=True, dimension=dim)
-#    dat.writeprocpar("BC_mod", 0, status=True, dimension=dim)
-#    dat.writeprocpar("Mdd_mod", 0, status=True, dimension=dim)
+    dat.writeprocpar("OFFSET", ((sfo1+swh/2-sf)/sf), status=True, dimension=dim)
+    dat.writeprocpar("ME_mod", 0, status=True, dimension=dim)
+    dat.writeprocpar("NCOEF", 0, status=True, dimension=dim)
+    dat.writeprocpar("LPBIN", 0, status=True, dimension=dim)
+    dat.writeprocpar("TDoff", 0, status=True, dimension=dim)
+    dat.writeprocpar("REVERSE", 0, status=True, dimension=dim)
+    dat.writeprocpar("REVERSE", 0, status=True, dimension=dim)
+    dat.writeprocpar("WDW", 0, status=True, dimension=dim)
+    dat.writeprocpar("PH_mod", 0, status=True, dimension=dim)
+    dat.writeprocpar("BC_mod", 0, status=True, dimension=dim)
+    dat.writeprocpar("LB", 0, status=True, dimension=dim)
+    dat.writeprocpar("FCOR", 0, status=True, dimension=dim)
+    dat.writeprocpar("PHC0", 0, status=True, dimension=dim)
+    dat.writeprocpar("PHC1", 0, status=True, dimension=dim)
+#... Any more parameter required to be set to 0/no ?
 
 # deal with digital filter for phase correction
 dat.writeprocpar("PKNL", args.rmdigfilt, status=True, dimension=1)
-# for further processing PKNL should be set to no is digital Filter is removed
+# for further processing PKNL should be set to no if digital Filter is removed
 dat.writeprocpar("PKNL", not args.rmdigfilt, status=False, dimension=1)
 
 #showser(newser.real)
