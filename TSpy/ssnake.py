@@ -5,16 +5,28 @@ import sys
 import JTutils
 
 def read_mdisp(dataset):
-		pass
+    """ Read the assocs file in dataset procno and search for files defined for multiple display """
+    dtst = JTutils.brukerPARIO.dataset(dataset)
+    procpath = dtst.returnprocpath()
+    fname = procpath + 'assocs'
+    if os.path.isfile(fname):
+        mdisp = dtst._readpar(procpath + 'assocs', "MULTDISP")
+        return mdisp.split('|')
+    return []
 
-def launch_ssnake(datfile, config):
-    if 'SSNAKEPATH' in config.keys():
+def launch_ssnake(datfiles, config):
+    """ datfiles : list of fully qualified files to open
+        config:  configuration dictionnary defining where to find exe files
+    """
+    try:
         ssnake_path = config['SSNAKEPATH']
-
+    except KeyError:
+        MSG("Sorry config file doesn't contain proper SSNAKEPATH")
+        EXIT()
     args = []
     
-    if datfile:
-        args.append(datfile) 
+    for f in datfiles:
+        args.append(f) 
         
     JTutils.run_ext_script(ssnake_path, args)
 
@@ -63,12 +75,17 @@ print(sys.version)"""
             help='''Version of ssnake installed with ssnake_setup : 
 currently installed versions are: %s''' % (', '.join(config.keys())), 
             default=None)
-        version = parser.parse_args(sys.argv[1:]).version
+        parser.add_argument('-m', '--mdisp', help='Open all spectra from multiple display', action='store_true')     
+        args = parser.parse_args(sys.argv[1:])
+        version = args.version
+        mdisp = args.mdisp
     except ImportError:
         if len(sys.argv) > 1:
             version = sys.argv[1]
+            mdisp = False
         else: 
             version = None
+            mdisp = False
     except SystemExit:
         # argparse has triggered an exception : print the error in a MSG box
         # and restore the stdout and err
@@ -98,7 +115,7 @@ Allowed versions are : %s """  % (version, ', '.join(config.keys())))
 
     current_data = CURDATA()
     if current_data is None:
-        datfile = None
+        datfiles = []
     else:
         dataset = fullpath(current_data)
         dim = GETPROCDIM()
@@ -109,6 +126,15 @@ Allowed versions are : %s """  % (version, ', '.join(config.keys())))
         else :
             MSG("ssnake can only open 1D or 2D datasets")
             EXIT()
-        datfile = os.path.join(dataset, spectname)
-    launch_ssnake(datfile, setup_dict)
+        datfiles = [os.path.join(dataset, spectname)]
+        if mdisp == True:
+            mfiles = read_mdisp(current_data)
+            for f in mfiles:
+                if os.path.isfile(os.path.join(f, '1r')):
+                    datfiles.append(os.path.join(f, '1r'))
+                elif os.path.isfile(os.path.join(f, '2rr')):
+                    datfiles.append(s.path.join(f, '2rr'))
+                else:
+                		continue
+    launch_ssnake(datfiles, setup_dict)
  
