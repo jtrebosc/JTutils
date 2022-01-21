@@ -222,8 +222,6 @@ def test_config_file():
         CPYTHON_FAILED: CPYTHON entry found in $USERHOME_DOT_TOPSPIN/JTtutils/config.json is missing or does 
                         not point to a valid cpython interpreter
     """ 
-    import JTutils
-    reload(JTutils) # in case an old JTutils was already installed and loaded
     conf_path_dir = join_path(USERHOME_DOT_TOPSPIN, "JTutils")
     if not isdir(conf_path_dir):
         return (False, "DIR_NOT_FOUND: JTutils configuration folder not found in " + conf_path_dir)
@@ -232,6 +230,8 @@ def test_config_file():
 #        MSG(conf_path_file + " not found")
         return (False, "FILE_NOT_FOUND: JTutils configuration file not found at " + conf_path_file)
     try:
+        import JTutils
+        reload(JTutils) # in case an old JTutils was already installed and loaded
         config = JTutils._read_config()
     except:
         return (False, "JSON_READ_FAILED: failed reading config json file")
@@ -611,6 +611,20 @@ class FileSelector(JFrame):
     def get_file_name(self):
         return self.file_name
 
+def write_config(config): # cannot rely on JTutils write config if config is not set properly as module cannot loaf in that case
+    """ write json config file in user topspin preference folder 
+        (.topspin1 for example)
+        argument config is a dictionnary with configuration parameters
+    """
+    import json
+    prop_dir = os.getenv('USERHOME_DOT_TOPSPIN', "not defined")
+    if prop_dir == "not defined":
+        print("USERHOME_DOT_TOPSPIN not defined")
+        raise
+    config_file = os.path.join(normpath(prop_dir),'JTutils','config.json')
+    with open(config_file, 'w') as f:
+        json.dump(config, f)
+
 
 
 def update_config():
@@ -646,10 +660,7 @@ def update_config():
         rmtree(link_name)
         make_module_link()
 
-    # Now one should be able to load JTtutils 
-    import JTutils
-    reload(JTutils) # in case an old JTutils was already installed and loaded
-    # but some functions that require 
+   # but some functions that require 
     # external cpython through run_CpyBin_script may still fail if setup is not correct
     # check configuration file
     success, message = test_config_file()
@@ -660,11 +671,17 @@ def update_config():
         config = {}
         cpython = select_external_python()
     else :
+        import JTutils
+        reload(JTutils)
         config = JTutils._read_config()
         foundCPYTHON = config['CPYTHON']
         cpython = select_external_python(foundCPYTHON)
     config = guess_config(cpython)
-    JTutils._write_config(config)
+    write_config(config)
+
+    #now we can try to import JTutils
+    import JTutils
+    reload(JTutils)
 #    MSG(str(config))
     create_report()
     
