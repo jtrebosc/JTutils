@@ -8,7 +8,7 @@ import sys
 #modulePath=os.environ['PYBRUKER']
 #sys.path.append(modulePath)
 import brukerIO
-import numpy.core as n
+import numpy.core as np
 
 def usage():
 	print("""transform a 2D processed dataset in a 1D stacked plot""")
@@ -45,12 +45,20 @@ data1D = brukerIO.splitprocpath(infile1D)
 #initialize dataset
 dat = brukerIO.dataset(data)
 dat1D = brukerIO.dataset(data1D)
+
+# 2rr is the main file
+# 2ri or 2ir or 2ii could be the imaginary part depending on MC2 and PH_mod
+# typically MC2 is QF for popt (hence 2ii file is generated unless PH_mod is ps or mc meaning no imaginary part exists)
+# for now I only try to read 2ii imaginary file, and don't attempt to read other files (2ri or 2ir) 
 #read 2D 2rr data
 Fr = "2rr"
 Fi = "2ii"
 spect = dat.readspect2d(Fr)
-specti = dat.readspect2d(Fi)
-if specti is None: specti = spect
+try:
+    specti = dat.readspect2d(Fi)
+except IOError:
+    print("reading 2ii file failed")
+    specti = np.zeros_like(spect)
 
 # convertir F1P,F2P en points:
 # divers cas :
