@@ -14,6 +14,30 @@ def read_mdisp(dataset):
         return mdisp.split('|')
     return []
 
+def getfilename(procnopath, isfid):
+    """ returns the filename to read given the fullpath to procno and whether fid or spectrum is to be loaded"""
+    from JTutils import brukerPARIO as io
+    the_path = io.splitprocpath(procnopath)
+    dataset = io.dataset(the_path)
+    if isfid:
+        dim = dataset.readacqpar('PARMODE', True, 1)
+        if dim == '0':
+            file = 'fid'
+        else :
+            file = 'ser'
+        return os.path.join(dataset.returnacqpath(), file)
+    else:
+        dim = dataset.readprocpar('PPARMOD', True, 1)
+        if dim == '0':
+            file = '1r'
+        elif dim == '1':
+            file = '2rr'
+        else :
+            MSG('Dealing only with 1D or 2D only:')
+            EXIT()
+        return os.path.join(dataset.returnprocpath(), file)
+    
+
 def launch_ssnake(datfiles, config):
     """ datfiles : list of fully qualified files to open
         config:  configuration dictionnary defining where to find exe files
@@ -76,16 +100,20 @@ print(sys.version)"""
 currently installed versions are: %s''' % (', '.join(config.keys())), 
             default=None)
         parser.add_argument('-m', '--mdisp', help='Open all spectra from multiple display', action='store_true')     
+        parser.add_argument('-f', '--fid', help='Reads time domain FID instead of spectrum', action='store_true')     
         args = parser.parse_args(sys.argv[1:])
         version = args.version
         mdisp = args.mdisp
+        isfid = args.fid
     except ImportError:
         if len(sys.argv) > 1:
             version = sys.argv[1]
             mdisp = False
+            isfid = False
         else: 
             version = None
             mdisp = False
+            isfid = False
     except SystemExit:
         # argparse has triggered an exception : print the error in a MSG box
         # and restore the stdout and err
@@ -117,24 +145,10 @@ Allowed versions are : %s """  % (version, ', '.join(config.keys())))
     if current_data is None:
         datfiles = []
     else:
-        dataset = fullpath(current_data)
-        dim = GETPROCDIM()
-        if dim ==  1 :
-            spectname = "1r"
-        elif dim == 2 :
-            spectname = "2rr"
-        else :
-            MSG("ssnake can only open 1D or 2D datasets")
-            EXIT()
-        datfiles = [os.path.join(dataset, spectname)]
-        if mdisp == True:
+        datfiles = [getfilename(fullpath(current_data), isfid)]
+        if mdisp :
             mfiles = read_mdisp(current_data)
             for f in mfiles:
-                if os.path.isfile(os.path.join(f, '1r')):
-                    datfiles.append(os.path.join(f, '1r'))
-                elif os.path.isfile(os.path.join(f, '2rr')):
-                    datfiles.append(s.path.join(f, '2rr'))
-                else:
-                		continue
+                datfiles.append(getfilename(f, isfid))
     launch_ssnake(datfiles, setup_dict)
  
