@@ -23,6 +23,7 @@ dat = brukerIO.dataset(brukerIO.splitprocpath(args.infile))
 
 # 0 undef, 1 QF, 2 QSEQ, 3 TPPI, 4 states, 5 states-tppi, 6 echo=antiecho
 mode2D = dat.readacqpar("FnMODE", dimension=2, status=True)
+FnTYPE = dat.readacqpar("FnTYPE", dimension=1, status=True)
 
 if mode2D == 0:
     mode2D = dat.readprocpar("MC2", dimension=1) + 1
@@ -38,6 +39,9 @@ if mode2D in [1, ] : # QF only
     files = ['2rr', '2ii']
 elif mode2D in [2, 3, 4, 5, 6,]: # states, states-TPPI, Echo-AntiEcho
     files = ['2rr', '2ri', '2ir', '2ii']
+    if FnTYPE == 2:
+        files = ['2rr', '2ri']
+
 
 # let's shift 2rr but what about the other imaginary ? shift also or HT ?
 # lire la fid et eliminer le filter digital (par defaut)
@@ -57,5 +61,6 @@ offset = dat.readprocpar("OFFSET", dimension=2, status=True)
 sf = dat.readprocpar("SF", dimension=2, status=True)
 # store the new  ppm value of spectrum start
 newoffset = offset+args.n*hzppt/sf
-dat.writeprocpar("OFFSET", (newoffset), dimension=2, status=True)
+dat.writeprocpar("OFFSET", newoffset, dimension=2, status=True)
 
+print(newoffset)
