@@ -1417,10 +1417,11 @@ class dataset:
         # aqseq=1 acqus then acqu3s then acqu2s
         # aqseq initialised to -1 when not used
         aqseq = -1
-        if dim > 2: # if 3D or more dataset
+        if dim == 3: # if 3D dataset
             aqseq = self.readacqpar("AQSEQ", True)
         # AQSEQ 3D: {'0': '321', '1', '312'}
-        # AQSEQ 4D: {'0': '4321', '1', '4312', ...?}
+        # Sets how the loops are ordered : '321' means F3 inner loop, F2 middle, F1 outer loop
+
         # tdnd list size of dims based on status TD
         tdnd = []
         # tdn full size of array except first dim
@@ -1675,32 +1676,33 @@ class dataset:
             3D:
                 Note that topspin can only process as tf3 first then tf2 and tf1 in either order
                 and one cannot rephase a dimension once the next is transformed (unless HT is done)
+                tfx does FT without evaluation of FT_mod
                 MC2 = States[-TPPI](t2) / States[-TPPI](t1) : hypercomplex acquisition in both dimensions
                     FT(t1, t2, t3)
-                    FT(no, no,no) ->  3rrr, 3irr (to be confirmed)
-                    FT(no, no,fqc) ->  3rrr, 3irr
-                    FT(no, fsc, fqc) -> 3rrr, 3rir
+                    FT(no, no,no) ->  impossible as FT always done
+                    FT(no, no,fqc) ->  3rrr, 3irr 
+                    FT(no, fsc, fqc) -> 3rrr, 3rir (imaginary part of F3 is discarded unless hilbert transform was done afterwards)
                     FT(fsc, no, fqc) -> 3rrr, 3rri
                     FT(fsc, fsc, fqc) -> 3rrr, 3rri or 3rir depending if tf2 or tf1 was first
                     after 3D FT, Hilbert Transform (HT) in F3 adds 3irr, in F2 adds 3rir but there are still some missing octants like 3iii, 3iir, 3iri, 3rii.
                     A priori, no inverse transform is feasible
                 MC2 = QF(t2) / States(t1)
                     FT(t1, t2, t3)
-                    FT(no, no, no) -> 3rrr, 3iii (to be confirmed) 
+                    FT(no, no,no) ->  impossible as FT always done
                     FT(no, no, fqc) -> 3rrr, 3iii
                     FT(no, fqc, fqc) -> 3rrr, 3iii
                     FT(fqc, no, fqc) -> 3rrr, 3iii, 3rri
                     FT(fqc, fqc, fqc) -> 3rrr, 3rri (tf3;tf2;tf1) or 3iii (tf3;tf1;tf2)
                 MC2 = States(t2) / QF(t1)
                     FT(t1, t2, t3)
-                    FT(no, no, no) -> 3rrr, 3iii (to be confirmed) 
+                    FT(no, no,no) ->  impossible as FT always done
                     FT(no, no, fqc) -> 3rrr, 3iii
                     FT(no, fqc, fqc) -> 3rrr, 3rir, 3iii
                     FT(fqc, no, fqc) -> 3rrr, 3iii
                     FT(fqc, fqc, fqc) -> 3rrr, 3iii (tf3;tf2;tf1) or 3rir (tf3;tf1;tf2), 
                 MC2 = QF(t2) / QF(t1)
                     FT(t1, t2, t3)
-                    FT(no, no, no) -> 3rrr, 3iii (to be confirmed) 
+                    FT(no, no,no) ->  impossible as FT always done
                     FT(no, no, fqc) -> 3rrr, 3iii
                     FT(no, fqc, fqc) -> 3rrr, 3iii
                     FT(fqc, fqc, fqc) -> 3rrr, 3iii
