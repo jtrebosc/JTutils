@@ -395,6 +395,31 @@ def rephase(self, NdArray, phase=0, dim=0):
     NdArray.swapaxes(dim, -1)
     return NdArray
 
+"""
+AQSEQ contains an integer that codes the dimension (F1, F2, F3 as
+      they appear in eda and refering to acqus, acqu2s, acqu3s
+      etc...) storage order.
+For 2D there is no need for it. the value is always 0
+For 3D one has the following order:
+    0: F3F2F1
+    1: F3F1F2
+For 4D : not checked on real dataset but my guess
+    0: F4F3F2F1
+    1: F4F3F1F2
+    2: F4F2F3F1
+    3: F4F2F1F3
+    4: F4F1F3F2
+    5: F4F1F2F3
+For 5D nd larger only natural order is allowed : 
+    0: F5F4F3F2F1
+If AQSEQ is not set (-1 ??? or missing key ?) then processing parameter AQORDER is used
+"""
+# permutations dict(dimension: dict(AQSEQ: [dimension order]))
+# where dimension as int is the spectrum dimensionality (2D, 3D, .... nD)
+# and AQSEQ as int is the AQSEQ order (0, 1, 2...)
+_AQSEQ_permutations = { 3: {0: [ 0, 1], 1: [1, 0]}, 
+                4: {0: [ 0, 1, 2], 1: [1, 0, 2], 2: [0, 2, 1], 3: [2, 0, 1], 4: [1, 2, 0], 5: [2, 1, 0]}
+              }
 
 class dataset:
     """
@@ -1358,14 +1383,7 @@ class dataset:
             raise FileNotFoundError("Ser file %s not found." % (filename, ))
         # PARMODE contains 0 for 1D, 1 for 2D, 2 for 3D, n-1 for nD
         dim = self.readacqpar("PARMODE", True) + 1
-        # ordre de stockage des dim 2 et 3
-        # aqseq=0 acqus puis acqu2s puis acqu3s
-        # aqseq=1 acqus puis acqu3s puis acqu2s
-        # aqseq initialised to -1 when not used
 
-        aqseq = -1
-        if dim > 2:
-            aqseq = self.readacqpar("AQSEQ", True)
         scale = self.readacqpar("NC", True)
         TD = self.readacqpar("TD", True)
         tdnd = []
@@ -1374,8 +1392,19 @@ class dataset:
             tmptd = self.readacqpar("TD", True, dimension=i)
             tdnd.insert(0, tmptd)
             tdn *= tmptd
-        if aqseq == 1:
-            (tdnd[-2], tdnd[-1]) = (tdnd[-1], tdnd[-2])
+
+        aqseq = self.readacqpar("AQSEQ", True) # a priori AQSEQ is always there and default to 0, otherwise it is set to None
+        try:
+            final = _AQSEQ_permutations[dim][aqseq]
+            start = [i for i in range(dim-1)] 
+            tdnd_tmp = tdnd.copy()
+            for i, j in zip(start, final):
+                tdnd_tmp[j] = tdnd[i]
+            tdnd = tdnd_tmp
+        except KeyError:
+            start = [i for i in range(dim-1)] 
+            final = start
+        
         # ser file contains FID of blocks of 256 points
         # thus one needs to calculate the length of 1 FID
         # calculates the number of points per block
@@ -1386,7 +1415,11 @@ class dataset:
         tdnd.append(tdblock)
         res = np.fromfile(filename, dtype=self.dtypeA,
                          count=tdn*tdblock).astype(float)
-        res.resize(tdnd)
+        res = res.reshape(tdnd)
+
+        # moveaxis according to AQSEQ so that topspin dimensions F1, F2, F3... correspond to array dimensions
+        res = np.moveaxis(res, start, final)
+        
         # get digital filter length
         npts = 2*int(round(self.getdigfilt()))
         # rescaling values according to NC_acqu and
@@ -1402,8 +1435,10 @@ class dataset:
         If rmGRPDLY=True then the digital filter is removed from the
             beginning of the FIDs
         If applyNC=True then the array is multiplied by 2**NC
+        TODO: handling of AQSEQ for 4D datasets
         """
         from math import ceil
+
 
         # get the location of ser file and check for existence
         filename = self.returnacqpath() + "ser"
@@ -1412,16 +1447,7 @@ class dataset:
         # determine rank
         # PARMODE contains 0 for 1D, 1 for 2D, 2 for 3D, n-1 for nD
         dim = self.readacqpar("PARMODE", True) + 1
-        # determine dimension ordering for dim 2 and 3 in 3D datasets
-        # aqseq=0 acqus then acqu2s then acqu3s
-        # aqseq=1 acqus then acqu3s then acqu2s
-        # aqseq initialised to -1 when not used
-        aqseq = -1
-        if dim == 3: # if 3D dataset
-            aqseq = self.readacqpar("AQSEQ", True)
-        # AQSEQ 3D: {'0': '321', '1', '312'}
-        # Sets how the loops are ordered : '321' means F3 inner loop, F2 middle, F1 outer loop
-
+    
         # tdnd list size of dims based on status TD
         tdnd = []
         # tdn full size of array except first dim
@@ -1430,9 +1456,20 @@ class dataset:
             tmptd = self.readacqpar("TD", True, dimension=i)
             tdnd.insert(0, tmptd)
             tdn *= tmptd
-        if aqseq == 1:
-            (tdnd[-2], tdnd[-1]) = (tdnd[-1], tdnd[-2])
+        
+        aqseq = self.readacqpar("AQSEQ", True) # a priori AQSEQ is always there and default to 0, otherwise it is set to None
+        try:
+            final = _AQSEQ_permutations[dim][aqseq]
+            start = [i for i in range(dim-1)] 
+            tdnd_tmp = tdnd.copy()
+            for i, j in zip(start, final):
+                tdnd_tmp[j] = tdnd[i]
+            tdnd = tdnd_tmp
+        except KeyError:
+            start = [i for i in range(dim-1)] 
+            final = start
 
+        print(tdnd)
         # ser file contains FID of blocks of 256 points (1024 bytes, 256xint32)
         # thus one needs to calculate the length of 1 FID
         # make sure of the 256 block boundary for direct dimension
@@ -1443,13 +1480,21 @@ class dataset:
         tdblock = int(ceil(TD/ptpblk)*ptpblk)
         tdnd.append(tdblock//2)
         tdnd.append(2)
+        print(tdnd)
 
         # read file
         res = np.fromfile(filename, dtype=self.dtypeA,
                          count=tdn*tdblock).astype(float)
         # reshape or resize ? there should be no reason to change overal
         # size if tdn*tdblock are read but returning a view or copy may matter.
+        print(res.shape)
         res = res.reshape(tdnd)
+        print(res.shape)
+
+        # moveaxis according to AQSEQ so that topspin dimensions F1, F2, F3... correspond to array dimensions
+        res = np.moveaxis(res, start, final)
+        print(res.shape)
+
         R = res[..., 0:TD, 0] + 1j * res[..., 0:TD, 1]
 
         # rescaling values according to NC_acqu and
@@ -1514,12 +1559,25 @@ class dataset:
         For 3D one has the following order:
             0: F3F2F1
             1: F3F1F2
-        For 4D only natural order is allowed : 
-            0: F4F3F2F1
-        If AQSEQ is not set (-1 ???) then AQORDER is used
+        For 4D : not checked on real dataset but my guess. Moreover pulse program may not allow other than 0
+            0: F4F3F2F1    0 1 2
+            1: F4F3F1F2    1 0 2
+            2: F4F2F3F1    0 2 1
+            3: F4F2F1F3    2 0 1
+            4: F4F1F3F2    1 2 0
+            5: F4F1F2F3    2 1 0
+        For 5D nd larger only natural order is allowed : 
+            0: F5F4F3F2F1
+        If AQSEQ is not set (-1 ??? or missing key ?) then processing parameter AQORDER is used
         """
+        # permutations dict(dimension: dict(AQSEQ: [dimension order]))
+        # where dimension as int is the spectrum dimensionality (2D, 3D, .... nD)
+        # and AQSEQ as int is the AQSEQ order (0, 1, 2...)
+        permutation = { 3: {0: [ 0, 1], 1: [1, 0]}, 
+                        4: {0: [ 0, 1, 2], 1: [1, 0, 2], 2: [0, 2, 1], 3: [2, 0, 1], 4: [1, 2, 0], 5: [2, 1, 0]}
+                      }
         aqseq = -1
-        if dim > 2:
+        if dim in [3, 4]:
             aqseq = self.readacqpar("AQSEQ", True)
 
         if len(arrayShape) != dim:
@@ -1676,10 +1734,10 @@ class dataset:
             3D:
                 Note that topspin can only process as tf3 first then tf2 and tf1 in either order
                 and one cannot rephase a dimension once the next is transformed (unless HT is done)
-                tfx does FT without evaluation of FT_mod
+                tfx (x=1, 2, 3) does FT without evaluation of FT_mod
                 MC2 = States[-TPPI](t2) / States[-TPPI](t1) : hypercomplex acquisition in both dimensions
                     FT(t1, t2, t3)
-                    FT(no, no,no) ->  impossible as FT always done
+                    FT(no, no,no) ->  impossible as FT always done with ftnd or ft3, ft2 ft1
                     FT(no, no,fqc) ->  3rrr, 3irr 
                     FT(no, fsc, fqc) -> 3rrr, 3rir (imaginary part of F3 is discarded unless hilbert transform was done afterwards)
                     FT(fsc, no, fqc) -> 3rrr, 3rri
@@ -1691,13 +1749,13 @@ class dataset:
                     FT(no, no,no) ->  impossible as FT always done
                     FT(no, no, fqc) -> 3rrr, 3iii
                     FT(no, fqc, fqc) -> 3rrr, 3iii
-                    FT(fqc, no, fqc) -> 3rrr, 3iii, 3rri
+                    FT(fqc, no, fqc) -> 3rrr, 3iii, 3rri (3iii ???)
                     FT(fqc, fqc, fqc) -> 3rrr, 3rri (tf3;tf2;tf1) or 3iii (tf3;tf1;tf2)
                 MC2 = States(t2) / QF(t1)
                     FT(t1, t2, t3)
                     FT(no, no,no) ->  impossible as FT always done
                     FT(no, no, fqc) -> 3rrr, 3iii
-                    FT(no, fqc, fqc) -> 3rrr, 3rir, 3iii
+                    FT(no, fqc, fqc) -> 3rrr, 3rir, 3iii (what is 3iii ?)
                     FT(fqc, no, fqc) -> 3rrr, 3iii
                     FT(fqc, fqc, fqc) -> 3rrr, 3iii (tf3;tf2;tf1) or 3rir (tf3;tf1;tf2), 
                 MC2 = QF(t2) / QF(t1)
@@ -1745,13 +1803,12 @@ class dataset:
         Read a 2D processed datafile
         File is 2rr (default), 2ri, 2ir or 2ii
         Returns a 2D numpy array or None if file is not found
-        Does not account for STSR, STSI!!!
         """
         filename = self.returnprocpath() + name
         if not os.path.exists(filename):
             raise FileNotFoundError("Spectrum file %s not found." % (filename, ))
         scale = self.readprocpar("NC_proc", True)
-        SIs = np.array([self.readprocpar("SI", status=True, dimension=dim) for dim in [2, 1]])
+        SIs = np.array([self.readprocpar("STSI", status=True, dimension=dim) for dim in [2, 1]])
         XDIMs = np.array([self.readprocpar("XDIM", status=True, dimension=dim) for dim in [2, 1]])
         RESTs = SIs//XDIMs
         spect = np.fromfile(filename, dtype=self.dtypeP,
@@ -2123,6 +2180,7 @@ class dataset:
         #          4 States
         #          5 States-TPPI
         #          6 echo/antiecho
+        #          7 QF(no-frequency)
         if (FnMode == 3 | FnMode == 4 | FnMode == 5 | FnMode == 6):
             f = 2.
         else:
