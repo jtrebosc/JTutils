@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
-import re
+import re, os
+import JTutils
 
+if GETPROCDIM() < 2:
+    MSG('Change F1 nucleus in nD with n>=2 datasets only !')
+    EXIT()
 dataset = CURDATA()
-if len(dataset) == 5: # for topspin 2-
-	MSG("this is topspin 2")
-	datasetdir = "%s/data/%s/nmr" % (dataset[3], dataset[4])
-else: datasetdir = dataset[3]
+dtst = JTutils.brukerPARIO.dataset(dataset)
 
-#fenetre=NEWWIN(-1,-1)
 # definir la dimensionalité :
 maxdim = GETACQUDIM()
 dimlist = range(1, maxdim+1)
@@ -19,12 +19,19 @@ BFx = [0,0,0,0]
 boutons = []
 mnemonique = []
 channelmap = []
-# Find channels used in pp
-ppname = datasetdir + '/' + dataset[0] + '/' + dataset[1] + '/pulseprogram'
 
-ppfile = open(ppname, 'r')
-pp = ppfile.read()
-ppfile.close()
+# Find channels used in pp
+for pp_name in ['pulseprogram', 'pulseprogram.precomp']:
+    pp_full_name = os.path.join(dtst.returnacqpath(), pp_name)
+    if os.path.isfile(pp_full_name):
+        break
+    else:
+        pp_full_name = None
+if pp_full_name is None:
+    pp = ":f1 :f2 :f3 :f4"  # assume all 4 channels can be selected
+else:
+    with open(pp_full_name,'r') as f:
+        pp = f.read()
 
 for chan in range(0, 4, 1):
 	NUCx[chan] = "not active"
@@ -51,6 +58,8 @@ for chan in range(0, 4, 1):
 channel = SELECT(title="available channels",
                  message="what channel do you want to use for F1 (click button) ?",
                  buttons=boutons, mnemonics=mnemonique)
+if channel <0:
+    EXIT()
 chosenChan = channelmap[channel]
 
 # master parameters are BF,O,SW,SF and SW signification depends on

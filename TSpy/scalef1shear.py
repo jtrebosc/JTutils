@@ -49,10 +49,17 @@ def scalef1sheared(F2toF1=False, exptype='3QMAS', dataset=None):
     channelmap=[]
 
     # find channels used in pp
-    ppname = dtst.returnacqpath()+'/pulseprogram'
-    ppfile = open(ppname,'r')
-    pp = ppfile.read()
-    ppfile.close()
+    for pp_name in ['pulseprogram', 'pulseprogram.precomp']:
+        pp_full_name = os.path.join(dtst.returnacqpath(), pp_name)
+        if os.path.isfile(pp_full_name):
+            break
+        else:
+            pp_full_name = None
+    if pp_full_name is None:
+        pp = ":f1 :f2 :f3 :f4"  # assume all 4 channels can be selected
+    else:
+        with open(pp_full_name,'r') as f:
+            pp = f.read()
 
     # check if channels f1,..,f4 are present in pp
     # channelmap lists the active channels
@@ -81,8 +88,10 @@ def scalef1sheared(F2toF1=False, exptype='3QMAS', dataset=None):
     else:
         # user selects the channel to set in F1 among the active channels
         channel = SELECT(title="available channels",
-                         message="what channel do you want to use for F1 (click button) ?",
+                         message="what channel do you want to use for F1 (click button) or ESCAPE to cancel ?",
                          buttons=boutons, mnemonics=mnemonique)
+        if channel < 0 :
+            EXIT()
         chosenChan = channelmap[channel]
 
     sfo = float(SFOx[chosenChan])
@@ -125,6 +134,8 @@ def scalef1sheared(F2toF1=False, exptype='3QMAS', dataset=None):
         typeIndex = SELECT(title="Kind of experiment",
                      message="What is the experiment that need universal scaling in F1?",
                      buttons=["3QMAS","5QMAS","STMAS"])
+        if typeIndex < 0 :
+            EXIT()
         exptype = theTypes[typeIndex]
 
     folding_times = "0"
