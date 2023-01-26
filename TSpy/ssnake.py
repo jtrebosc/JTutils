@@ -27,15 +27,7 @@ def getfilename(procnopath, isfid):
             file = 'ser'
         return os.path.join(dataset.returnacqpath(), file)
     else:
-        dim = dataset.readprocpar('PPARMOD', True, 1)
-        if dim == '0':
-            file = '1r'
-        elif dim == '1':
-            file = '2rr'
-        else :
-            MSG('Dealing only with 1D or 2D only:')
-            EXIT()
-        return os.path.join(dataset.returnprocpath(), file)
+        return os.path.join(dataset.returnprocpath(), '')
     
 
 def launch_ssnake(datfiles, config):
