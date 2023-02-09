@@ -25,7 +25,7 @@ def cpmgadd2D(dataset, lb=0, gb=0, nEchoes=None, slope=0,
         print("dataset is not 2D : exiting...")
         sys.exit()
 
-    # 0 undef, 1 QF, 2 QSEQ, 3 TPPI, 4 states, 5 states-tppi, 6 echo=antiecho
+    # 0 undef, 1 QF, 2 QSEQ, 3 TPPI, 4 states, 5 states-tppi, 6 echo=antiecho, 7 QF (no-Frequency)
     mode2D = dataset.readacqpar("FnMODE", dimension=2, status=True)
 
     if mode2D == 0:
@@ -40,7 +40,6 @@ def cpmgadd2D(dataset, lb=0, gb=0, nEchoes=None, slope=0,
 
     # lire la fid et eliminer le filter digital (par defaut)
     serfile = dataset.readser()
-    print(serfile.shape)
     # fcor = dataset.readprocpar("FCOR")
     # fcor1 = dataset.readprocpar("FCOR", dimension=2)
     # serfile[0, :] *= fcor1
@@ -226,12 +225,13 @@ def cpmgadd2D(dataset, lb=0, gb=0, nEchoes=None, slope=0,
     # dataset.writeprocpar("PKNL", "no", status = False)
 
     # set all optionnal processing parameters to 0
-    ProcOptions = {"WDW"   : [["LB", 0], ["GB", 0], ["SSB", 0], ["TM1", 0], ["TM2", 0]],
+    ProcOptions = {"WDW"   : [["LB", 0], ["GB", 0], ["SSB", 0], 
+                              ["TM1", 0], ["TM2", 0]],
                    "PH_mod": [["PHC0", 0], ["PHC1", 0]], 
                    "BC_mod": [["BCFW", 0], ["COROFFS", 0]],
                    "ME_mod": [["NCOEF", 0], ["LPBIN", 0], ["TDoff", 0]], 
-                   "FT_mod": [["FTSIZE", 0], ["FCOR", 0], ["STSR", 0], 
-                              ["STSI", 0], ["REVERSE", False]],
+                   "FT_mod": [["FTSIZE", 0], ["FCOR", 0], ["STSR", 0],
+                              ["REVERSE", False]],
                   }
     for dim in [1, 2]:
         for par in ProcOptions:
