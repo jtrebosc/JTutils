@@ -477,6 +477,11 @@ class dataset:
     * =getyhz()                               returns numpy.array
     * =getxppm()                              returns numpy.array
     * =getyppm()                              returns numpy.array
+    * =audita_times                           returns acquisition times from audita.txt file
+                                                      as tuple(start_time, end_time, exp_time)
+                times are datetime and timedelta instances
+                Note that exp_time is not necessarily end-start as subsequent go command 
+                may have produced the dataset
     TODO:
     - read title
     - parser for status pulseprogram
@@ -1469,7 +1474,7 @@ class dataset:
             start = [i for i in range(dim-1)] 
             final = start
 
-        print(tdnd)
+        #print(tdnd)
         # ser file contains FID of blocks of 256 points (1024 bytes, 256xint32)
         # thus one needs to calculate the length of 1 FID
         # make sure of the 256 block boundary for direct dimension
@@ -1480,20 +1485,20 @@ class dataset:
         tdblock = int(ceil(TD/ptpblk)*ptpblk)
         tdnd.append(tdblock//2)
         tdnd.append(2)
-        print(tdnd)
+        #print(tdnd)
 
         # read file
         res = np.fromfile(filename, dtype=self.dtypeA,
                          count=tdn*tdblock).astype(float)
         # reshape or resize ? there should be no reason to change overal
         # size if tdn*tdblock are read but returning a view or copy may matter.
-        print(res.shape)
+        #print(res.shape)
         res = res.reshape(tdnd)
-        print(res.shape)
+        #print(res.shape)
 
         # moveaxis according to AQSEQ so that topspin dimensions F1, F2, F3... correspond to array dimensions
         res = np.moveaxis(res, start, final)
-        print(res.shape)
+        #print(res.shape)
 
         R = res[..., 0:TD, 0] + 1j * res[..., 0:TD, 1]
 
@@ -2296,6 +2301,189 @@ class dataset:
         sfo1 = self.readacqpar("SFO1", True, 2)
         ppm = -(sw/si*np.arange(-si/2, si/2)-(sfo1-sf)*1e6)/sf
         return ppm[stsr:stsr+stsi]
+
+    def audita_times(self):
+        """ 
+            Return a tuple with start (datetime), stop (datetime) and 
+            length (datetime.timedelta) of an acquisition as read in audita.txt file.
+            If start cannot be determined then start=stop and length=0 
+            will deal with XWINNMR data
+            This function still needs more robust behavior.
+        """
+
+    # trail entry (NUMBER, <WHEN>, <WHO>, <WHERE>, <PROCESS>, <VERSION>, <WHAT>)
+    # lines with process "go" or "go4" are acquisitions with a "started at" description
+    # if acquisition was continued using go instead of zg in topspin one can have a "continue with go"
+    # In that case... check for all such posibility
+    # popt-ed experiments stored in 2D have not experimental time since no go but wser
+    # how to detect 2D popt-ed datasets ?
+        from dateutil import parser
+        from datetime import datetime, timedelta
+
+        auditname = os.path.join(self.returnacqpath(), 'audita.txt')
+        try:
+            with open(auditname, 'r') as f:
+                lines = f.readlines()
+        except IOError:
+            # We are probably in a XWINNMR dataset since there is no audita.txt file
+            # Then read acqus with DATE -> start and date in comment right after ##ORIGIN -> stop
+            # for stop one needs to 
+            #    open acqus manually 
+            #    search for ##ORIGIN
+            #    take next line
+            #    parse datetime : dayoftheweek, month3letter, dayofthemonth, HH:MM:SS YYYY 
+            # no tzinfo available
+            return (0, 0, 0)
+        in_trail = False
+        audit_trail = []
+        for line in lines:
+            if line.startswith('##TITLE=') :
+                _, version = line.split(',')
+                version = version.upper()
+            if line.startswith('##') and in_trail == True :
+                break
+            elif line.startswith('##AUDIT TRAIL'):
+                elts = line[line.index("(")+1:line.index(")")].split(', ')
+                in_trail = True
+                continue
+            elif in_trail == True:
+                if line.startswith('$$'):
+                    continue
+                audit_trail.append(line)
+                 
+        cur = ''.join(audit_trail).strip()
+        time_list = []
+        # note that XWINNMR has no audita.txt file so we shouldn't reach that point in that case
+        if 'TOPSPIN' in version and '1.2' in version:
+            ##AUDIT TRAIL=  $$ (NUMBER, WHEN, WHO, WHERE, WHAT)
+            while len(cur) > 2:
+                if cur.startswith('('):
+                    cur = cur[1:]
+                    number, cur = cur.split(",",1)
+                    when, cur = cur.split(",",1)
+                    when = when.strip("<>")
+                    who, cur = cur.split(",",1)
+                    who = who.strip("<>")
+                    where, cur = cur.split(",",1)
+                    where = where.strip("<>")
+                    what, cur = cur.split(">)",1)
+                    how = 'undefined'
+                    if 'continue with go' in what :
+                        how = 'continue with go'
+                    if 'created by zg' in what:
+                        how = 'created by zg'
+                    if 'undefined' not in how:
+                        what = what.strip("<>\n\r \t")
+                        try:
+                            when =  parser.parse(when)
+                        except parser.ParserError:
+                            # sometimes tzdata is not standard +100 instead of +0100
+                            # so try to fix it
+                            import re
+                            when = re.sub("\+([1-9])", r'+0\1', when)
+                            when =  parser.parse(when)
+                        # for topspin 1.2 start time is stored in DATE
+                        start = datetime.fromtimestamp(self.readacqpar('DATE', status=True, dimension=1),
+                                                        tz=when.tzinfo)
+
+                        time_list.append({'number': number, 'process': 'undefined',
+                                               'start': start, "stop": when, 
+                                               'how': how})
+                    cur = cur.strip()
+        elif 'TOPSPIN' in version and '1.3' in version:
+            ##AUDIT TRAIL=  $$ (NUMBER, WHEN, WHO, WHERE, VERSION, WHAT)
+            while len(cur) > 2:
+                if cur.startswith('('):
+                    cur = cur[1:]
+                    number, cur = cur.split(",",1)
+                    when, cur = cur.split(",",1)
+                    when = when.strip("<>")
+                    who, cur = cur.split(",",1)
+                    who = who.strip("<>")
+                    where, cur = cur.split(",",1)
+                    where = where.strip("<>")
+                    version, cur = cur.split(",",1)
+                    version = version.strip("<>")
+                    what, cur = cur.split(">)",1)
+                    how = 'undefined'
+                    if 'continue with go' in what :
+                        how = 'continue with go'
+                    if 'created by zg' in what:
+                        how = 'created by zg'
+                    if 'undefined' not in how: # we found a record with date information
+                        what = what.strip("<>\n\r \t")
+                        when =  parser.parse(when) 
+                        # for topspin 1.3 start time is stored in DATE
+                        start = datetime.fromtimestamp(self.readacqpar('DATE', status=True, dimension=1),
+                                                        tz=when.tzinfo)# use same tzinifo offset as in when
+                        time_list.append({'number': number, 'process': 'undefined',
+                                               'start': start, "stop": when, 
+                                               'how': how})
+                    cur = cur.strip()
+        else: # any version of topspin from 2.1 and up
+            ##AUDIT TRAIL=  $$ (NUMBER, WHEN, WHO, WHERE, PROCESS, VERSION, WHAT)
+            while len(cur) > 2:
+                if cur.startswith('('):
+                    cur = cur[1:]
+                    number, cur = cur.split(",",1)
+                    when, cur = cur.split(",",1)
+                    when = when.strip("<>")
+                    who, cur = cur.split(",",1)
+                    who = who.strip("<>")
+                    where, cur = cur.split(",",1)
+                    where = where.strip("<>")
+                    process, cur = cur.split(",",1)
+                    process = process.strip("<>")
+                    version, cur = cur.split(",",1)
+                    version = version.strip("<>")
+                    what, cur = cur.split(">)",1)
+                    if 'go' in process:
+                        when =  parser.parse(when)
+                        what = what.strip("<>\n\r \t")
+                        try:
+                            created, start = what.split("started at ", 1)
+                            start, _ = start.split(",", 1)
+                        except: 
+                            # if no started at line found then skip the record
+                            # it is usually a "continuing with go" line
+                            cur = cur.strip()
+                            continue
+                        try: 
+                            start = parser.parse(start)
+                        except: 
+                            # cannot parse the start (empty string can happen)
+                            # then use the end time...
+                            # print "cannot parse start date in started at line" 
+                            start = when
+                        time_list.append({'number': number, 'process': process,
+                                               'start': start, "stop": when, 
+                                               'how': created, 'what': what})
+                    cur = cur.strip()
+        
+    #    return time_list
+    # time_list 
+        if len(time_list) == 0 :
+            return (0, 0, 0)
+        total_exp_time = timedelta(0)
+        start_time = None
+        stop_time = None
+        last_go = True
+        for i in time_list[-1::-1]: # loop from last entry to first
+            if 'continue with go' in i['how']:
+                if last_go:
+                    stop_time = i['stop']
+                    last_go = False
+                if start_time is None:
+                    start_time = i['start']
+                total_exp_time +=  i['stop']-i['start']
+                continue
+            if 'created by zg' in i['how']:
+                if stop_time is None:
+                    stop_time = i['stop']
+                start_time = i['start']
+                total_exp_time +=  i['stop']-i['start']
+                break
+        return start_time, stop_time, total_exp_time # time_list #(time_list[0]['start'], time_list[-1]['stop'], total_exptime)
 
 def SInext(TD):
     """ Calculates the closest SI value (power of 2) directly larger than TD 
