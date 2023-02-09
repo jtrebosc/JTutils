@@ -89,10 +89,7 @@ l1p = unit2point(l1)
 
 (si1, si) = spect.shape
 
-M = spect.max()
-
 if dat.readprocpar("AXUNIT",True,2) == "s":
-#	print(dat.readprocpar("TDeff", True, 2))
 	tmp = dat.readprocpar("TDeff", True, 2)
 	if tmp < si1 : si1 = tmp
 
@@ -104,4 +101,3 @@ dat1D.writeprocpar("AXUNIT", "exp")
 dat1D.writeprocpar("AXLEFT", 0.5)
 dat1D.writeprocpar("AXRIGHT", (si1+0.5))
 
-#print(si1,si,l1p,l2p,M)
