@@ -32,11 +32,12 @@ def viewfid(notdeff=False, nosi=False, rmdigfilt=False, dataset=None):
         Stored=[{},{}]
         for dim in [0, 1]:
             for par in ProcOptions:
-                Stored[dim][par]=GETPAR("%d %s" % (dim+1,par))
+                Stored[dim][par] = dat.readprocpar(par,  dimension=2-dim, status=False)
+#                Stored[dim][par] = GETPAR("%d %s" % (dim+1,par))
         #        MSG("%d %s" % (dim+1,par)+" is "+Stored[dim][par])
         for dim in [0, 1]:
             for par in ProcOptions:
-                dat.writeprocpar(par, "0", dimension=2-dim, status=False)
+                dat.writeprocpar(par, 0, dimension=2-dim, status=False)
                 # PUTPAR("%d %s" % (dim+1,par),"0")
     #    print Stored
 

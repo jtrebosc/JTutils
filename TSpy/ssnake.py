@@ -21,7 +21,7 @@ def getfilename(procnopath, isfid):
     dataset = io.dataset(the_path)
     if isfid:
         dim = dataset.readacqpar('PARMODE', True, 1)
-        if dim == '0':
+        if dim == 0:
             file = 'fid'
         else :
             file = 'ser'

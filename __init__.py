@@ -5,7 +5,7 @@
 #    fullpath utility (return fulpath to a dataset as returned by CURDATA Bruker function
 #    run_CpyBin_script : a function that runs an external script from CpyBin in 
 #                        a CPYTHON environment with correct PYTHONPATH
-from __future__ import unicode_literals
+#from __future__ import unicode_literals
 
 __all__ = ['TSpy', 'brukerPARIO', 'fullpath', 'run_CpyBin_script', 'run_ext_script']
 from .CpyLib import brukerPARIO

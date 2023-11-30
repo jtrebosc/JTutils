@@ -99,15 +99,15 @@ def scalef1sheared(F2toF1=False, exptype='3QMAS', dataset=None):
     o = float(Ox[chosenChan])
 
     # get the spectral window / dwell time in F1
-    swh = float(dtst.readacqpar("SW_h",dimension=2,status=True),)
+    swh = dtst.readacqpar("SW_h",dimension=2,status=True)
     inf1 = 1e6/swh
 
     #MSG(str(swh)+"\n"+str(inf1))
     if F2toF1:
         # status of not status that is the question....
-        sf = float(dtst.readprocpar("SF", dimension=1, status=True))
+        sf = dtst.readprocpar("SF", dimension=1, status=True)
     else:
-        sf = float(dtst.readprocpar("SF", dimension=2, status=True))
+        sf = dtst.readprocpar("SF", dimension=2, status=True)
     #MSG("sf=" + str(sf))
     # select spin number based on nucleus name from bruker table
     TOPSPIN_HOME = os.path.normpath(os.getenv("XWINNMRHOME"))
@@ -128,12 +128,11 @@ def scalef1sheared(F2toF1=False, exptype='3QMAS', dataset=None):
             spin = float(spinstr[0])/2
         else :
             spin = float(spinstr[0])
-
     theTypes = ['3QMAS', '5QMAS', 'STMAS']
     if exptype == None:
         typeIndex = SELECT(title="Kind of experiment",
                      message="What is the experiment that need universal scaling in F1?",
-                     buttons=["3QMAS","5QMAS","STMAS"])
+                     buttons=["3QMAS", "5QMAS", "STMAS"])
         if typeIndex < 0 :
             EXIT()
         exptype = theTypes[typeIndex]
@@ -204,22 +203,22 @@ def scalef1sheared(F2toF1=False, exptype='3QMAS', dataset=None):
 
     # for scale to be OK after reprocessing: store modified acq parameters
     dtst.writeacqpar("NUC1", nuciso, dimension=2, status=True)
-    dtst.writeacqpar("BF1", str(bf), dimension=2, status=True)
-    dtst.writeacqpar("SFO1", str(sfo), dimension=2, status=True)
-    dtst.writeacqpar("O1", str(o), dimension=2, status=True)
-    dtst.writeacqpar("SW", str(newSW), dimension=2, status=True)
+    dtst.writeacqpar("BF1", bf, dimension=2, status=True)
+    dtst.writeacqpar("SFO1", sfo, dimension=2, status=True)
+    dtst.writeacqpar("O1", o, dimension=2, status=True)
+    dtst.writeacqpar("SW", newSW, dimension=2, status=True)
     # for current spectrum to look OK : stores modified proc parameters
     # from acqu and proc parameters
-    si =  int(dtst.readprocpar("FTSIZE", dimension=2, status=True))
-    stsi = int(dtst.readprocpar("STSI", dimension=2, status=True))
-    stsr =  int(dtst.readprocpar("STSR", dimension=2, status=True))
+    si   = dtst.readprocpar("FTSIZE", dimension=2, status=True)
+    stsi = dtst.readprocpar("STSI", dimension=2, status=True)
+    stsr = dtst.readprocpar("STSR", dimension=2, status=True)
     hzppt = swh/si
     swp = stsi*hzppt
     offset = ((sfo*1e6+swh/2)-stsr*hzppt -sf*1e6)/sf
-    dtst.writeprocpar("SW_p", str(swp), dimension=2, status=True)
-    dtst.writeprocpar("SF", str(sf), dimension=2, status=False)
-    dtst.writeprocpar("SF", str(sf), dimension=2, status=True)
-    dtst.writeprocpar("OFFSET",str(offset),dimension=2,status=True)
+    dtst.writeprocpar("SW_p", swp, dimension=2, status=True)
+    dtst.writeprocpar("SF", sf, dimension=2, status=False)
+    dtst.writeprocpar("SF", sf, dimension=2, status=True)
+    dtst.writeprocpar("OFFSET", offset, dimension=2, status=True)
 
     RE(dataset)
 
@@ -262,4 +261,4 @@ if __name__ == '__main__':
     elif args.ST : exptype = 'STMAS'
     else : exptype = None
     dataset = CURDATA()
-    scalef1sheared(F2toF1=args.F2toF1, exptype = exptype, dataset=dataset)
+    scalef1sheared(F2toF1=args.F2toF1, exptype=exptype, dataset=dataset)

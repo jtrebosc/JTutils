@@ -19,8 +19,8 @@ fulld2d = JTutils.fullpath(data2d)
 dta = brukerPARIO.dataset(data2d)
 fulld2d = dta.returnprocpath()
 fntype = dta.readacqpar("FnTYPE")
-if fntype == "2" : 
-	dta.writeacqpar("FnTYPE", "0")
+if fntype == 2 : 
+	dta.writeacqpar("FnTYPE", 0)
 XF2()
 ABS2()
 dta.writeacqpar("FnTYPE",fntype )
