@@ -135,7 +135,7 @@ dat.writespect1dri(r1, r2)
 ProcOptions = {"WDW"   : [["LB", 0], ["GB", 0], ["SSB", 0], ["TM1", 0], ["TM2", 0]],
                "PH_mod": [["PHC0", 0], ["PHC1", 0]], "BC_mod": [["BCFW", 0], ["COROFFS", 0]],
                "ME_mod": [["NCOEF", 0], ["LPBIN", 0], ["TDoff", 0]], 
-               "FT_mod": [["FTSIZE", 0], ["FCOR", 0], ["STSR", 0], ["STSI", 0], ["REVERSE", False]],
+               "FT_mod": [["FTSIZE", 0], ["FCOR", 0], ["STSR", 0], ["REVERSE", False]],
               }
 
 for par in ProcOptions:

@@ -164,7 +164,7 @@ ProcOptions = {"WDW"   : [["LB", 0], ["GB", 0], ["SSB", 0], ["TM1", 0], ["TM2", 
                "BC_mod": [["BCFW", 0], ["COROFFS", 0]],
                "ME_mod": [["NCOEF", 0], ["LPBIN", 0], ["TDoff", 0]], 
                "FT_mod": [["FTSIZE", 0], ["FCOR", 0], ["STSR", 0], 
-                          ["STSI", 0], ["REVERSE", False]],
+                          ["REVERSE", False]],
               }
 for par in ProcOptions:
     dat.writeprocpar(par, 0, True, dimension=1)
