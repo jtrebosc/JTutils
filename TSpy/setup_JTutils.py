@@ -6,17 +6,17 @@
 # this Script will serve as setup to detect/define CPYTHON in a config file
 # There should be different tests functions, a report function and a setup
 
-from __future__ import unicode_literals
+#from __future__ import unicode_literals
 import sys
 import os
 from os.path import abspath, dirname, normpath, realpath, isdir, isfile, islink
 from os.path import join as join_path
 from os.path import split as split_path
 
-
+sys_enc = sys.getfilesystemencoding()
 # This script should be called from within topspin so these should be defined
-XWINNMRHOME = normpath(os.getenv('XWINNMRHOME', "undefined"))
-USERHOME_DOT_TOPSPIN = normpath(os.getenv('USERHOME_DOT_TOPSPIN', "undefined"))
+XWINNMRHOME = normpath(os.getenv('XWINNMRHOME', "undefined").decode(sys_enc))
+USERHOME_DOT_TOPSPIN = normpath(os.getenv('USERHOME_DOT_TOPSPIN', "undefined").decode(sys_enc))
 
 # these env variables will become obsolete
 # one should get the values from JTutils module
@@ -28,6 +28,8 @@ USERHOME_DOT_TOPSPIN = normpath(os.getenv('USERHOME_DOT_TOPSPIN', "undefined"))
 #You should make sure that PYTHON points to %s""" % (abspath(CpyLibDir), )
 #else :  WarningLibDir =  ""
 
+ssnake_modules = ["matplotlib", "scipy", "PyQt5", "h5py"]
+ssnake_conda_pack = "numpy matplotlib pyqt h5py scipy"
 
 def is_conda_python(CPYTHON):
     """ check if CPYTHON exe is related to a conda distribution
@@ -42,7 +44,7 @@ def is_exe(fpath):
 
 def which(program):
     import os
-    path_env = os.environ["PATH"].split(os.pathsep)
+    path_env = os.getenv("PATH").decode(sys_enc).split(os.pathsep)
     # On windows, I need to add a search in conda standard location:
     # os.environ['USERPROFILE']/*conda*
     fpath, fname = os.path.split(program)
@@ -96,7 +98,7 @@ def test_cmodule_import(module_name):
     reload(JTutils) # in case an old JTutils was already installed and loaded
     CMD = """
 # coding: utf8
-from __future__ import unicode_literals
+#from __future__ import unicode_literals
 import %s
 if hasattr(%s, '__version__'):
     print(%s.__version__)
@@ -121,7 +123,7 @@ def test_CPYTHON(CPYTHON):
     import subprocess
     CMD = """
 # coding: utf8
-from __future__ import unicode_literals
+#from __future__ import unicode_literals
 import sys
 print(sys.version) """
     try:
@@ -270,7 +272,7 @@ On windows: looks for python executable in
     # search conda distribution
     # on windows
     if 'win' in OS:
-        userpath = os.environ["USERPROFILE"]
+        userpath = os.getenv("USERPROFILE").decode(sys_enc)
         path_list = [
             [ userpath, "Miniconda3", "envs", "JTutils","python.exe"],
             [ userpath, "Miniconda2", "envs", "JTutils","python.exe"],
@@ -282,7 +284,7 @@ On windows: looks for python executable in
             [ userpath, "APPDATA", "Local", "Continuum", "Anaconda3","python.exe"],
         ]
     elif ('linux' in OS) or ('mac' in OS):
-        userpath = os.environ["HOME"]
+        userpath = os.getenv("HOME").decode(sys_enc)
         path_list = [
             [ userpath, "miniconda2", "envs", "JTutils", "bin", "python"],
             [ userpath, "miniconda3", "envs", "JTutils", "bin", "python"],
@@ -421,7 +423,7 @@ Please CLICK on one button (enter on keyboard does not work)""" % (conda_env, ne
             else: # run install script
                 if 'win' in OS:
                     cmd = " ".join([conda_exe, "activate &",
-                                   conda_exe, "create -y -n JTutils numpy&",
+                                   conda_exe, "create -y -n JTutils numpy matplotlib pyqt h5py scipy&",
                                    conda_exe, "env list"])
                 else: # unix
                     # default jython shell is /bin/sh : source command is "."
@@ -429,7 +431,7 @@ Please CLICK on one button (enter on keyboard does not work)""" % (conda_env, ne
                     # once done conda is available as a shell internal command
                     shell_init_file = join_path(conda_base,'etc', 'profile.d', 'conda.sh')
                     cmd = " ".join([".", shell_init_file, ";",
-                                  "conda create -y -n JTutils numpy ;", 
+                                  "conda create -y -n JTutils " + ssnake_conda_pack + ";", 
                                   "conda env list"])
                 MSG(subprocess.check_output(cmd, shell=True))
                 MSG("JTutils environment created")
@@ -456,11 +458,9 @@ Please CLICK on one button (enter on keyboard does not work)""" % (conda_env, ne
     try:
 #        MSG(cmd)
         res = subprocess.check_output(cmd, shell=True)
-        if 'win' in OS:
-            res = res.decode('cp850')
+        res = res.decode(sys_enc)
     except subprocess.CalledProcessError as grepexc:
-        if 'win' in OS:
-            grepexc = grepexc.decode('cp850')
+        grepexc = grepexc.decode(sys_enc)
         print("error code", grepexc.returncode, grepexc.output)
         MSG("Error during retrieval of conda environment.")
         raise
@@ -504,7 +504,7 @@ def create_report():
     # report basic information :
     version = sys.version
     var_env = os.environ
-    curdir = os.getcwd()
+    curdir = os.getcwd().decode(sys_enc)
     scriptFile = sys.argv[0]
     scriptDir = dirname(sys.argv[0])
     CpyLibDir = scriptDir + '/../CpyLib'
@@ -542,12 +542,15 @@ def create_report():
     WarningCpython += message + '\n'
     if success:
         cmodule_imported = {}
-        for module in ["numpy", "argparse", "multiprocessing", "brukerIO"]:
+        for module in ["numpy", "argparse", "multiprocessing", "brukerIO"] + ssnake_modules:
             cmodule_imported[module], version_message = test_cmodule_import(module)
             if cmodule_imported[module]:
                 WarningCpython += "%s %s module imported successfully\n" % (module, version_message)
             else:
                 WarningCpython += "ERROR: %s module import FAILED.\n %s\n" % (module, version_message)
+                if module in ssnake_modules:
+                    WarningCpython += "You will not be able to call ssNake from JTutils tools!\n"
+                    
 
     report_message += import_report
     report_message += WarningCpython
@@ -617,7 +620,7 @@ def write_config(config): # cannot rely on JTutils write config if config is not
         argument config is a dictionnary with configuration parameters
     """
     import json
-    prop_dir = os.getenv('USERHOME_DOT_TOPSPIN', "not defined")
+    prop_dir = os.getenv('USERHOME_DOT_TOPSPIN', "not defined").decode(sys_enc)
     if prop_dir == "not defined":
         print("USERHOME_DOT_TOPSPIN not defined")
         raise
@@ -660,7 +663,7 @@ def update_config():
         rmtree(link_name)
         make_module_link()
 
-   # but some functions that require 
+    # but some functions that require 
     # external cpython through run_CpyBin_script may still fail if setup is not correct
     # check configuration file
     success, message = test_config_file()
