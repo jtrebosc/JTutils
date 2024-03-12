@@ -54,6 +54,10 @@ import sys
 import os.path
 import os
 import re
+try:
+    FileNotFoundError
+except NameError:
+    FileNotFoundError = IOError
 
 pyver = sys.version
 # print("python version: " + pyver)
