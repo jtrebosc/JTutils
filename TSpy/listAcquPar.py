@@ -60,14 +60,14 @@ res = []
 for i in expnoList :
     dataset = brukerPARIO.splitprocpath(i + '/pdata/1/')
     dt = brukerPARIO.dataset(dataset)
-    if dimension > int(dt.readacqpar('PARMODE', status=status)) + 1:
-        continue
+#    if dimension > int(dt.readacqpar('PARMODE', status=status)) + 1:
+#        continue
     expno = dt.dataset[1]
     line = [expno]
     for param in params:
         try:
             val = dt.readacqpar(param, status=status, dimension=dimension)
-        except ValueError:
+        except (ValueError, IOError):
             line.append('N.A.')
             continue
         line.append(str(val))
