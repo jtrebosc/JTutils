@@ -3,7 +3,7 @@
 ## new writing in a module like fashion in order to be able to call it from another python script
 def add_echoes(lb=None, gb=None, n_echoes=None, cycle=None, dead_pts=None, 
                 echo_position=None, norm_noise=False, odd_only=False, 
-                even_only=False, noDialog=False, dataset=None):
+                even_only=False, noDialog=False, skipFirst=False, dataset=None):
     """
     This function applies a gaussian apodization to each echo of a cpmg acquisition
     that used qcpmg.jt pulse sequence by calling an external python program.
@@ -12,16 +12,19 @@ def add_echoes(lb=None, gb=None, n_echoes=None, cycle=None, dead_pts=None,
     It may be used for other pulse sequences.
      gb:            gaussian broadening (Hz) (default uses value stored in USERP1)
      lb:            lorentzian broadening for echo weighting (default uses value stored in LB)
-     n:             number of echoes to add (if -1 uses value stored in USERP3)
+     n_echoes:      number of echoes to add (if -1 or None uses value stored in USERP3)
                     invalid number or 0 defaults to L22+1
+     cycle:             Cycle time of CPMG sequence
+     dead_pts:      set dead_pts to zero at beginning and end of each echo.
      echo_position: Position of echo with respect to start of FID (not including digital filter)
           Position is stored in USERP1, it defaults to D3+D6. 
           The value stored is reset to default when set to 0.
-     c:             Cycle time of CPMG sequence
      norm_noise:    normalize intensity for a constant noise level whatever lb or n
                     is used
-     e:             only add even echoes
-     o:             only add odd echoes
+     even_only:     only add even echoes
+     odd_only:      only add odd echoes
+     noDialog:      Don't show the interactive dialog
+     skipFisrt:      Don't add the first echo (when affected by dead time)
     """
 
     import sys
@@ -109,13 +112,15 @@ def add_echoes(lb=None, gb=None, n_echoes=None, cycle=None, dead_pts=None,
 
     fulldataPATH = JTutils.fullpath(dataset)
 
-    opt_args = " -g %s -l %s -n %s -c %s -s %s" % (gb, lb, n_echoes, cycle, echo_position)
+    opt_args = " -g %s -l %s -n %s -c %s -s %s " % (gb, lb, n_echoes, cycle, echo_position)
     if norm_noise:
         opt_args += "--norm_noise "
     if  even_only:
         opt_args += "-e "
     if  odd_only:
         opt_args += "-o "
+    if  skipFirst:
+        opt_args += "-k "
     JTutils.run_CpyBin_script('qcpmgadd_.py', opt_args.split()+[fulldataPATH])
 
 
@@ -150,9 +155,11 @@ if __name__ == '__main__':
             help='Normalize noise as function of number of echoes added.')
         group = parser.add_mutually_exclusive_group()
         group.add_argument('-e', action='store_true', 
-            help='Sum only even echoes')
+            help='Sum only even echoes (count starting 0)')
         group.add_argument('-o', action='store_true', 
-            help='Sum only odd echoes')
+            help='Sum only odd echoes (count starting 0)')
+        group.add_argument('-k', action='store_true', 
+            help='Don\'t add (sKip) first echo')
         
         args  =  parser.parse_args(sys.argv[1:])
     except ImportError:
@@ -170,6 +177,7 @@ if __name__ == '__main__':
                 self.norm_noise = False
                 self.e = False
                 self.o = False
+                self.k = False
         args = dummy()
     except SystemExit:
         # argparse has triggered an exception : print the error in a MSG box
@@ -191,5 +199,5 @@ if __name__ == '__main__':
     add_echoes(lb=args.lb, gb=args.gb, n_echoes=args.n, cycle=args.c, 
                 dead_pts=args.t, echo_position=args.echo_position,
                 norm_noise=args.norm_noise, odd_only=args.e, even_only=args.o, 
-                noDialog=args.noDialog, dataset=dataset)
+                noDialog=args.noDialog, skipFirst=args.k, dataset=dataset)
     RE(dataset)

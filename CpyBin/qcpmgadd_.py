@@ -28,8 +28,9 @@ parser.add_argument('--norm_noise', action='store_true',
    help='normalise noise level as function of number of echoes', default=False)
 parser.add_argument('infile', help='Full path of the dataset to process')
 group = parser.add_mutually_exclusive_group()
-group.add_argument('-e', action='store_true', help='Sum only even echoes')
-group.add_argument('-o', action='store_true', help='Sum only odd echoes')
+group.add_argument('-e', action='store_true', help='Sum only even echoes (count starts at 0)')
+group.add_argument('-o', action='store_true', help='Sum only odd echoes (count starts at 0)')
+parser.add_argument('-k', action='store_true', help='Don\'t add (sKip) the first echo.')
 
 args = parser.parse_args()
 #print(args.__dict__)
@@ -120,22 +121,26 @@ apod = numpy.swapaxes(apod, 0, 1)
 # do the multiplication with gaussian and lorentzian broadening
 LB = args.lb/2
 SUME = numpy.zeros((npoints, 2))
-SUMA = numpy.zeros((npoints, 2))
+SUMO = numpy.zeros((npoints, 2))
 
 L_noise_weight = numpy.zeros(n_echoes)
 for i in range(0, n_echoes):
     L_weight = numpy.exp(-LB*i*npoints*dw*1e-6)
     L_noise_weight[i] = L_weight
-    if i % 2:
+    if (i % 2)==1 : # i=1, 3, 5 -> echo 2, 4, 6, 8
         SUME += summed[i, :, :] * apod * L_weight
     else:
-        SUMA += summed[i, :, :] * apod * L_weight
-if args.e: # keep only even echoes
+        if i==0 and args.k:
+            print("# skip first echo")
+            continue
+            print("# skipped first echo")
+        SUMO += summed[i, :, :] * apod * L_weight
+if args.e: # keep only even echoes (starting at 1)
     SUM = SUME
 elif args.o: # keep only odd echoes
-    SUM = SUMA
+    SUM = SUMO
 else:
-    SUM = SUMA+SUME
+    SUM = SUMO+SUME
 
 if args.norm_noise:
 #    print("normed for noise")
