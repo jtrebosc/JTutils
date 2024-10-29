@@ -60,18 +60,16 @@ res = []
 for i in expnoList :
     dataset = brukerPARIO.splitprocpath(i + '/pdata/1/')
     dt = brukerPARIO.dataset(dataset)
-    if dimension > int(dt.readprocpar('PPARMOD', status=status)) + 1:
-        continue
     expno = dt.dataset[1]
     line = [expno]
     for param in params:
         try:
             val = dt.readprocpar(param, status=status, dimension=dimension)
-        except ValueError:
+        except (ValueError, IOError):
             line.append('N.A.')
             continue
         line.append(str(val))
-    res.append("    ".join(line))
+    res.append("\t".join(line))
 res.sort(key=lambda s : int(s.split()[0]))
 #print "looking for '" + " ".join(args) + "' in " + expnamedir
 #print('\n'.join(res))
