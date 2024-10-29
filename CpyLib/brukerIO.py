@@ -434,6 +434,8 @@ class dataset:
     bytencA: raw data byte encoding of dataset
     dimA: int with dimension of acqusition (1/2/3 for 1D/2D/3D)
     dimP: int with dimension of processing (1/2/3 for 1D/2D/3D)
+    versionA: str Acquisition version: TOPSPIN/XWINNMR Major.minor.patch_level{.b/a.beta/alpha_version}
+    versionP: str processing version: TOPSPIN/XWINNMR Major.minor.patch_level{.b/a.beta/alpha_version}
 
     valid datasets must at least have acqu file present and proc,
                   else raise error
@@ -596,6 +598,35 @@ class dataset:
             self.bytencP = 'little'
         else:
             self.bytencP = 'big'
+        
+        # set versionA and versionB
+        def read_version(title):
+            if '##TITLE=' not in title[0:8]: raise ValueError("File is not JCAMP-DX valid")
+            title = title.upper()
+            if 'TOPSPIN' in title : 
+                program = 'TOPSPIN'
+                _, version = title.split('TOPSPIN')
+                version = version.lstrip()
+            elif 'XWINNMR' in title : 
+                program = 'XWINNMR'
+                _, version = title.split('XWINNMR')
+            else :
+                program = 'UNDEFINED'
+                version = 'no version'
+            if 'PL' in version:
+                version, PL = version.split('PL')
+                version = f"{version.strip()}.{PL.strip()}" 
+            return program, version
+        f = open(self.returnacqpath() + "/acqus", 'r')
+        title = f.readline().strip()
+        f.close()
+        program, version = read_version(title)
+        self.versionA = program + "/" + version
+        f = open(self.returnprocpath() + "/procs", 'r')
+        title = f.readline().strip()
+        f.close()
+        program, version = read_version(title)
+        self.versionP = program + "/" + version
 
     def returnacqpath(self):
         """
@@ -2333,7 +2364,7 @@ class dataset:
             #    take next line
             #    parse datetime : dayoftheweek, month3letter, dayofthemonth, HH:MM:SS YYYY 
             # no tzinfo available
-            return (0, 0, 0)
+            return (datetime(1, 1, 1, 0, 0), datetime(1, 1, 1, 0, 0), timedelta(0))
         in_trail = False
         audit_trail = []
         for line in lines:
@@ -2463,7 +2494,7 @@ class dataset:
     #    return time_list
     # time_list 
         if len(time_list) == 0 :
-            return (0, 0, 0)
+            return (datetime(1, 1, 1, 0, 0), datetime(1, 1, 1, 0, 0), timedelta(0))
         total_exp_time = timedelta(0)
         start_time = None
         stop_time = None
