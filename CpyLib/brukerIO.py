@@ -958,17 +958,17 @@ class dataset:
             # if line contains a parameter (starts with ##$)
             if line.startswith("##$" + searchString + "="): # parameter found
                 _, value_field = line.split('=', 1)
-                value_field = value_field.strip()
+                value_field = value_field.strip() # remove spaces before and after
                 if value_field.startswith("("): # array:
                     if pindex == -1:
                         raise IndexError("Parameter %s is an array. An index is required"%(searchString,))
                     # get number of array elements
-                    tmp = value_field.split('..')
-                    array_start = int(tmp[0][1:]) # first element removing starting (
-                    array_end = int(tmp[1][:-1]) # second element removing trailing )
+                    
+                    array_limits, array_values = value_field.split(')')
+                    array_limits = array_limits[1:] # remove the leading (
+                    array_start,  array_end = [int(k) for k in array_limits.split('..')]
                     array_size = array_end - array_start + 1
-
-                    array_lines = []
+                    array_lines = [array_values]
                     array_i = 1
                     line =  ls[index+array_i].strip()
                     while not line.startswith('#'): # join all subsequent array lines
@@ -995,10 +995,10 @@ class dataset:
                         return value_array[pindex]
                     except IndexError:
                         raise IndexError("Parameter %s has no index %d (max=%d) in %s" % (searchString, pindex, array_end, path))
-                elif 'yes' in value_field or 'no' in value_field:
-                    return value_field == 'yes'
                 elif value_field.startswith('<'):
                     return value_field[1:-1] # strips < >
+                elif 'yes' in value_field or 'no' in value_field:
+                    return value_field == 'yes'
                 elif 'e' in value_field or '.' in value_field or 'inf' in value_field:
                     return float(value_field)
                 else:
@@ -1119,6 +1119,12 @@ class dataset:
                     del ls[index + 1:index + array_i]
                     for j in range(len(value_lines)):
                         ls.insert(index+1+j, value_lines[j])
+                elif value_field.startswith('<'):
+                    if type(value) is not str:
+                        raise TypeError("Type of provided value (%s) does not match parameter type (str)" 
+                                        % (str(type(value)), ))
+                    value_field = '<' + value + '>'
+                    ls[index] = par_key  + '= ' + value_field + "\n"
                 elif 'yes' in value_field or 'no' in value_field:
                     if type(value) is not bool and value != 'yes' and value != 'no':
                             raise TypeError("Type of provided value (%s) does not match parameter type (bool, 'yes', 'no')" 
@@ -1126,12 +1132,6 @@ class dataset:
                     if value is True: value = 'yes'    
                     if value is False: value = 'no'    
                     value_field = value
-                    ls[index] = par_key  + '= ' + value_field + "\n"
-                elif value_field.startswith('<'):
-                    if type(value) is not str:
-                        raise TypeError("Type of provided value (%s) does not match parameter type (str)" 
-                                        % (str(type(value)), ))
-                    value_field = '<' + value + '>'
                     ls[index] = par_key  + '= ' + value_field + "\n"
                 elif 'e' in value_field or '.' in value_field or 'inf' in value_field:
                     if ('float' not in str(type(value)) ) and ('int' not in str(type(value))):
@@ -2356,7 +2356,7 @@ class dataset:
             with open(auditname, 'r') as f:
                 lines = f.readlines()
         except IOError:
-            # We are probably in a XWINNMR dataset since there is no audita.txt file
+            # We are probably in a XWINNMR dataset version < 3 since there is no audita.txt file
             # Then read acqus with DATE -> start and date in comment right after ##ORIGIN -> stop
             # for stop one needs to 
             #    open acqus manually 
@@ -2365,6 +2365,9 @@ class dataset:
             #    parse datetime : dayoftheweek, month3letter, dayofthemonth, HH:MM:SS YYYY 
             # no tzinfo available
             return (datetime(1, 1, 1, 0, 0), datetime(1, 1, 1, 0, 0), timedelta(0))
+
+        # stores the lines corresponding to ##AUDIT TRAIL in array audit_trail.
+        # also extract the version of topspin that created the audit file from TITLE line
         in_trail = False
         audit_trail = []
         for line in lines:
@@ -2381,11 +2384,13 @@ class dataset:
                 if line.startswith('$$'):
                     continue
                 audit_trail.append(line)
-                 
+        # join all audit_trail in a new string.
         cur = ''.join(audit_trail).strip()
+
         time_list = []
         # note that XWINNMR has no audita.txt file so we shouldn't reach that point in that case
-        if 'TOPSPIN' in version and '1.2' in version:
+        if (('TOPSPIN' in version and ' 1.2' in version) or 
+            ('XWIN' in version and ('3.1' in version) or ('3.5' in version))):
             ##AUDIT TRAIL=  $$ (NUMBER, WHEN, WHO, WHERE, WHAT)
             while len(cur) > 2:
                 if cur.startswith('('):
@@ -2421,7 +2426,7 @@ class dataset:
                                                'start': start, "stop": when, 
                                                'how': how})
                     cur = cur.strip()
-        elif 'TOPSPIN' in version and '1.3' in version:
+        elif 'TOPSPIN' in version and ' 1.3' in version:
             ##AUDIT TRAIL=  $$ (NUMBER, WHEN, WHO, WHERE, VERSION, WHAT)
             while len(cur) > 2:
                 if cur.startswith('('):
