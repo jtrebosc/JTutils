@@ -1048,12 +1048,11 @@ class dataset:
                     if pindex == -1:
                         raise IndexError("Parameter %s is an array. An index is required"%(searchString,))
                     # get number of array elements
-                    tmp = value_field.split('..')
-                    array_start = int(tmp[0][1:]) # first element removing starting (
-                    array_end = int(tmp[1][:-1]) # second element removing trailing )
+                    array_limits, array_values = value_field.split(')')
+                    array_limits = array_limits[1:] # remove the leading (
+                    array_start,  array_end = [int(k) for k in array_limits.split('..')]
                     array_size = array_end - array_start + 1
-
-                    array_lines = []
+                    array_lines = [array_values]
                     array_i = 1
                     line =  ls[index+array_i].strip()
                     while not line.startswith('#'): # join all subsequent array lines
