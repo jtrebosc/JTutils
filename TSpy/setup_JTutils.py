@@ -28,8 +28,9 @@ USERHOME_DOT_TOPSPIN = normpath(os.getenv('USERHOME_DOT_TOPSPIN', "undefined").d
 #You should make sure that PYTHON points to %s""" % (abspath(CpyLibDir), )
 #else :  WarningLibDir =  ""
 
-ssnake_modules = ["matplotlib", "scipy", "PyQt5", "h5py"]
-ssnake_conda_pack = "numpy matplotlib pyqt h5py scipy"
+JTutils_modules = ["numpy", "argparse", "multiprocessing", "brukerIO"]
+ssnake_extra_modules = ["matplotlib", "scipy", "PyQt5", "h5py", "numba", "numba_scipy"]
+ssnake_conda_pack = "numpy matplotlib pyqt h5py scipy numba numba::numba-scipy"
 
 def is_conda_python(CPYTHON):
     """ check if CPYTHON exe is related to a conda distribution
@@ -423,7 +424,7 @@ Please CLICK on one button (enter on keyboard does not work)""" % (conda_env, ne
             else: # run install script
                 if 'win' in OS:
                     cmd = " ".join([conda_exe, "activate &",
-                                   conda_exe, "create -y -n JTutils numpy matplotlib pyqt h5py scipy&",
+                                   conda_exe, "create -y -n JTutils ", ssnake_conda_pack, " & ",
                                    conda_exe, "env list"])
                 else: # unix
                     # default jython shell is /bin/sh : source command is "."
@@ -431,7 +432,7 @@ Please CLICK on one button (enter on keyboard does not work)""" % (conda_env, ne
                     # once done conda is available as a shell internal command
                     shell_init_file = join_path(conda_base,'etc', 'profile.d', 'conda.sh')
                     cmd = " ".join([".", shell_init_file, ";",
-                                  "conda create -y -n JTutils " + ssnake_conda_pack + ";", 
+                                  "conda create -y -n JTutils ", ssnake_conda_pack, ";", 
                                   "conda env list"])
                 MSG(subprocess.check_output(cmd, shell=True))
                 MSG("JTutils environment created")
@@ -542,13 +543,13 @@ def create_report():
     WarningCpython += message + '\n'
     if success:
         cmodule_imported = {}
-        for module in ["numpy", "argparse", "multiprocessing", "brukerIO"] + ssnake_modules:
+        for module in JTutils_modules + ssnake_extra_modules:
             cmodule_imported[module], version_message = test_cmodule_import(module)
             if cmodule_imported[module]:
                 WarningCpython += "%s %s module imported successfully\n" % (module, version_message)
             else:
                 WarningCpython += "ERROR: %s module import FAILED.\n %s\n" % (module, version_message)
-                if module in ssnake_modules:
+                if module in ssnake_extra_modules:
                     WarningCpython += "You will not be able to call ssNake from JTutils tools!\n"
                     
 
