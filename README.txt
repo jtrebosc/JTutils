@@ -1,5 +1,5 @@
 JTutils is a set of python scripts that enhance processing capabilites of 
-Topspin...
+Topspin.
 It is mostly useful to process data acquired with pulse sequences developped
 in Lille, France by Julien TREBOSC
 
