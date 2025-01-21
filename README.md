@@ -1,3 +1,4 @@
+# JTutils 
 JTutils is a set of python scripts that enhance processing capabilites of 
 Topspin.
 
@@ -15,18 +16,16 @@ The author decline any responsability for program or data loss that would result
 
 JTutils sets of scripts comprise:
 * JTutils/TSpy : contains the python scripts run under Topspin environment
-* JTutils/CpyBin : contains C python scritps usually called from TSpy
+* JTutils/CpyBin : contains C python scripts usually called from TSpy
   scripts (but then can be run as standalone scripts)
 * JTutils/CpyLib : contains python library to read/write Bruker data
 
-Developped with python 2.7 (ubuntu, macosx/topspin 4).
-
-Updated for python 3 (ubuntu, topspin 4).
+Developped for python > 3.6 (ubuntu, macosx/topspin 4).
 
 ## Requirements for running python program: 
 Scripts are designed to run with the lowest version number possible. 
 But with time tests were run with more recent versions. So minimum version 
-can depend upon script
+can depend upon script.
  - in CpyLib: brukerIO.py or brukerPARIO.py package will needs at least
     * python 2.5
     * numpy 1.0.1 
@@ -35,7 +34,6 @@ can depend upon script
  - in TSpy : all scripts should work with topspin provided jython version except
     for those using argparse and subprocess.check_call which exist only in 
     jython 2.7 which is provided within topspin >=3.5.
-
 
 Other used standard modules :
 * sys
@@ -47,21 +45,26 @@ Other used standard modules :
 * subprocess
 
 ## INSTALLATION
-1) Install folder JTutils to a destination directory DESTDIR.
+1) Install (unzip) folder JTutils to a destination directory DESTDIR.
 
-2) Install a working python + numpy environment (tested with 
+2) Install a working python environment with all required modules (tested with 
    anaconda/miniconda on Linux, MacOSX and windows).
 
-   For miniconda installation: 
-      1) download miniconda (python 2 or 3) at https://docs.conda.io/en/latest/miniconda.html
-      2) run the miniconda installer (100-200Mb). No need to ask for numpy: during the setup script (see step 4)
-         you will be asked to create a specific conda environment named JTutils which will have numpy.
+    For miniconda installation: 
+        * Download miniconda (python3) at https://docs.conda.io/en/latest/miniconda.html
+        * Run the miniconda installer (100-200Mb). All additional packages (numpy and others) can be automatically installed
+           at step 4. 
 
-3) In Topspin preferences, set [DESTDIR]/JTutils/TSpy as scanned directory
-   for python script then restart topspin.
+3) In Topspin preferences, **Directories** section, "Manage source directories for edpul, edau etc. -> click *Change*
+    * set [DESTDIR]/JTutils/TSpy as scanned directory for python scripts "JYTHON PROGRAMS" (**not python 3+ programs** )
+    * then restart topspin for changes to take effect
 
-4) run setup\_JTutils in topspin : if report does not point out problem, 
-everything should work!
+4) Run setup\_JTutils in topspin command bar:
+    * It will ask for a python interpreter. It may have detetected several while searching for standard location.
+    * if a conda (anaconda/miniconda) installation is selected it will check if it is in a conda environment 
+    called JTutils. If not, it will ask if you want to create it. If yes it will automatically download all 
+    modules required to run the JTutils scripts.
+    * It will test import of required modules. If the report does not point out any problem, everything should work!
 
 ## Remarks
 ### Old versions of topspin :

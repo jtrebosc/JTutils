@@ -6,7 +6,7 @@ param : parameter as read (case sensitive!) in acqu(s).
 				If parameter is an array value, the index must be 
 				provided after a dot.
 				example : D.1  PLW.21 
-options:
+options: Not relying on argparse library
 	-Dn : read in dimension n with n=1 is direct dimension up to dimension n (=PARMODE +1)
 				e.g. -D3 reads in third dimension that is F1 in 3D dataset and acqu3s file
 	-s   : read status parameter (acqus or acqu2s)
