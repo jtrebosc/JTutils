@@ -29,6 +29,7 @@ for par_name in PA :
         par = dat.readacqpar(par_name, status=False, dimension=1)
         print(par_name, type(par), par)
     except Exception as e:
+        print(f"{par_name} triggered an exception")
         print(e)
 print("reading acquisition status parameter")
 for par_name in PA :
@@ -36,6 +37,7 @@ for par_name in PA :
         par = dat.readacqpar(par_name, status=True, dimension=1)
         print(par_name, type(par), par)
     except Exception as e:
+        print(f"{par_name} triggered an exception")
         print(e)
 print("reading processing non status parameter")
 for par_name in PP :
@@ -43,6 +45,7 @@ for par_name in PP :
         par = dat.readprocpar(par_name, status=False, dimension=1)
         print(par_name, type(par), par)
     except Exception as e:
+        print(f"{par_name} triggered an exception")
         print(e)
 print("reading processing status parameter")
 for par_name in PP :
@@ -50,4 +53,5 @@ for par_name in PP :
         par = dat.readprocpar(par_name, status=True, dimension=1)
         print(par_name, type(par), par)
     except Exception as e:
+        print(f"{par_name} triggered an exception")
         print(e)
