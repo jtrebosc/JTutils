@@ -28,8 +28,9 @@ USERHOME_DOT_TOPSPIN = normpath(os.getenv('USERHOME_DOT_TOPSPIN', "undefined").d
 #You should make sure that PYTHON points to %s""" % (abspath(CpyLibDir), )
 #else :  WarningLibDir =  ""
 
-ssnake_modules = ["matplotlib", "scipy", "PyQt5", "h5py"]
-ssnake_conda_pack = "numpy matplotlib pyqt h5py scipy"
+JTutils_modules = ["numpy", "argparse", "multiprocessing", "brukerIO"]
+ssnake_extra_modules = ["matplotlib", "scipy", "PyQt5", "h5py", "numba", "numba_scipy"]
+ssnake_conda_pack = "numpy matplotlib pyqt=5 h5py scipy numba numba::numba-scipy"
 
 def is_conda_python(CPYTHON):
     """ check if CPYTHON exe is related to a conda distribution
