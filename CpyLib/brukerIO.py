@@ -20,39 +20,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 
-# Changes
-# 27/02/2017 by JT
-# fix calculation of tdblock according to DTYPA:
-#                       need to manage NC depending on DTYPA
-# 23/02/2017 by JT
-# add management of DTYPA and DTYPP for topspin 4
-
-# 26/08/2015 by JT
-# add effective digital filter removal (applies 1st order correction
-# with FFT, iFFT process)
-# for readfidc and add readserc function
-# new functions:
-# serc2DEAE2HC, serc2DStatesTppi2HC, serc2DStates2HC to use complex arrays from
-#                    readserc instead of readser
-#
-# change indentation from tab to 4 spaces
-# change version number
-# corrected bug when writing string (missing <>)
-# 27/08/2014 by JT
-# in readfid and readser calculate the number of dig filt to remove
-# with int(round(self.getdigfilt())) instead of int(self.getdigfilt())
-
-# 25/08/2014 by JT
-# increment library version to 1.4
-# add readfidc and writefidc function
-
-# 24/07/2012:
-# read and write of ser file can be done on nD datasets
-
-
-# TODO: 3D or more dataset for read and write of processed data
+# TODO: 
 #        improve processed data unit management
-#        new function getprocunit
 #        new function getprocx, getprocy automatically based on
 #                                           unit (s ppm Hz or other...)
 
@@ -261,10 +230,16 @@ def getlistfilefullname(filename, type='PP'):
     nmrhome = os.getenv("XWINNMRHOME")
     userparamdir = os.getenv("JAVA_LOGDIR")
     userparamfile = userparamdir + "/parfile-dirs.prop"
-    try:
-        f = open(userparamfile, 'r')
-    except:
-        raise IOError("Cannot open " + userparamfile)
+    for encoding in [ 'cp1252', 'utf-8', 'latin1',]:
+        try:
+            with  open(userparamfile, 'r', encoding=encoding) as f:
+                lines = f.readline().strip()
+                break
+        except UnicodeDecodeError:
+                print(f"reading {userparamfile} failed for encoding {encoding}")
+                continue
+        except IOError:
+                raise IOError("Cannot open " + userparamfile)
 
     for i in f.readlines():
         m = re.match(type + "_DIRS=(.*)", i)
@@ -275,8 +250,9 @@ def getlistfilefullname(filename, type='PP'):
     for i in vcdirlist:
         # check whether relative or full name is used,
         # if relative then complete to full path name
+        # this is probably not working on windows (root doesn't start with /)
         if i[0] != '/':
-            i = nmrhome + "/exp/stan/nmr/" + i+"/" + filename
+            i = os.path.join(nmrhome, "exp", "stan", "nmr", i, filename)
         if os.path.exists(i):
             # MSG(i)
             fullname = i
@@ -596,19 +572,59 @@ class dataset:
             self.bytencP = 'little'
         else:
             self.bytencP = 'big'
+        
+        # set versionA and versionB
+        def read_version(title):
+            if '##TITLE=' not in title[0:8]: raise ValueError("File is not JCAMP-DX valid")
+            title = title.upper()
+            if 'TOPSPIN' in title : 
+                program = 'TOPSPIN'
+                _, version = title.split('TOPSPIN')
+                version = version.lstrip()
+            elif 'XWINNMR' in title : 
+                program = 'XWINNMR'
+                _, version = title.split('XWINNMR')
+            else :
+                program = 'UNDEFINED'
+                version = 'no version'
+            if 'PL' in version:
+                version, PL = version.split('PL')
+                version = f"{version.strip()}.{PL.strip()}" 
+            return program, version
+        filename = self.returnacqpath() + "acqus"
+        for encoding in [ 'cp1252', 'utf-8', 'latin1',]:
+            try:
+                with  open(filename, 'r', encoding=encoding) as f:
+                    title = f.readline().strip()
+                    break
+            except UnicodeDecodeError:
+                print(f"Failed reading {filename} with encoding {encoding}")
+                continue
+        program, version = read_version(title)
+        self.versionA = program + "/" + version
+        filename = self.returnprocpath() + "procs"
+        for encoding in [ 'cp1252', 'utf-8', 'latin1',]:
+            try:
+                with  open(filename, 'r', encoding=encoding) as f:
+                    title = f.readline().strip()
+                    break
+            except UnicodeDecodeError:
+                print(f"Failed reading {filename} with encoding {encoding}")
+                continue
+        program, version = read_version(title)
+        self.versionP = program + "/" + version
 
     def returnacqpath(self):
         """
-        returns folder pathway where acqu/fid files are stored
-                                         (with "/" separators)
+        returns folder pathway where acqu/fid/ser... files are stored
         """
         if self.version == 2:
-            path = "%s/data/%s/nmr/%s/%s/" % (self.dataset[3], self.dataset[4],
-                                              self.dataset[0], self.dataset[1])
+            path = os.path.join(self.dataset[3], 'data', self.dataset[4], 'nmr',
+                                 self.dataset[0], self.dataset[1], "")
             return path
         elif self.version == 3:
-            path = "%s/%s/%s/" % (self.dataset[3], self.dataset[0],
-                                  self.dataset[1])
+            path = os.path.join(self.dataset[3], self.dataset[0],
+                                  self.dataset[1], "")
             return path
         else:
             return ""
@@ -616,17 +632,14 @@ class dataset:
     def returnprocpath(self):
         """
         returns folder pathway where proc/1r/2rr... files are stored
-                                           (with "/" separators)
         """
         if self.version == 2:
-            path = "%s/data/%s/nmr/%s/%s/pdata/%s/" % (
-                    self.dataset[3], self.dataset[4], self.dataset[0],
-                    self.dataset[1], self.dataset[2])
+            path = os.path.join(self.dataset[3], 'data', self.dataset[4], 'nmr',
+                                  self.dataset[0], self.dataset[1], "pdata", self.dataset[2], "")
             return path
         elif self.version == 3:
-            path = "%s/%s/%s/pdata/%s/" % (
-                    self.dataset[3], self.dataset[0], self.dataset[1],
-                    self.dataset[2])
+            path = os.path.join(self.dataset[3], self.dataset[0], self.dataset[1], 
+                                  "pdata", self.dataset[2], "")
             return path
         else:
             return ""
@@ -947,7 +960,7 @@ class dataset:
                     if len(array_lines) == 0: 
                         raise ValueError("%s is inconsistent JCAMPDX file. Could not parse %d array value for parameter %s" % 
                                             (path, array_size, searchString) )
-                    value_line = ' '.join(array_lines)
+                    value_line = ' '.join(array_lines).strip()
 
                     # what is array ? numeric, boolean or string ?
                     if value_line.startswith('<'): #string list
