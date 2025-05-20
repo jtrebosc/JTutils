@@ -543,13 +543,13 @@ def create_report():
     WarningCpython += message + '\n'
     if success:
         cmodule_imported = {}
-        for module in ["numpy", "argparse", "multiprocessing", "brukerIO"] + ssnake_modules:
+        for module in ["numpy", "argparse", "multiprocessing", "brukerIO"] + ssnake_extra_modules:
             cmodule_imported[module], version_message = test_cmodule_import(module)
             if cmodule_imported[module]:
                 WarningCpython += "%s %s module imported successfully\n" % (module, version_message)
             else:
                 WarningCpython += "ERROR: %s module import FAILED.\n %s\n" % (module, version_message)
-                if module in ssnake_modules:
+                if module in ssnake_extra_modules:
                     WarningCpython += "You will not be able to call ssNake from JTutils tools!\n"
                     
 
