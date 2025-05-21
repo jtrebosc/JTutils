@@ -134,6 +134,8 @@ Allowed versions are : %s """  % (version, ', '.join(config.keys())))
         EXIT()
 
     current_data = CURDATA()
+    if JTutils._OS == 'win':
+        current_data[0].replace('/', '\\')
     if current_data is None:
         datfiles = []
     else:

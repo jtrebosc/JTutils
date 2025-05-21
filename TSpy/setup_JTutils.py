@@ -424,7 +424,7 @@ Please CLICK on one button (enter on keyboard does not work)""" % (conda_env, ne
             else: # run install script
                 if 'win' in OS:
                     cmd = " ".join([conda_exe, "activate &",
-                                   conda_exe, "create -y -n JTutils numpy matplotlib pyqt h5py scipy&",
+                                   conda_exe, "create -y -n JTutils " + ssnake_conda_pack + "&",
                                    conda_exe, "env list"])
                 else: # unix
                     # default jython shell is /bin/sh : source command is "."
