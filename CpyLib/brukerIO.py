@@ -2393,7 +2393,7 @@ class dataset:
                             # sometimes tzdata is not standard +100 instead of +0100
                             # so try to fix it
                             import re
-                            when = re.sub("\+([1-9])", r'+0\1', when)
+                            when = re.sub(r"\+([1-9])", r'+0\1', when)
                             when =  parser.parse(when)
                         # for topspin 1.2 start time is stored in DATE
                         start = datetime.fromtimestamp(self.readacqpar('DATE', status=True, dimension=1),
