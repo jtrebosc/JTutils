@@ -13,7 +13,8 @@ from os.path import abspath, dirname, normpath, realpath, isdir, isfile, islink
 from os.path import join as join_path
 from os.path import split as split_path
 
-sys_enc = sys.getfilesystemencoding()
+sys_enc = sys.getfilesystemencoding() # encoding for system variables
+std_enc = sys.stdout.encoding  # encoding for terminal (cmd, xterm...)
 # This script should be called from within topspin so these should be defined
 XWINNMRHOME = normpath(os.getenv('XWINNMRHOME', "undefined").decode(sys_enc))
 USERHOME_DOT_TOPSPIN = normpath(os.getenv('USERHOME_DOT_TOPSPIN', "undefined").decode(sys_enc))
@@ -30,7 +31,7 @@ USERHOME_DOT_TOPSPIN = normpath(os.getenv('USERHOME_DOT_TOPSPIN', "undefined").d
 
 JTutils_modules = ["numpy", "argparse", "multiprocessing", "brukerIO"]
 ssnake_extra_modules = ["matplotlib", "scipy", "PyQt5", "h5py", "numba", "numba_scipy"]
-ssnake_conda_pack = "numpy matplotlib pyqt=5 h5py scipy numba numba::numba-scipy"
+ssnake_conda_pack = u"numpy matplotlib pyqt=5 h5py scipy numba numba::numba-scipy"
 
 def is_conda_python(CPYTHON):
     """ check if CPYTHON exe is related to a conda distribution
@@ -148,15 +149,14 @@ def test_module_link():
         "wrong dir" if file exists and is a directory
     """
     link_name = join_path(XWINNMRHOME, "jython", "Lib", "JTutils")
-    link_target = normpath(abspath(join_path(dirname(sys.argv[0]), ".."))) 
+    link_target = normpath(abspath(join_path(dirname(sys.argv[0].decode(sys_enc)), u".."))) 
     if not os.path.lexists(link_name):
         return (False, "missing")
     OS = get_os_version()
     if 'win' in OS:
         import subprocess
-        dir_list = subprocess.check_output(['dir',  join_path(XWINNMRHOME, "jython", "Lib")], shell=True)
-        os_encoding = 'cp850' 
-        for line in dir_list.decode(os_encoding).splitlines():
+        dir_list = subprocess.check_output([u"dir",  join_path(XWINNMRHOME, u"jython", u"Lib")], shell=True)
+        for line in dir_list.decode(std_enc).splitlines():
             if 'JTutils' in line:
                 break
         if '<JUNCTION>' in line:
@@ -194,13 +194,13 @@ def make_module_link():
     """
     create a symbolic link in XWINNMRHOME/jython/Lib to JTutils location
     """
-    link_name = join_path(XWINNMRHOME, "jython", "Lib", "JTutils")
-    link_target = normpath(abspath(join_path(dirname(sys.argv[0]), ".."))) 
+    link_name = join_path(XWINNMRHOME, u"jython", u"Lib", u"JTutils")
+    link_target = normpath(abspath(join_path(dirname(sys.argv[0].decode(sys_enc)), ".."))) 
     OS = get_os_version()
     import subprocess
     if 'win' in OS:
-        link = "mklink"
-        link_opt = "/j"
+        link = u"mklink"
+        link_opt = u"/j"
         try:
             subprocess.call([link, link_opt, link_name, link_target], shell=True)
         except subprocess.CalledProcessError, exc:
@@ -208,8 +208,8 @@ def make_module_link():
             MSG("About to exit setup... Sorry")
             EXIT()
     else:
-        link = "ln"
-        link_opt = "-s"
+        link = u"ln"
+        link_opt = u"-s"
         subprocess.call([which(link), link_opt, link_target, link_name])
     
 def test_config_file():
@@ -276,24 +276,18 @@ On windows: looks for python executable in
         userpath = os.getenv("USERPROFILE").decode(sys_enc)
         path_list = [
             [ userpath, "Miniconda3", "envs", "JTutils","python.exe"],
-            [ userpath, "Miniconda2", "envs", "JTutils","python.exe"],
-            [ userpath, "Miniconda2","python.exe"],
             [ userpath, "Miniconda3","python.exe"],
-            [ userpath, "APPDATA", "Local", "Continuum", "Anaconda2", "envs", "JTutils","python.exe"],
+            [ userpath, "APPDATA", "Local", "miniconda3","python.exe"],
+            [ userpath, "APPDATA", "Local", "miniconda3", "envs", "JTutils", "python.exe"],
             [ userpath, "APPDATA", "Local", "Continuum", "Anaconda3","python.exe"],
-            [ userpath, "APPDATA", "Local", "Continuum", "Anaconda2","python.exe"],
-            [ userpath, "APPDATA", "Local", "Continuum", "Anaconda3","python.exe"],
+            [ userpath, "APPDATA", "Local", "Continuum", "Anaconda3", "envs", "JTutils", "python.exe"],
         ]
     elif ('linux' in OS) or ('mac' in OS):
         userpath = os.getenv("HOME").decode(sys_enc)
         path_list = [
-            [ userpath, "miniconda2", "envs", "JTutils", "bin", "python"],
             [ userpath, "miniconda3", "envs", "JTutils", "bin", "python"],
-            [ userpath, "miniconda2", "bin", "python"],
             [ userpath, "miniconda3", "bin", "python"],
-            [ userpath, "anaconda2", "envs", "JTutils", "bin", "python"],
             [ userpath, "anaconda3", "envs", "JTutils", "bin", "python"],
-            [ userpath, "anaconda2", "bin", "python"],
             [ userpath, "anaconda3", "bin", "python"],
         ]
 
@@ -431,9 +425,9 @@ Please CLICK on one button (enter on keyboard does not work)""" % (conda_env, ne
                     # first source the conda initialisation script
                     # once done conda is available as a shell internal command
                     shell_init_file = join_path(conda_base,'etc', 'profile.d', 'conda.sh')
-                    cmd = " ".join([".", shell_init_file, ";",
-                                  "conda create -y -n JTutils " + ssnake_conda_pack + ";", 
-                                  "conda env list"])
+                    cmd = u" ".join([u".", shell_init_file, u";",
+                                  u"conda create -y -n JTutils " + ssnake_conda_pack + u";", 
+                                  u"conda env list"])
                 MSG(subprocess.check_output(cmd, shell=True))
                 MSG("JTutils environment created")
             CPYTHON = new_python_exe
