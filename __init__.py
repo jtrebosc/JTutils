@@ -24,15 +24,17 @@ def _get_os_version():
 
 
 # special treatment for topspin<3
-def fullpath(dataset):
+def fullpath(dataset, norm_path=True):
     """
     return absolute path to dataset
     dataset is an array as returned by CURDATA()
     """
     dat = dataset[:] # make a copy because I don't want to modify the original array
     if len(dat) == 5: # for topspin 2-
-            dat[3] = join(normpath(dat[3]), 'data', dat[4], 'nmr')
-    fulldata = join(normpath(dat[3]), dat[0], dat[1], 'pdata', dat[2])
+            dat[3] = '/'.join([dat[3], 'data', dat[4], 'nmr'])
+    fulldata = '/'.join([dat[3], dat[0], dat[1], 'pdata', dat[2]])
+    if norm_path:
+        fulldata = normpath(fulldata)
     return fulldata
 
 

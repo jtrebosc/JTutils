@@ -149,14 +149,14 @@ def test_module_link():
         "wrong dir" if file exists and is a directory
     """
     link_name = join_path(XWINNMRHOME, "jython", "Lib", "JTutils")
-    link_target = normpath(abspath(join_path(dirname(sys.argv[0].decode(sys_enc)), u".."))) 
+    link_target = normpath(abspath(join_path(dirname(sys.argv[0]), "..")))
     if not os.path.lexists(link_name):
         return (False, "missing")
     OS = get_os_version()
     if 'win' in OS:
         import subprocess
-        dir_list = subprocess.check_output([u"dir",  join_path(XWINNMRHOME, u"jython", u"Lib")], shell=True)
-        for line in dir_list.decode(std_enc).splitlines():
+        dir_list = subprocess.check_output(["dir",  join_path(XWINNMRHOME, "jython", "Lib")], shell=True).decode(std_enc)
+        for line in dir_list.splitlines():
             if 'JTutils' in line:
                 break
         if '<JUNCTION>' in line:
@@ -194,15 +194,15 @@ def make_module_link():
     """
     create a symbolic link in XWINNMRHOME/jython/Lib to JTutils location
     """
-    link_name = join_path(XWINNMRHOME, u"jython", u"Lib", u"JTutils")
-    link_target = normpath(abspath(join_path(dirname(sys.argv[0].decode(sys_enc)), ".."))) 
+    link_name = join_path(XWINNMRHOME, "jython", "Lib", "JTutils")
+    link_target = normpath(abspath(join_path(dirname(sys.argv[0]), ".."))) 
     OS = get_os_version()
     import subprocess
     if 'win' in OS:
         link = u"mklink"
         link_opt = u"/j"
         try:
-            subprocess.call([link, link_opt, link_name, link_target], shell=True)
+            subprocess.call([s.encode(sys_enc) for s in [link, link_opt, link_name, link_target]], shell=True)
         except subprocess.CalledProcessError, exc:
             MSG(exc.output)
             MSG("About to exit setup... Sorry")
@@ -428,7 +428,7 @@ Please CLICK on one button (enter on keyboard does not work)""" % (conda_env, ne
                     cmd = u" ".join([u".", shell_init_file, u";",
                                   u"conda create -y -n JTutils " + ssnake_conda_pack + u";", 
                                   u"conda env list"])
-                MSG(subprocess.check_output(cmd, shell=True))
+                MSG(subprocess.check_output(cmd, shell=True).decode(std_enc))
                 MSG("JTutils environment created")
             CPYTHON = new_python_exe
             conda_env = 'JTutils'
@@ -452,8 +452,8 @@ Please CLICK on one button (enter on keyboard does not work)""" % (conda_env, ne
                         "env |grep -i CONDA ; echo PATH=$PATH" ])
     try:
 #        MSG(cmd)
-        res = subprocess.check_output(cmd, shell=True)
-        res = res.decode(sys_enc)
+        res = subprocess.check_output(cmd, shell=True).decode(std_enc)
+        res = res
     except subprocess.CalledProcessError as grepexc:
         grepexc = grepexc.decode(sys_enc)
         print("error code", grepexc.returncode, grepexc.output)
@@ -499,7 +499,7 @@ def create_report():
     # report basic information :
     version = sys.version
     var_env = os.environ
-    curdir = os.getcwd().decode(sys_enc)
+    curdir = os.getcwd()
     scriptFile = sys.argv[0]
     scriptDir = dirname(sys.argv[0])
     CpyLibDir = scriptDir + '/../CpyLib'
@@ -552,15 +552,15 @@ def create_report():
     MSG(report_message)
 
     env_list = "\nList of defined environment variables\n"
-    env_list += "\n".join(["%s: %s" % (key, var_env[key]) for key in var_env.keys()])
+    env_list += "\n".join(["%s: %s" % (key.decode(sys_enc), var_env[key].decode(sys_enc)) for key in var_env.keys()])
     report_message += env_list
 
     save_report = CONFIRM(title="Save report", message="Do you want to save the report in a file ?")
     if save_report :
         # add a file dialog to choose the directory and filename where to store report
         f = open("report.txt", 'w')
-        f.write(report_message)
-        f.write(env_list)
+        f.write(report_message.encode(sys_enc))
+        f.write(env_list.encode(sys_enc))
         f.close()
         MSG("""report written in %s.""" % (curdir + "/report.txt", ))
 

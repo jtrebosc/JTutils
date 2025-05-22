@@ -14,22 +14,6 @@ def read_mdisp(dataset):
         return mdisp.split('|')
     return []
 
-def getfilename(procnopath, isfid):
-    """ returns the filename to read given the fullpath to procno and whether fid or spectrum is to be loaded"""
-    from JTutils import brukerPARIO as io
-    the_path = io.splitprocpath(procnopath)
-    dataset = io.dataset(the_path)
-    if isfid:
-        dim = dataset.readacqpar('PARMODE', True, 1)
-        if dim == 0:
-            file = 'fid'
-        else :
-            file = 'ser'
-        return os.path.join(dataset.returnacqpath(), file)
-    else:
-        return os.path.join(dataset.returnprocpath(), '')
-    
-
 def launch_ssnake(datfiles, config):
     """ datfiles : list of fully qualified files to open
         config:  configuration dictionnary defining where to find exe files
@@ -42,8 +26,7 @@ def launch_ssnake(datfiles, config):
     args = []
     
     for f in datfiles:
-        args.append(f) 
-        
+        args.append(os.path.normpath(f))
     JTutils.run_ext_script(ssnake_path, args)
 
 if __name__ == '__main__':
@@ -134,17 +117,24 @@ Allowed versions are : %s """  % (version, ', '.join(config.keys())))
         EXIT()
 
     current_data = CURDATA()
-    if 'win' in JTutils._OS:
-        current_data[0] = current_data[0].replace('/', '\\')
-        current_data[-1] = current_data[-1].replace('/', '\\')
-#        MSG(str(current_data))
     if current_data is None:
         datfiles = []
     else:
-        datfiles = [getfilename(fullpath(current_data), isfid)]
+#        if 'win' in JTutils._OS:
+#            current_data[0] = current_data[0].replace('/', '\\')
+#            current_data[-1] = current_data[-1].replace('/', '\\')
+#        MSG(str(current_data))
+        if isfid:
+            datfiles = [fullpath(current_data, norm_path=False)+'/../../acqus']
+        else:
+            datfiles = [fullpath(current_data, norm_path=False)+'/procs']
+#        MSG(str(datfiles))
         if mdisp :
             mfiles = read_mdisp(current_data)
             for f in mfiles:
-                datfiles.append(getfilename(f, isfid))
+                if isfid:            	
+                    datfiles.append(f+'/../../acqus')
+                else:                
+                    datfiles.append(f+'/procs')
     launch_ssnake(datfiles, setup_dict)
  
