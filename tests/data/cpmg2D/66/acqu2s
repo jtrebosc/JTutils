@@ -15,7 +15,7 @@ $$ process /opt/topspin4.0.1/prog/mod/dataserver
 ##$FW= 2.4e+08
 ##$FnILOOP= 1
 ##$FnMODE= 5
-##$NUC1= 71Ga
+##$NUC1= <71Ga>
 ##$NusJSP= 0
 ##$NusT2= 1
 ##$NusTD= 28
