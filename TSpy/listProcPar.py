@@ -71,7 +71,7 @@ for i in expnoList :
             line.append('N.A.')
             continue
         line.append(str(val))
-    res.append("    ".join(line))
+    res.append("\t".join(line))
 res.sort(key=lambda s : int(s.split()[0]))
 #print "looking for '" + " ".join(args) + "' in " + expnamedir
 #print('\n'.join(res))
