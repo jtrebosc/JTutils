@@ -11,7 +11,7 @@ WARNING : use of these script WILL CORRUPT your Bruker data (in sense of GPL:
 * no MD5 signature of files is done
 * no auditing is done
 
-The script will modify in place fid, ser, acqu(123)(s), 1r, 2rr etc... files
+Some scripts will modify in place fid, ser, acqu(123)(s), 1r, 2rr etc... files
 
 The author decline any responsability for program or data loss that would result from the installation and use of these scripts.
 
@@ -34,7 +34,8 @@ can depend upon script.
   script
  - in TSpy : all scripts should work with topspin >=3.5 as provided jython is version 2.7
 
-Running ssNake will require the associated modules (pyqt, scipy, numba, etc..).
+Running ssNake will require the associated modules:
+matplotlib scipy PyQt6 h5py numba and optionnaly numba\_scipy.
 
 Other used standard modules :
 * sys
@@ -53,8 +54,10 @@ Other used standard modules :
 
     For miniconda installation: 
         * Download miniconda (python3) at https://docs.conda.io/en/latest/miniconda.html
-        * Run the miniconda installer (100-200Mb). All additional packages (numpy and others) can be automatically installed
-           at step 4. 
+        * Run the miniconda installer (100-200Mb).
+        * Anaconda requires user to accept a user licence for channels so automatic installation 
+          of required packages is not possible anymore. In anaconda promptr
+        
 
 3) In Topspin preferences, **Directories** section, "Manage source directories for edpul, edau etc. -> click *Change*
     * set [DESTDIR]/JTutils/TSpy as scanned directory for python scripts "JYTHON PROGRAMS" (**not python 3+ programs** )
