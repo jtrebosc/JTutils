@@ -15,13 +15,15 @@ import re
 import os
 
 
-def scalef1sheared(F2toF1=False, exptype='3QMAS', dataset=None):
+def scalef1sheared(F2toF1=False, channel=None, exptype=None, fold=None, dataset=None):
     """
     Calculate the universal scale for MQMAS/STMAS experiments
     input args : 
     F2toF1: (bool) if True uses SF from F2 dimension for calculating SF in F1
     exptype: (string) None (default), '3QMAS', 5QMAS' or 'STMAS': calculate new scale for exptype
            if None ask user for exptype
+    channel: (int) logical channel number to be used for F1. If F2toF1 is True, does not account for it.
+    fold: how many times the signal. Used to unfolded the scale.
     dataset: the dataset as returned by CURDATA()
     """ 
     # if this function is called from imported module then 
@@ -86,13 +88,18 @@ def scalef1sheared(F2toF1=False, exptype='3QMAS', dataset=None):
         # F1 parameters are calculated from F2 (chan=0)
         chosenChan = 0
     else:
-        # user selects the channel to set in F1 among the active channels
-        channel = SELECT(title="available channels",
-                         message="what channel do you want to use for F1 (click button) or ESCAPE to cancel ?",
-                         buttons=boutons, mnemonics=mnemonique)
-        if channel < 0 :
-            EXIT()
-        chosenChan = channelmap[channel]
+        if channel is None:
+            # user selects the channel to set in F1 among the active channels
+            selected = SELECT(title="available channels",
+                             message="what channel do you want to use for F1 (click button) or ESCAPE to cancel ?",
+                             buttons=boutons, mnemonics=mnemonique)
+            if selected < 0 :
+                EXIT()
+            chosenChan = channelmap[selected]
+        else:
+            chosenChan = channel - 1
+            if chosenChan not in channelmap:
+                MESSAGE("Error, channel f" + str(channel) + " is not active")
 
     sfo = float(SFOx[chosenChan])
     bf = float(BFx[chosenChan])
@@ -137,14 +144,17 @@ def scalef1sheared(F2toF1=False, exptype='3QMAS', dataset=None):
             EXIT()
         exptype = theTypes[typeIndex]
 
-    folding_times = "0"
-    result = INPUT_DIALOG("number of times the spectrum is folded (-1, 0, +1,...)", 
-          """ Adjust the scale of a folded spectrum. Input how many times the spectrum is folded
-          a positive number shift the scale to higher ppm value
-          """, 
-             ["fold times="],
-             [folding_times])
-    folding_times = int(result[0])
+    if fold is None:
+        folding_times = "0"
+        result = INPUT_DIALOG("number of times the spectrum is folded (-1, 0, +1,...)", 
+              """ Adjust the scale of a folded spectrum. Input how many times the spectrum is folded
+              a positive number shift the scale to higher ppm value
+              """, 
+                 ["fold times="],
+                 [folding_times])
+        folding_times = int(result[0])
+    else:
+        folding_times = int(fold)
 
     # calculate scaling factor based on experiment type and spin
     # 3QMAS correlates 3Q coherence with CT coherence
@@ -228,37 +238,26 @@ if __name__ == '__main__':
     description = """
     Adjust the F1 scale for isotropic dimension in MQMAS/STMAS of MQHETCOR type experiments.
     """
-    class dummy():
-        def __init__(self):
-            self.F2toF1 = False
-            self.Q3 = False
-            self.Q5 = False
-            self.ST = False
     try : 
         import argparse
         parser = argparse.ArgumentParser(description=description)
-        parser.add_argument('--F2toF1', action='store_true', 
-                    help='use parameters from F2 dimension to calculate scale in F1 (ex.: for MQMAS)')
-        group = parser.add_mutually_exclusive_group()
-        group.add_argument('--3qmas', action='store_true', dest='Q3',
-                    help='Calculate the scale for a 3QMAS experiment')
-        group.add_argument('--5qmas', action='store_true', dest='Q5',
-                    help='Calculate the scale for a 5QMAS experiment')
-        group.add_argument('--stmas', action='store_true', dest='ST',
-                    help='Calculate the scale for a STMAS experiment')
+        parser.add_argument('-f', '--f2copy', action='store_true', 
+                            help='use parameters from F2 dimension to calculate scale in F1 (ex.: for MQMAS)')
+        parser.add_argument('-e', '--exptype', default=None, type=str,
+                            help='Type of experiment: 3q, 5q or st for 3QMAS, 5QMAS or STMAS.')
+        parser.add_argument('-n', '--nfold', default=None, type=int,
+                            help='How many times signal is folded (can be negative).')
+        parser.add_argument('-c', '--channel', default=None, type=int,
+                            help='Logical channel number to use for F1: 1, 2, 3 or 4 for f1, f2, f3 ,f4.')
         args  =  parser.parse_args(sys.argv[1:])
-    except ImportError:
-        if len(sys.argv) > 1:
-            MSG("Argparse module not found!\n Arguments won't be processed")
-        args = dummy()
     except SystemExit:
         MSG(""" Script is exiting : either you asked for help or there is an argument error.
         Check console for additional information
         """  + parser.format_help() )
         EXIT()
-    if args.Q3 : exptype = '3QMAS'
-    elif args.Q5 : exptype = '5QMAS'
-    elif args.ST : exptype = 'STMAS'
+    if args.exptype == '3q': exptype = '3QMAS'
+    elif args.exptype == '5q': exptype = '5QMAS'
+    elif args.exptype == 'st': exptype = 'STMAS'
     else : exptype = None
     dataset = CURDATA()
-    scalef1sheared(F2toF1=args.F2toF1, exptype=exptype, dataset=dataset)
+    scalef1sheared(F2toF1=args.f2copy, channel=args.channel, exptype=exptype, fold=args.nfold, dataset=dataset)
