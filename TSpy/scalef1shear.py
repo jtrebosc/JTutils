@@ -211,12 +211,12 @@ def scalef1sheared(F2toF1=False, channel=None, exptype=None, fold=None, dataset=
     # according to new new SFO
     # SF: seems to be fully independant
 
-    # for scale to be OK after reprocessing: store modified acq parameters
-    dtst.writeacqpar("NUC1", nuciso, dimension=2, status=True)
-    dtst.writeacqpar("BF1", bf, dimension=2, status=True)
-    dtst.writeacqpar("SFO1", sfo, dimension=2, status=True)
-    dtst.writeacqpar("O1", o, dimension=2, status=True)
-    dtst.writeacqpar("SW", newSW, dimension=2, status=True)
+#    # for scale to be OK after reprocessing: store modified acq parameters
+#    dtst.writeacqpar("NUC1", nuciso, dimension=2, status=True)
+#    dtst.writeacqpar("BF1", bf, dimension=2, status=True)
+#    dtst.writeacqpar("SFO1", sfo, dimension=2, status=True)
+#    dtst.writeacqpar("O1", o, dimension=2, status=True)
+#    dtst.writeacqpar("SW", newSW, dimension=2, status=True)
     # for current spectrum to look OK : stores modified proc parameters
     # from acqu and proc parameters
     si   = dtst.readprocpar("FTSIZE", dimension=2, status=True)
